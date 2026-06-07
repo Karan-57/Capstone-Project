@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NagarVoice — Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+        }
+        
+        .card {
+            background: #1e2530;
+            border: 1px solid #2d3748;
+        }
+        
+        .input-field {
+            background: #2a3344;
+            border: 1px solid #3a4a60;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            width: 100%;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .input-field::placeholder {
+            color: #5a6a80;
+        }
+        
+        .input-field:focus {
+            border-color: #4a90d9;
+        }
+        
+        .btn-primary {
+            background: #2d3a4a;
+            border: 1px solid #3d4e62;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 13px;
+            width: 100%;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: #374555;
+        }
+        
+        .btn-google {
+            background: transparent;
+            border: 1px solid #3d4e62;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 13px;
+            width: 100%;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+        
+        .btn-google:hover {
+            background: #2a3344;
+        }
+        
+        .tab-active {
+            color: #e2e8f0;
+            border-bottom: 2px solid #4a90d9;
+            font-weight: 500;
+        }
+        
+        .tab-inactive {
+            color: #5a6a80;
+            border-bottom: 2px solid transparent;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center" style="background:#141b25">
+
+    <div class="card rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl">
+
+        <!-- Brand -->
+        <div class="px-8 pt-8 pb-5">
+            <div class="flex items-center gap-2 mb-1">
+                <svg class="w-5 h-5" fill="#4a90d9" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                <span class="text-white text-xl font-semibold tracking-tight">NagarVoice</span>
+            </div>
+            <p id="tagline" class="text-sm" style="color:#5a6a80">Report. Vote. Resolve.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex px-8 gap-6 border-b" style="border-color:#2d3748">
+            <button onclick="showTab('login')" id="tab-login" class="pb-3 text-sm tab-active transition-all">Login</button>
+            <button onclick="showTab('signup')" id="tab-signup" class="pb-3 text-sm tab-inactive transition-all">Register</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="form-login" class="px-8 py-6 flex flex-col gap-3">
+            <input class="input-field" type="email" placeholder="Email address" value="vedantpatil.vp6460@gmail.com" />
+            <input class="input-field" type="password" placeholder="Password" />
+            <input class="input-field" type="tel" placeholder="Phone number" value="08208166820" />
+            <div class="mt-1 flex flex-col gap-2">
+                <button class="btn-primary">Login</button>
+                <button class="btn-google">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.85L38.3 6.18C34.6 2.86 29.6 1 24 1 14.82 1 7.02 6.48 3.35 14.26l7.08 5.5C12.1 13.26 17.59 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.64-.15-3.22-.42-4.75H24v9h12.64c-.55 2.97-2.22 5.48-4.73 7.17l7.28 5.65C43.44 37.26 46.5 31.34 46.5 24.5z"/><path fill="#FBBC05" d="M10.43 28.24A14.6 14.6 0 0 1 9.5 24c0-1.47.25-2.9.63-4.24l-7.08-5.5A23.9 23.9 0 0 0 1 24c0 3.86.93 7.5 2.35 10.74l7.08-5.5z"/><path fill="#34A853" d="M24 47c5.6 0 10.6-1.85 14.19-5.08l-7.28-5.65C29.03 37.58 26.62 38.5 24 38.5c-6.41 0-11.9-3.76-13.57-9.26l-7.08 5.5C7.02 41.52 14.82 47 24 47z"/></svg>
+          Continue with Google
+        </button>
+            </div>
+            <p class="text-center text-sm mt-1" style="color:#5a6a80">
+                Don't have an account?
+                <button onclick="showTab('signup')" class="ml-1" style="color:#4a90d9">Register</button>
+            </p>
+        </div>
+
+        <!-- SIGNUP FORM -->
+        <div id="form-signup" class="px-8 py-6 flex flex-col gap-3 hidden">
+            <input class="input-field" type="text" placeholder="Full name" value="Patil Vedant Santosh" />
+            <input class="input-field" type="email" placeholder="Email address" value="vedantpatil.vp6460@gmail.com" />
+            <input class="input-field" type="tel" placeholder="Phone number" value="08208166820" />
+            <input class="input-field" type="password" placeholder="Password" value="1234" />
+            <div class="mt-1 flex flex-col gap-2">
+                <button class="btn-primary">Create account</button>
+                <button class="btn-google">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.14 0 5.95 1.08 8.17 2.85L38.3 6.18C34.6 2.86 29.6 1 24 1 14.82 1 7.02 6.48 3.35 14.26l7.08 5.5C12.1 13.26 17.59 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.64-.15-3.22-.42-4.75H24v9h12.64c-.55 2.97-2.22 5.48-4.73 7.17l7.28 5.65C43.44 37.26 46.5 31.34 46.5 24.5z"/><path fill="#FBBC05" d="M10.43 28.24A14.6 14.6 0 0 1 9.5 24c0-1.47.25-2.9.63-4.24l-7.08-5.5A23.9 23.9 0 0 0 1 24c0 3.86.93 7.5 2.35 10.74l7.08-5.5z"/><path fill="#34A853" d="M24 47c5.6 0 10.6-1.85 14.19-5.08l-7.28-5.65C29.03 37.58 26.62 38.5 24 38.5c-6.41 0-11.9-3.76-13.57-9.26l-7.08 5.5C7.02 41.52 14.82 47 24 47z"/></svg>
+          Sign up with Google
+        </button>
+            </div>
+            <p class="text-center text-sm mt-1" style="color:#5a6a80">
+                Already have an account?
+                <button onclick="showTab('login')" class="ml-1" style="color:#4a90d9">Login</button>
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        function showTab(tab) {
+            const isLogin = tab === 'login';
+            document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+            document.getElementById('form-signup').classList.toggle('hidden', isLogin);
+            document.getElementById('tab-login').className = `pb-3 text-sm transition-all ${isLogin ? 'tab-active' : 'tab-inactive'}`;
+            document.getElementById('tab-signup').className = `pb-3 text-sm transition-all ${!isLogin ? 'tab-active' : 'tab-inactive'}`;
+            document.getElementById('tagline').textContent = isLogin ? 'Report. Vote. Resolve.' : 'Join your community';
+        }
+    </script>
+
+</body>
+
+</html>
