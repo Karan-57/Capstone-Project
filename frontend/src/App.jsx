@@ -17,6 +17,9 @@ function App() {
       <h1>
         {data}
       </h1>
+      <h1>
+        test
+      </h1>
     </main>
   )
 }
