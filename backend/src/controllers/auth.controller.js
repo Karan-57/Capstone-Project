@@ -122,21 +122,34 @@ async function loginUserController(req,res){
  * @description logout a user and then add token to blacklist
  * @access Public
  */
-async function logoutUserController(req,res){
-    const token = req.cookies.token;
+export async function logoutUser(req, res){ 
+    
+    const refreshToken = req.cookies.refreshToken;
 
-    if(!token){
+    if(!refreshToken){
+        return res.status(400).json({message:"refresh token not found"});
+    }
+
+    const refreshTokenHash = await bcrypt.hash(refreshToken,10);
+
+    const session = await sessionModel.findOne({
+        refreshTokenHash,
+        revoked:false
+    });
+
+    if(!session){
         return res.status(400).json({
-            message:"token not found"
+            message:"Invalid refresh token"
         });
     }
 
-    // await blacklistModel.create({token});
+    session.revoked = true;
+    await session.save();
 
-    res.clearCookie("token");
-
+    res.clearCookie('refreshToken');
+    
     res.status(200).json({
-        message:"user logged out"
+        message:"user logged out successfully"
     });
 }
 
@@ -190,6 +203,66 @@ export async function verifyEmailController(req,res){
     await otpModel.deleteMany({email, otpHash});
 
     res.status(200).json({message:"user verified successfully"});
+}
+
+/**
+ * @name refreshToken
+ * @description to refresh access token using refresh token
+ * @access Public
+ */
+
+export async function refreshToken(req,res){
+    const refreshToken = req.cookies.refreshToken;
+
+    if(!refreshToken){
+        return res.status(401).json({message:"refresh token not found"});
+    }
+
+    const decoded = jwt.verify(refreshToken, config.JWT_SECRET); 
+
+    const refreshTokenHash = await bcrypt.hash(refreshToken,10);
+
+    const session = await sessionModel.findOne({
+        refreshTokenHash,
+        revoked:false
+    });
+
+    if(!session){
+        return res.status(401).json({
+            message:"invalid refresh Token"
+        });
+    }
+
+    const accessToken = jwt.sign({
+        id:decoded.id,
+        session:session._id
+    },
+    config.JWT_SECRET,{
+        expiresIn:'15m'
+    });
+
+    const newRefreshToken = jwt.sign({
+        id:decoded.id,
+    },config.JWT_SECRET,{
+        expiresIn:'7d'
+    });
+
+    const newRefreshTokenHash = await bcrypt.hash(newRefreshToken,10);
+
+    session.refreshTokenHash = newRefreshTokenHash;
+    await session.save();
+
+    res.cookie('refreshToken',newRefreshToken,{
+        httpOnly:true,
+        secure:true,
+        sameSite:"strict",
+        maxAge:7*24*60*60*1000
+    });
+
+    res.status(200).json({
+        message:"access token refershed",
+        accessToken
+    });
 }
 
 module.exports = {registerUserController, loginUserController, logoutUserController, getMeController, verifyEmailController}
