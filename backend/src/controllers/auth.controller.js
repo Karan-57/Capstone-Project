@@ -158,4 +158,38 @@ async function getMeController(req,res){
     });
 }
 
-module.exports = {registerUserController, loginUserController, logoutUserController, getMeController}
+/**
+ * @name verifyEmailController
+ * @description to get current user info
+ * @access Public
+ */
+export async function verifyEmailController(req,res){
+    const {otp, email} = req.body;
+
+    if(!otp || !email){
+        return res.status(400).json({
+            message:"otp and email is required"
+        });
+    }
+
+    const otpHash = await bcrypt.hash(otp,10);
+
+    const otpDoc = await otpModel.findOne({
+        email,
+        otpHash
+    });
+
+    if(!otpDoc){
+        return res.status(400).json({
+            message:"invalid otp"
+        });
+    }
+
+    const user = await userModel.findByIdAndUpdate(otpDoc.user,{verified:true});
+
+    await otpModel.deleteMany({email, otpHash});
+
+    res.status(200).json({message:"user verified successfully"});
+}
+
+module.exports = {registerUserController, loginUserController, logoutUserController, getMeController, verifyEmailController}
