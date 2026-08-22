@@ -33,4 +33,12 @@ authRouter.get('/logout',authController.logoutUserController);
  */
 authRouter.get('/get-me',authMiddleware.authUser,authController.getMeController);
 
+/**
+ * @route GET api/auth/verify-email
+ * @description to verify user email
+ * @access Private   
+ */
+
+authRouter.post('/verify-email',authController.verifyEmailController);
+
 module.exports = authRouter;
