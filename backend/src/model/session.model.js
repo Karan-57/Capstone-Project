@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
 const sessionSchema = new mongoose.Schema({
     user:{
@@ -28,4 +28,4 @@ const sessionSchema = new mongoose.Schema({
 
 const sessionModel = mongoose.model('session', sessionSchema);
 
-export default sessionModel;
+module.exports = sessionModel;

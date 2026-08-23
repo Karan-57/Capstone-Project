@@ -2,6 +2,10 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
     
 const userModel = require('../models/user.model')
+const config = require('../config/config')
+const otpModel = require('../model/otp.model')
+const sessionModel = require('../model/session.model')
+const {sendEmail} = require('../services/email.sevice.js');
 // const blacklistModel = require('../models/blacklist.model')
 
 
@@ -11,51 +15,57 @@ const userModel = require('../models/user.model')
  * @access Public
  */
 
-async function registerUserController(req,res){
-    const {email, username, password} = req.body;
+export async function registerUserController(req,res){
+    const {username, email, password} = req.body;
     
-    if(!email || !username || !password){
+    if(!username || !email || !password){
         return res.status(400).json({
-            message:"username, email & password is required"
+            message: "username, email and password are required"
         });
     }
 
-    const userAlreadyExists = await userModel.findOne({
+    const alreadyExists = await userModel.findOne({
         $or:[
-            {email},
-            {username}
+            {username},
+            {email}
         ]
     });
 
-    if(userAlreadyExists){
-        return res.status(400).json({
-            message:"user with this email and password already exists"
+    if(alreadyExists){
+        res.status(409).json({
+            message:"username or email already exists"
         });
     }
 
-    const passwordHash = await bcrypt.hash(password,10);
+    const hashedPassword = bcrypt.hash(password,10);
 
     const user = await userModel.create({
-        email,
         username,
-        password:passwordHash
+        email,
+        password:hashedPassword
     });
 
-    const token = jwt.sign({id:user._id, username:user.username},process.env.JWT_SECRET,{expiresIn:"1d"});
+    const otp = generateOTP();
+    const html = generateOTPEmailHTML(otp);
 
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 24 * 60 * 60 * 1000
-    });
+    const otpHash = bcrypt.hash(otp, 10);
 
+    await otpModel.create({
+        email,
+        user: user._id,
+        otpHash
+    })
+    
+    await sendEmail(email,"Otp verification",`Your otp is ${otp}`,html);
+    
+    
+    
     res.status(201).json({
         message:"user registered successfully",
         user:{
-            id:user._id,
-            username:user.username,
-            email:user.email
+            username: user.username,
+            email: user.email,
+            verified: user.verified
         }
     });
 }
