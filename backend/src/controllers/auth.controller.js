@@ -176,6 +176,8 @@ async function getMeController(req,res){
  * @description to get current user info
  * @access Public
  */
+
+//incomplete function
 export async function verifyEmailController(req,res){
     const {otp, email} = req.body;
 
