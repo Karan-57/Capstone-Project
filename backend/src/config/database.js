@@ -1,6 +1,6 @@
-import mongoose from 'mongoose'
+const mongoose = require('mongoose');
 
-import config from './config.js'
+const config = require('./config');
 
 async function connectDB() {
     try{
@@ -12,4 +12,4 @@ async function connectDB() {
     }
 }
 
-export default connectDB;
+module.exports = connectDB;

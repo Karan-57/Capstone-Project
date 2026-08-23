@@ -15,7 +15,7 @@ const {sendEmail} = require('../services/email.sevice.js');
  * @access Public
  */
 
-export async function registerUserController(req,res){
+async function registerUserController(req,res){
     const {username, email, password} = req.body;
     
     if(!username || !email || !password){
@@ -132,7 +132,7 @@ async function loginUserController(req,res){
  * @description logout a user and then add token to blacklist
  * @access Public
  */
-export async function logoutUser(req, res){ 
+async function logoutUser(req, res){ 
     
     const refreshToken = req.cookies.refreshToken;
 
@@ -188,7 +188,7 @@ async function getMeController(req,res){
  */
 
 //incomplete function
-export async function verifyEmailController(req,res){
+async function verifyEmailController(req,res){
     const {otp, email} = req.body;
 
     if(!otp || !email){
@@ -223,7 +223,7 @@ export async function verifyEmailController(req,res){
  * @access Public
  */
 
-export async function refreshToken(req,res){
+async function refreshToken(req,res){
     const refreshToken = req.cookies.refreshToken;
 
     if(!refreshToken){
