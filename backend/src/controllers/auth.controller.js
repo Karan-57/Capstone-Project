@@ -5,8 +5,9 @@ const userModel = require('../model/user.model')
 const config = require('../config/config')
 const otpModel = require('../model/otp.model')
 const sessionModel = require('../model/session.model')
-const {sendEmail} = require('../services/email.service.js');
-// const blacklistModel = require('../models/blacklist.model')
+const {sendEmail} = require('../services/email.service.js')
+const tokenBlacklistModel = require('../models/tokenBlacklist.model')
+
 
 
 /**
