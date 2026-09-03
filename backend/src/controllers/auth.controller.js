@@ -7,8 +7,9 @@ const otpModel = require('../model/otp.model')
 const sessionModel = require('../model/session.model')
 const {sendEmail} = require('../services/email.service.js')
 const tokenBlacklistModel = require('../model/tokenBlacklist.model.js')
+const { generateOTP, generateOTPEmailHTML } = require('../utils/util.js')
 
-import { generateOTP, generateOTPEmailHTML } from '../utils/util.js';
+
 
 
 
@@ -35,7 +36,7 @@ async function registerUserController(req,res){
     });
 
     if(alreadyExists){
-        res.status(409).json({
+        return res.status(409).json({
             message:"username or email already exists"
         });
     }
@@ -51,7 +52,7 @@ async function registerUserController(req,res){
     const otp = generateOTP();
     const html = generateOTPEmailHTML(otp);
 
-    const otpHash = await bcrypt.hash(otp,10    );
+    const otpHash = await bcrypt.hash(otp,10);
 
     await otpModel.create({
         email,
@@ -98,7 +99,6 @@ async function loginUserController(req, res){
         });
     }
 
-    const hashedPassword = await bcrypt.hash(password,10);
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 

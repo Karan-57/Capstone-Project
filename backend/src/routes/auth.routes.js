@@ -1,7 +1,7 @@
-const {Router} = require('express')
+const { Router } = require('express');
 
-const authController = require('../controllers/auth.controller')
-const authMiddleware = require('../middlewares/auth.middleware')
+const authController = require('../controllers/auth.controller');
+const authMiddleware = require('../middleware/auth.middleware');
 
 const authRouter = Router();
 
@@ -10,35 +10,41 @@ const authRouter = Router();
  * @description register new user
  * @access Public
  */
-authRouter.post('/register',authController.registerUserController);
+authRouter.post('/register', authController.registerUserController);
 
 /**
  * @route POST api/auth/login
  * @description login a user
  * @access Public
  */
-authRouter.post('/login',authController.loginUserController);
+authRouter.post('/login', authController.loginUserController);
 
 /**
  * @route GET api/auth/logout
  * @description logout a user
  * @access Public   
  */
-authRouter.get('/logout',authController.logoutUserController);
+authRouter.get('/logout', authController.logoutUserController);
 
 /**
  * @route GET api/auth/get-me
  * @description to get user info
- * @access Public   
- */
-authRouter.get('/get-me',authMiddleware.authUser,authController.getMeController);
-
-/**
- * @route GET api/auth/verify-email
- * @description to verify user email
  * @access Private   
  */
+authRouter.get('/get-me', authMiddleware.authUser, authController.getMeController);
 
-authRouter.post('/verify-email',authController.verifyEmailController);
+/**
+ * @route POST api/auth/verify-email
+ * @description to verify user email
+ * @access Public   
+ */
+authRouter.post('/verify-email', authController.verifyEmailController);
+
+/**
+ * @route POST api/auth/refresh-token
+ * @description refresh access token using refresh token
+ * @access Public
+ */
+authRouter.post('/refresh-token', authController.refreshToken);
 
 module.exports = authRouter;

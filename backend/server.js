@@ -1,5 +1,10 @@
 const app = require('./src/app');
+const connectDB = require('./src/config/database');
+const config = require('./src/config/config');
 
-app.listen(3000,()=>{
-    console.log(`server running on port 3000 http://localhost:3000`);
+connectDB();
+
+const PORT = config.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} http://localhost:${PORT}`);
 });
