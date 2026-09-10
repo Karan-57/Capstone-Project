@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/common/Sidebar';
 import Header from '../components/common/Header';
+import { useAuth } from '../context/AuthContext';
 
 export const CreatorLayout = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const { role, setRole } = useAuth();
+
+  useEffect(() => {
+    if (role !== 'creator') {
+      setRole('creator');
+    }
+  }, [role, setRole]);
 
   return (
     <div className="flex min-h-screen bg-[#07090E] text-slate-100">
       {/* Left Sidebar */}
-      <Sidebar />
+      <Sidebar role="creator" />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <Header onSearchChange={setSearchQuery} />
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+        <Header role="creator" onSearchChange={setSearchQuery} />
+        <main className="flex-1 px-6 md:px-8 py-6 md:py-8 overflow-y-auto max-w-7xl mx-auto w-full">
           <Outlet context={{ searchQuery }} />
         </main>
       </div>

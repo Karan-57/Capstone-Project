@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   FolderGit2,
@@ -19,13 +19,16 @@ import {
 import CollaboLogo from '../../assets/logos/CollaboLogo';
 import { useAuth } from '../../context/AuthContext';
 
-export const Sidebar = () => {
-  const { role, setRole, logout } = useAuth();
+export const Sidebar = ({ role: propRole }) => {
+  const { role: contextRole, setRole, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const role = propRole || (location.pathname.startsWith('/editor') ? 'editor' : (location.pathname.startsWith('/creator') ? 'creator' : contextRole));
 
   const handleLogout = () => {
     logout();
-    navigate('/auth/creator-login');
+    navigate('/login');
   };
 
   const creatorNavItems = [
@@ -72,17 +75,29 @@ export const Sidebar = () => {
         </div>
 
         {/* Role Mode Chip Banner */}
-        <div className="mb-5 p-2.5 rounded-xl bg-purple-950/30 border border-purple-800/30 flex items-center justify-between">
+        <div className={`mb-5 p-2.5 rounded-xl border flex items-center justify-between transition-colors ${
+          role === 'creator'
+            ? 'bg-purple-950/30 border-purple-800/30'
+            : 'bg-blue-950/30 border-blue-800/30'
+        }`}>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span>
-            <span className="text-xs font-semibold uppercase tracking-wider text-purple-200">
+            <span className={`w-2 h-2 rounded-full animate-pulse ${
+              role === 'creator' ? 'bg-purple-400' : 'bg-blue-400'
+            }`}></span>
+            <span className={`text-xs font-semibold uppercase tracking-wider ${
+              role === 'creator' ? 'text-purple-200' : 'text-blue-200'
+            }`}>
               {role === 'creator' ? 'Creator Space' : 'Editor Pro'}
             </span>
           </div>
           <button
             onClick={handleRoleSwitch}
             title={`Switch to ${role === 'creator' ? 'Editor' : 'Creator'} View`}
-            className="flex items-center gap-1 text-[11px] text-purple-300 hover:text-white bg-purple-800/40 hover:bg-purple-700/60 px-2 py-1 rounded-lg transition-colors border border-purple-500/20"
+            className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg transition-colors border ${
+              role === 'creator'
+                ? 'text-purple-300 hover:text-white bg-purple-800/40 hover:bg-purple-700/60 border-purple-500/20'
+                : 'text-blue-300 hover:text-white bg-blue-800/40 hover:bg-blue-700/60 border-blue-500/20'
+            }`}
           >
             <RefreshCw className="w-3 h-3" />
             Switch
@@ -100,7 +115,9 @@ export const Sidebar = () => {
                 className={({ isActive }) =>
                   `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-purple-700 text-white shadow-lg shadow-purple-900/30 font-semibold'
+                      ? role === 'creator'
+                        ? 'bg-purple-700 text-white shadow-lg shadow-purple-900/30 font-semibold'
+                        : 'bg-blue-600 text-white shadow-lg shadow-blue-900/30 font-semibold'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
                   }`
                 }
@@ -110,7 +127,11 @@ export const Sidebar = () => {
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
-                  <span className="px-1.5 py-0.5 text-[11px] font-semibold bg-purple-500/30 text-purple-300 rounded-md border border-purple-400/20">
+                  <span className={`px-1.5 py-0.5 text-[11px] font-semibold rounded-md border ${
+                    role === 'creator'
+                      ? 'bg-purple-500/30 text-purple-300 border-purple-400/20'
+                      : 'bg-blue-500/30 text-blue-300 border-blue-400/20'
+                  }`}>
                     {item.badge}
                   </span>
                 )}

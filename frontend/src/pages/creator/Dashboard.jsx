@@ -29,7 +29,7 @@ export const CreatorDashboard = () => {
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
       {/* SECTION 1: Top Quick Stats (4 cards matching the reference image) */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatsCard
           icon={FolderKanban}
           iconBg="bg-blue-600/20 text-blue-400 border border-blue-500/25"
@@ -68,7 +68,7 @@ export const CreatorDashboard = () => {
       <QuickActions />
 
       {/* SECTION 2 & 4: Middle Grid (Recent Projects + My Applications) */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5.5">
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Recent Projects (Col 5) */}
         <div className="lg:col-span-5">
           <ActiveProjects projects={creatorProjects} />
@@ -84,14 +84,14 @@ export const CreatorDashboard = () => {
       </section>
 
       {/* SECTION 8, 5, 6: Bottom Grid (Reviews & Rating + Messages + Earnings Overview) */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-5.5">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left: Reviews & Rating */}
         <div className="h-full">
           <ReviewsAndRating />
         </div>
 
         {/* Center: Messages Preview */}
-        <div className="glass-card p-5.5 flex flex-col justify-between h-full">
+        <div className="glass-card p-6 flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-3.5">
               <h3 className="text-base font-semibold text-white tracking-tight">

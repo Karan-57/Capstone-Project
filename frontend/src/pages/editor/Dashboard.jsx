@@ -39,7 +39,7 @@ export const EditorDashboard = () => {
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
       {/* Top Stats for Editor */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatsCard
           icon={Compass}
           iconBg="bg-blue-600/20 text-blue-400 border border-blue-500/25"
@@ -75,7 +75,7 @@ export const EditorDashboard = () => {
       </section>
 
       {/* Main Grid Section: In-Production Active Projects + Recommended Opportunities */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5.5">
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Active Projects in production (Col 6) */}
         <div className="lg:col-span-6">
           <ActiveProjects projects={editorActive} />
@@ -88,7 +88,7 @@ export const EditorDashboard = () => {
       </section>
 
       {/* Bottom Grid: Deliveries + Earnings Overview + Daily Tasks & Messages */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-5.5">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Upcoming Deliveries */}
         <div className="h-full">
           <UpcomingDeliveries />
@@ -100,7 +100,7 @@ export const EditorDashboard = () => {
         </div>
 
         {/* Daily Tasks & Client Feedback Preview */}
-        <div className="glass-card p-5.5 flex flex-col justify-between h-full">
+        <div className="glass-card p-6 flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">

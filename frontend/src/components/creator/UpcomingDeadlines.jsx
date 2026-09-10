@@ -30,7 +30,7 @@ export const UpcomingDeadlines = () => {
   ];
 
   return (
-    <div className="glass-card p-5.5 flex flex-col justify-between">
+    <div className="glass-card p-6 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-3.5">
           <h3 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">

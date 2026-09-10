@@ -11,7 +11,7 @@ export const StatsCard = ({
   subtitle = 'this month'
 }) => {
   return (
-    <div className="glass-card p-5 flex items-center gap-4.5 hover:border-purple-500/30 transition-all duration-200 group">
+    <div className="glass-card p-5 sm:p-6 flex items-center gap-4 hover:border-purple-500/30 transition-all duration-200 group">
       {/* Icon Badge */}
       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${iconBg} group-hover:scale-105 transition-transform duration-200`}>
         {Icon && (React.isValidElement(Icon) ? (

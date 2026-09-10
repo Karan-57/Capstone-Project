@@ -7,7 +7,7 @@ export const ActiveProjects = ({ projects = [] }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
+    <div className="glass-card p-6 flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>

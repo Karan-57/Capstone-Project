@@ -13,7 +13,7 @@ export const EarningsOverview = ({ total = '₹45,000', subtitle = 'Total Earnin
   const areaPath = `${linePath} L 350 135 L 10 135 Z`;
 
   return (
-    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
+    <div className="glass-card p-6 flex flex-col justify-between h-full">
       {/* Header with Title and Dropdown */}
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-base font-semibold text-white tracking-tight">
