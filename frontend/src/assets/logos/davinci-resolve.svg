@@ -1,0 +1,93 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Radial Gradients for 3 Petals -->
+    <radialGradient id="dvSvgBlueGrad" cx="32.14" cy="28.27" fx="32.14" fy="28.27" r="8" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1.058 0.089 -0.165 1.957 2.79 -28.12)">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="25%" stop-color="#38bdf8" />
+      <stop offset="70%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </radialGradient>
+    <radialGradient id="dvSvgRedGrad" cx="34.08" cy="33.65" fx="34.08" fy="33.65" r="8" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1.903 0.760 -0.406 1.017 -17.11 -25.82)">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="22%" stop-color="#fb7185" />
+      <stop offset="65%" stop-color="#f43f5e" />
+      <stop offset="100%" stop-color="#be123c" />
+    </radialGradient>
+    <radialGradient id="dvSvgYellowGrad" cx="29.66" cy="35.66" fx="29.66" fy="35.66" r="8" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-1.724 1.149 -0.522 -0.783 99.58 27.60)">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="22%" stop-color="#fef08a" />
+      <stop offset="65%" stop-color="#facc15" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </radialGradient>
+
+    <!-- Dark Disc Gradient -->
+    <radialGradient id="dvSvgDiscGrad" cx="50" cy="46" r="46" fx="50" fy="46" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#363942" />
+      <stop offset="65%" stop-color="#252730" />
+      <stop offset="100%" stop-color="#17181f" />
+    </radialGradient>
+
+    <!-- Top Specular Sheen Gradient -->
+    <linearGradient id="dvSvgSheenGrad" x1="50" y1="4" x2="50" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- 12 Rainbow Arc Gradients -->
+    <linearGradient id="dvSeg0" x1="50" y1="3" x2="73.5" y2="9.3" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00d2ff"/><stop offset="100%" stop-color="#0088ff"/></linearGradient>
+    <linearGradient id="dvSeg1" x1="73.5" y1="9.3" x2="90.7" y2="26.5" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#0088ff"/><stop offset="100%" stop-color="#0040ff"/></linearGradient>
+    <linearGradient id="dvSeg2" x1="90.7" y1="26.5" x2="97" y2="50" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#0040ff"/><stop offset="100%" stop-color="#7000ff"/></linearGradient>
+    <linearGradient id="dvSeg3" x1="97" y1="50" x2="90.7" y2="73.5" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#7000ff"/><stop offset="100%" stop-color="#d500aa"/></linearGradient>
+    <linearGradient id="dvSeg4" x1="90.7" y1="73.5" x2="73.5" y2="90.7" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#d500aa"/><stop offset="100%" stop-color="#ff0055"/></linearGradient>
+    <linearGradient id="dvSeg5" x1="73.5" y1="90.7" x2="50" y2="97" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff0055"/><stop offset="100%" stop-color="#ff1a24"/></linearGradient>
+    <linearGradient id="dvSeg6" x1="50" y1="97" x2="26.5" y2="90.7" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff1a24"/><stop offset="100%" stop-color="#ff5500"/></linearGradient>
+    <linearGradient id="dvSeg7" x1="26.5" y1="90.7" x2="9.3" y2="73.5" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff5500"/><stop offset="100%" stop-color="#ff9900"/></linearGradient>
+    <linearGradient id="dvSeg8" x1="9.3" y1="73.5" x2="3" y2="50" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ff9900"/><stop offset="100%" stop-color="#ffea00"/></linearGradient>
+    <linearGradient id="dvSeg9" x1="3" y1="50" x2="9.3" y2="26.5" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ffea00"/><stop offset="100%" stop-color="#66dd00"/></linearGradient>
+    <linearGradient id="dvSeg10" x1="9.3" y1="26.5" x2="26.5" y2="9.3" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#66dd00"/><stop offset="100%" stop-color="#00e577"/></linearGradient>
+    <linearGradient id="dvSeg11" x1="26.5" y1="9.3" x2="50" y2="3" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00e577"/><stop offset="100%" stop-color="#00d2ff"/></linearGradient>
+  </defs>
+
+  <!-- Rainbow Rim Arcs -->
+  <g stroke-width="4.2" fill="none" stroke-linecap="round">
+    <path d="M 50 3 A 47 47 0 0 1 73.5 9.3" stroke="url(#dvSeg0)" />
+    <path d="M 73.5 9.3 A 47 47 0 0 1 90.7 26.5" stroke="url(#dvSeg1)" />
+    <path d="M 90.7 26.5 A 47 47 0 0 1 97 50" stroke="url(#dvSeg2)" />
+    <path d="M 97 50 A 47 47 0 0 1 90.7 73.5" stroke="url(#dvSeg3)" />
+    <path d="M 90.7 73.5 A 47 47 0 0 1 73.5 90.7" stroke="url(#dvSeg4)" />
+    <path d="M 73.5 90.7 A 47 47 0 0 1 50 97" stroke="url(#dvSeg5)" />
+    <path d="M 50 97 A 47 47 0 0 1 26.5 90.7" stroke="url(#dvSeg6)" />
+    <path d="M 26.5 90.7 A 47 47 0 0 1 9.3 73.5" stroke="url(#dvSeg7)" />
+    <path d="M 9.3 73.5 A 47 47 0 0 1 3 50" stroke="url(#dvSeg8)" />
+    <path d="M 3 50 A 47 47 0 0 1 9.3 26.5" stroke="url(#dvSeg9)" />
+    <path d="M 9.3 26.5 A 47 47 0 0 1 26.5 9.3" stroke="url(#dvSeg10)" />
+    <path d="M 26.5 9.3 A 47 47 0 0 1 50 3" stroke="url(#dvSeg11)" />
+  </g>
+
+  <!-- Inner Dark Charcoal Disc -->
+  <circle cx="50" cy="50" r="44.5" fill="url(#dvSvgDiscGrad)" stroke="#1a1c22" stroke-width="0.5" />
+
+  <!-- Specular Sheen -->
+  <path d="M 6.5 50 A 44.5 44.5 0 0 1 93.5 50 Z" fill="url(#dvSvgSheenGrad)" />
+
+  <!-- Centered DaVinci Petals -->
+  <g transform="translate(50, 50) scale(1.26) translate(-32.5, -31.5)">
+    <!-- Top Cyan/Blue Petal -->
+    <path
+      d="m 25.002653,20.382103 c -0.0196,0.514484 0.0718,1.076908 0.223374,1.639464 0.28878,1.070354 0.76738,2.051108 1.331754,2.977508 1.28567,2.106696 2.906202,3.910326 4.664468,5.584894 0.144,0.13766 0.315414,0.253896 0.498968,0.342532 0.18382,0.0956 0.367372,0.0956 0.557324,0.0136 0.18356,-0.08194 0.347788,-0.19858 0.485652,-0.350044 0.610196,-0.63085 1.213344,-1.262652 1.790902,-1.914668 0.813336,-0.9264 1.587896,-1.879432 2.28987,-2.901844 0.63683,-0.926264 1.20721,-1.900738 1.62667,-2.957296 0.419462,-1.050136 0.623384,-2.133326 0.485652,-3.272238 -0.22964,-1.879324 -0.99689,-3.471671 -2.368332,-4.720254 -1.621578,-1.473935 -3.510396,-2.064083 -5.636032,-1.735343 -3.45726,0.53579 -5.963586,3.719255 -5.95027,7.293465 z"
+      fill="url(#dvSvgBlueGrad)"
+    />
+
+    <!-- Bottom-Right Coral/Red Petal -->
+    <path
+      d="m 42.894854,45.998033 c -0.435154,0.0132 -0.92375,-0.04062 -1.412214,-0.14436 -1.445174,-0.316356 -2.672642,-0.973434 -3.615956,-2.138388 -0.573684,-0.710394 -1.055976,-1.480258 -1.471696,-2.289948 -0.488728,-0.954048 -0.897096,-1.94805 -1.253202,-2.954234 -0.435154,-1.21709 -0.804654,-2.46077 -1.089068,-3.717812 -0.15796,-0.704236 0.0196,-1.145432 0.798484,-1.388038 0.989404,-0.309152 1.98616,-0.585556 3.00222,-0.80969 1.682184,-0.368624 3.377764,-0.605072 5.107218,-0.54678 0.488596,0.0196 0.976142,0.07204 1.458436,0.15758 1.398952,0.243786 2.58637,0.888682 3.55621,1.908228 1.656576,1.737144 2.31548,3.8099 1.90698,6.172554 -0.587076,3.376042 -3.582994,5.77747 -6.987412,5.750878 z"
+      fill="url(#dvSvgRedGrad)"
+    />
+
+    <!-- Bottom-Left Lemon/Yellow Petal -->
+    <path
+      d="m 21.105156,45.998033 c 0.435154,0.0132 0.92375,-0.04062 1.412216,-0.14436 1.445174,-0.316356 2.67264,-0.973434 3.615954,-2.138388 0.573684,-0.710394 1.055978,-1.480258 1.471698,-2.289948 0.488728,-0.954048 0.897094,-1.94805 1.253202,-2.954234 0.435154,-1.21709 0.804652,-2.46077 1.089066,-3.717812 0.15796,-0.704236 -0.0196,-1.145432 -0.798484,-1.388038 -0.989404,-0.309152 -1.986162,-0.585556 -3.002218,-0.80969 -1.682186,-0.368624 -3.377764,-0.605072 -5.107218,-0.54678 -0.488596,0.0196 -0.976144,0.07204 -1.458436,0.15758 -1.398954,0.243786 -2.586371,0.888682 -3.55621,1.908228 -1.656578,1.737144 -2.315481,3.8099 -1.906982,6.172554 0.587077,3.376042 3.582994,5.77747 6.987412,5.750878 z"
+      fill="url(#dvSvgYellowGrad)"
+    />
+  </g>
+</svg>
