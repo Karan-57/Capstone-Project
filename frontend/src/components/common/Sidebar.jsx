@@ -20,12 +20,12 @@ import CollaboLogo from '../../assets/logos/CollaboLogo';
 import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar = () => {
-  const { role, toggleRole, logout } = useAuth();
+  const { role, setRole, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/auth/creator-login');
   };
 
   const creatorNavItems = [
@@ -54,10 +54,11 @@ export const Sidebar = () => {
   const currentNavItems = role === 'creator' ? creatorNavItems : editorNavItems;
 
   const handleRoleSwitch = () => {
-    toggleRole();
     if (role === 'creator') {
+      setRole('editor');
       navigate('/editor/dashboard');
     } else {
+      setRole('creator');
       navigate('/creator/dashboard');
     }
   };

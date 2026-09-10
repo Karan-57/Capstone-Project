@@ -9,7 +9,7 @@ export const Header = ({ onSearchChange }) => {
 
   const handleCtaClick = () => {
     if (role === 'creator') {
-      navigate('/creator/projects');
+      navigate('/creator/create-project');
     } else {
       navigate('/editor/browse');
     }

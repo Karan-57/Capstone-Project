@@ -1,18 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const ProtectedRoute = ({ children, requiredRole }) => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, setRole } = useAuth();
   const location = useLocation();
 
-  if (!isAuthenticated) {
-    // Middleware redirect to unified /login
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  useEffect(() => {
+    if (requiredRole && role !== requiredRole) {
+      setRole(requiredRole);
+    }
+  }, [requiredRole, role, setRole]);
 
-  if (requiredRole && role !== requiredRole) {
-    return <Navigate to={role === 'creator' ? '/creator/dashboard' : '/editor/dashboard'} replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;

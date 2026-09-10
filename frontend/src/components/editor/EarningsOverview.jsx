@@ -50,7 +50,7 @@ export const EarningsOverview = ({ earnings }) => {
               <Button
                 variant="primary"
                 size="xs"
-                onClick={() => alert('Withdraw initiated to linked Bank Account')}
+                onClick={() => navigate('/editor/earnings?withdraw=true')}
                 className="w-full text-xs py-1"
               >
                 Withdraw Funds

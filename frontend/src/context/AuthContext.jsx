@@ -78,6 +78,8 @@ export const AuthProvider = ({ children }) => {
         setRole: (r) => {
           setRole(r);
           localStorage.setItem('collabo_role', r);
+          setIsAuthenticated(true);
+          localStorage.setItem('collabo_auth', 'true');
         },
         toggleRole,
         login,

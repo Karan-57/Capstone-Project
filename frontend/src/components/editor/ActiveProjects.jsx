@@ -76,7 +76,7 @@ export const ActiveProjects = ({ projects = [] }) => {
                   variant="subtle"
                   size="xs"
                   icon={UploadCloud}
-                  onClick={() => alert(`Open deliverable upload for: ${project.title}`)}
+                  onClick={() => navigate(`/editor/active-projects?deliver=${project.id}`)}
                   className="bg-[#1C2333] hover:bg-purple-900/30 hover:border-purple-500/40 text-purple-200"
                 >
                   Upload Cut

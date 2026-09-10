@@ -1,11 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Clock, AlertTriangle, UploadCloud } from 'lucide-react';
 import Button from '../common/Button';
 
 export const UpcomingDeliveries = () => {
+  const navigate = useNavigate();
+
   const deliveries = [
     {
       id: 'del-1',
+      projectId: 'ed-act-3',
       project: 'SaaS Product Walkthrough Demo',
       client: 'CloudFlow Labs',
       stage: 'Rough Cut v2',
@@ -14,6 +18,7 @@ export const UpcomingDeliveries = () => {
     },
     {
       id: 'del-2',
+      projectId: 'ed-act-1',
       project: 'Deep Dive: AI Revolution 2026',
       client: 'Nexus Media Corp',
       stage: 'Color & Sound Grade',
@@ -22,6 +27,7 @@ export const UpcomingDeliveries = () => {
     },
     {
       id: 'del-3',
+      projectId: 'ed-act-2',
       project: 'Viral Reel Pack (Weekly Drop)',
       client: 'Chloe Adams',
       stage: 'Dynamic Captions Pass',
@@ -75,7 +81,7 @@ export const UpcomingDeliveries = () => {
                   variant="subtle"
                   size="xs"
                   icon={UploadCloud}
-                  onClick={() => alert(`Upload delivery for ${item.project}`)}
+                  onClick={() => navigate(`/editor/active-projects?deliver=${item.projectId}`)}
                   className="bg-[#1C2333] hover:bg-[#253047] text-slate-200"
                 >
                   Deliver

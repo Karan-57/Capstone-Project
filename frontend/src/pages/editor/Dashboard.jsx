@@ -24,11 +24,17 @@ export const EditorDashboard = () => {
     editorEarnings
   } = useDashboardData();
 
-  const dailyTasks = [
+  const [tasks, setTasks] = React.useState([
     { id: 1, title: 'Export Color Grading LUT for Nexus Media Cut', time: '11:00 AM', done: true },
     { id: 2, title: 'Sync Subtitle Timestamps for Chloe Adams Reel', time: '2:30 PM', done: false },
     { id: 3, title: 'Upload Draft v1 for SaaS Product Walkthrough', time: '5:00 PM', done: false },
-  ];
+  ]);
+
+  const toggleTask = (id) => {
+    setTasks(prev => prev.map(task => task.id === id ? { ...task, done: !task.done } : task));
+  };
+
+  const completedTasks = tasks.filter(t => t.done).length;
 
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
@@ -102,27 +108,31 @@ export const EditorDashboard = () => {
                 Today's Milestones
               </h3>
               <span className="text-[11px] text-purple-300 bg-purple-950/40 px-2 py-0.5 rounded-full border border-purple-800/30">
-                1/3 Completed
+                {completedTasks}/{tasks.length} Completed
               </span>
             </div>
 
             <div className="space-y-2 mb-4">
-              {dailyTasks.map((task) => (
+              {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs transition-colors ${
+                  onClick={() => toggleTask(task.id)}
+                  className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs transition-colors cursor-pointer select-none ${
                     task.done
-                      ? 'bg-white/[0.02] border-white/[0.04] text-slate-500 line-through'
-                      : 'bg-[#141A28]/60 border-white/[0.05] text-slate-200'
+                      ? 'bg-white/[0.02] border-white/[0.04] text-slate-500'
+                      : 'bg-[#141A28]/60 border-white/[0.05] text-slate-200 hover:border-purple-500/30'
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <input
                       type="checkbox"
-                      defaultChecked={task.done}
-                      className="rounded bg-slate-800 border-white/20 text-purple-600 focus:ring-purple-500 shrink-0"
+                      checked={task.done}
+                      onChange={() => toggleTask(task.id)}
+                      className="rounded bg-slate-800 border-white/20 text-purple-600 focus:ring-purple-500 shrink-0 cursor-pointer"
                     />
-                    <span className="truncate">{task.title}</span>
+                    <span className={`truncate ${task.done ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+                      {task.title}
+                    </span>
                   </div>
                   <span className="text-[10px] text-slate-400 font-mono shrink-0">
                     {task.time}
