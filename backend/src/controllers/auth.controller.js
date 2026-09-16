@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+const crypto = require('crypto')
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
     
@@ -76,8 +76,37 @@ async function registerUserController(req, res) {
 
         await sendEmail(normalizedEmail, "OTP verification", `Your OTP is ${otp}`, html);
 
+        const refreshToken = jwt.sign(
+            { id: user._id },
+            config.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        const refreshTokenHash = hashToken(refreshToken);
+
+        const session = await sessionModel.create({
+            user: user._id,
+            refreshTokenHash,
+            ip: req.ip || req.connection?.remoteAddress || 'unknown',
+            userAgent: req.headers['user-agent'] || 'unknown'
+        });
+
+        const accessToken = jwt.sign(
+            { id: user._id, session: session._id },
+            config.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
         return res.status(201).json({
             message: "User registered successfully",
+            accessToken,
             user: {
                 id: user._id,
                 name: user.name,
@@ -272,11 +301,12 @@ async function getMeController(req, res) {
  */
 async function verifyEmailController(req, res) {
     try {
-        const { otp, email } = req.body;
+        const { otp } = req.body;
+        const email = req.user?.email || req.body?.email;
 
         if (!otp || !email) {
             return res.status(400).json({
-                message: "OTP and email are required"
+                message: "OTP is required"
             });
         }
 
@@ -307,7 +337,8 @@ async function verifyEmailController(req, res) {
             return res.status(400).json({ message: "OTP has expired. Please request a new one." });
         }
 
-        await userModel.findByIdAndUpdate(otpDoc.user, { verified: true });
+        const userId = req.user?._id || req.user?.id || otpDoc.user;
+        await userModel.findByIdAndUpdate(userId, { verified: true });
         await otpModel.deleteMany({ email: normalizedEmail });
 
         return res.status(200).json({ message: "User verified successfully" });

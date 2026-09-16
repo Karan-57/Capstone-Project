@@ -36,9 +36,9 @@ authRouter.get('/get-me', authMiddleware.authUser, authController.getMeControlle
 /**
  * @route POST api/auth/verify-email
  * @description to verify user email
- * @access Public   
+ * @access Private
  */
-authRouter.post('/verify-email', authController.verifyEmailController);
+authRouter.post('/verify-email', authMiddleware.authUser, authController.verifyEmailController);
 
 /**
  * @route POST api/auth/refresh-token
