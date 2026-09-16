@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
     
 const userModel = require('../model/user.model');
 const config = require('../config/config');
@@ -9,10 +8,6 @@ const sessionModel = require('../model/session.model');
 const { sendEmail } = require('../services/email.service.js');
 const tokenBlacklistModel = require('../model/tokenBlacklist.model.js');
 const { generateOTP, generateOTPEmailHTML } = require('../utils/utils.js');
-
-function hashToken(token) {
-    return crypto.createHash('sha256').update(token.toString()).digest('hex');
-}
 
 
 
@@ -61,7 +56,7 @@ async function registerUserController(req, res) {
 
         const otp = generateOTP();
         const html = generateOTPEmailHTML(otp);
-        const otpHash = hashToken(otp);
+        const otpHash = await bcrypt.hash(otp, 10);
 
         await otpModel.deleteMany({ email: normalizedEmail });
 
@@ -278,16 +273,22 @@ async function verifyEmailController(req, res) {
         }
 
         const normalizedEmail = email.toLowerCase().trim();
-        const otpHash = hashToken(otp.toString().trim());
 
         const otpDoc = await otpModel.findOne({
-            email: normalizedEmail,
-            otpHash
-        });
+            email: normalizedEmail
+        }).sort({ createdAt: -1 });
 
         if (!otpDoc) {
             return res.status(400).json({
                 message: "Invalid or expired OTP"
+            });
+        }
+
+        const isMatch = await bcrypt.compare(otp.toString().trim(), otpDoc.otpHash);
+
+        if (!isMatch) {
+            return res.status(400).json({
+                message: "Invalid OTP"
             });
         }
 
