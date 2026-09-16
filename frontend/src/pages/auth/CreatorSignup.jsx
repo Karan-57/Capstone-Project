@@ -1,25 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CollaboLogo from '../../assets/logos/CollaboLogo';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
 
 export const CreatorSignup = () => {
-  const [fullName, setFullName] = useState('Jason Vance');
-  const [email, setEmail] = useState('jason@studio.io');
-  const [password, setPassword] = useState('password123');
-  const { login } = useAuth();
+  const { setRole } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    login('creator', {
-      name: fullName || 'Jason Vance',
-      email: email || 'jason@studio.io',
-      role: 'creator',
-      channel: 'Tech & Lifestyle',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    });
+    setRole('creator');
     navigate('/creator/dashboard');
   };
 
@@ -42,8 +33,7 @@ export const CreatorSignup = () => {
             <label className="text-xs font-medium text-slate-300 block mb-1">Full Name / Channel</label>
             <input
               type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              defaultValue="Jason Vance"
               className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
               required
             />
@@ -53,8 +43,7 @@ export const CreatorSignup = () => {
             <label className="text-xs font-medium text-slate-300 block mb-1">Email Address</label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              defaultValue="jason@studio.io"
               className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
               required
             />
@@ -64,8 +53,7 @@ export const CreatorSignup = () => {
             <label className="text-xs font-medium text-slate-300 block mb-1">Create Password</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              defaultValue="password123"
               className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
               required
             />
