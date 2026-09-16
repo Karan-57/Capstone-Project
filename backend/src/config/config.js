@@ -2,6 +2,36 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
+if(!process.env.MONGO_URI) {
+    console.error("Missing required mongo uri variables");
+    process.exit(1);
+}
+
+if(!process.env.JWT_SECRET) {
+    console.error("Missing required jwt secret variables");
+    process.exit(1);
+}
+
+if(!process.env.GOOGLE_CLIENT_ID){
+    console.error("Missing required google client id variables");
+    process.exit(1);        
+}
+
+if(!process.env.GOOGLE_CLIENT_SECRET){  
+    console.error("Missing required google client secret variables");
+    process.exit(1);
+}   
+
+if(!process.env.GOOGLE_REFRESH_TOKEN){
+    console.error("Missing required google refresh token variables");
+    process.exit(1);
+}
+
+if(!process.env.GOOGLE_USER){
+    console.error("Missing required google user variables");
+    process.exit(1);
+}
+
 const config = {
     MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/capstone',
     JWT_SECRET: process.env.JWT_SECRET || 'capstone_jwt_secret_key_default',

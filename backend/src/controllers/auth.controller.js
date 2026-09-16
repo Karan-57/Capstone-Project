@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
     
@@ -8,6 +9,13 @@ const sessionModel = require('../model/session.model');
 const { sendEmail } = require('../services/email.service.js');
 const tokenBlacklistModel = require('../model/tokenBlacklist.model.js');
 const { generateOTP, generateOTPEmailHTML } = require('../utils/utils.js');
+
+/**
+ * Hash token using SHA-256 for secure session storage/lookup
+ */
+function hashToken(token) {
+    return crypto.createHash('sha256').update(token).digest('hex');
+}
 
 
 
@@ -238,7 +246,7 @@ async function getMeController(req, res) {
             return res.status(200).json({ user: req.user });
         }
 
-        const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
+        const token = req.cookies?.accessToken || req.cookies?.token || req.headers.authorization?.split(" ")[1];
 
         if (!token) {
             return res.status(401).json({ message: "Token not found" });
