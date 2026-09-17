@@ -214,6 +214,7 @@ async function loginUserController(req, res) {
     }
 }
 
+
 /**
  * @name logoutUserController
  * @description logout a user and revoke session
@@ -221,7 +222,7 @@ async function loginUserController(req, res) {
  */
 async function logoutUserController(req, res) {
     try {
-        const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
+        const refreshToken = req.cookies?.refreshToken;
 
         if (refreshToken) {
             const refreshTokenHash = hashToken(refreshToken);
@@ -263,6 +264,58 @@ async function logoutUserController(req, res) {
         });
     }
 }
+
+/**
+ * @name logoutAllController
+ * @description logout all sessions of user and revoke them
+ * @access Public
+ */
+async function logoutAllController(req, res) {
+    try {
+        const refreshToken = req.cookies?.refreshToken;
+
+        if (refreshToken) {
+            const sessions = await sessionModel.find({
+                user:refreshToken.id,
+                revoked: false
+            })
+
+            if(sessions.length > 0) {
+                for(const session in sessions) {
+                    session.revoked = true;
+                    await session.save();
+                }
+            }
+        }
+
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+            const accessToken = authHeader.split(" ")[1];
+            try {
+                await tokenBlacklistModel.create({ token: accessToken });
+            } catch (err) {
+                // ignore duplicate
+            }
+        }
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict"
+        });
+
+        return res.status(200).json({
+            message: "User logged out successfully from all sessions"
+        });
+    } catch (err) {
+        console.error("Error in logoutUserController:", err);
+        return res.status(500).json({
+            message: "Internal server error during logout",
+            error: err.message
+        });
+    }
+}
+
 
 /**
  * @name getMeController
@@ -352,6 +405,45 @@ async function verifyEmailController(req, res) {
 }
 
 /**
+ * @name resendOtp
+ * @description resend verification OTP to user email
+ * @access Public
+ */
+async function resendOtpController(req, res) {
+    try {
+        const user = req.user;
+        const email = req.user?.email || req.body?.email;
+        const normalizedEmail = email.toLowerCase().trim();
+
+        if(!email){
+            return res.status(400).json({
+                message: "Email is required to resend OTP"
+            });
+        }
+
+        const otp = generateOTP();
+        const html = generateOTPEmailHTML(otp);
+        const otpHash = await bcrypt.hash(otp, 10);
+
+        await otpModel.deleteMany({ email: normalizedEmail });
+
+        await otpModel.create({
+            email: normalizedEmail,
+            user: user._id,
+            otpHash
+        });
+
+        await sendEmail(normalizedEmail, "OTP verification", `Your OTP is ${otp}`, html);
+    } catch (err) {
+        console.error("Error in resendOtpController:", err);
+        return res.status(500).json({
+            message: "Internal server error during OTP resend",
+            error: err.message
+        });
+    }
+}
+
+/**
  * @name refreshToken
  * @description to refresh access token using refresh token
  * @access Public
@@ -423,7 +515,9 @@ module.exports = {
     registerUserController,
     loginUserController,
     logoutUserController,
+    logoutAllController,
     getMeController,
     verifyEmailController,
+    resendOtpController,
     refreshToken
 };
