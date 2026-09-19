@@ -1,0 +1,42 @@
+const { Router } = require('express');
+const creatorController = require('../controllers/creator.controller');
+const authMiddleware = require('../middleware/auth.middleware');
+
+const creatorRouter = Router();
+
+/**
+ * @route POST api/creator/projects
+ * @description create a new project
+ * @access Private (Creator)
+ */
+creatorRouter.post('/projects', authMiddleware.authUser, creatorController.createProjectController);
+
+/**
+ * @route GET api/creator/projects
+ * @description get all projects created by authenticated creator
+ * @access Private (Creator)
+ */
+creatorRouter.get('/projects', authMiddleware.authUser, creatorController.getMyProjectsController);
+
+/**
+ * @route PATCH api/creator/projects/:projectId
+ * @description update a project
+ * @access Private (Creator)
+ */
+creatorRouter.patch('/projects/:projectId', authMiddleware.authUser, creatorController.updateProjectController);
+
+/**
+ * @route DELETE api/creator/projects/:projectId
+ * @description delete a project
+ * @access Private (Creator)
+ */
+creatorRouter.delete('/projects/:projectId', authMiddleware.authUser, creatorController.deleteProjectController);
+
+/**
+ * @route GET api/creator/:creatorId/projects
+ * @description get all public projects of a specific creator
+ * @access Public
+ */
+creatorRouter.get('/:creatorId/projects', creatorController.getCreatorPublicProjectsController);
+
+module.exports = creatorRouter;

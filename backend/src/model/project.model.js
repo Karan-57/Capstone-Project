@@ -4,7 +4,7 @@ const projectSchema = new mongoose.Schema(
   {
     creatorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: [true, 'Creator ID is required'],
     },
     title: {
@@ -67,7 +67,7 @@ const projectSchema = new mongoose.Schema(
     },
     selectedEditorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       default: null,
     },
     aiAnalysis: {
@@ -84,5 +84,5 @@ projectSchema.index({ creatorId: 1 });
 projectSchema.index({ status: 1 });
 projectSchema.index({ category: 1 });
 
-const projectModel = mongoose.model('Project', projectSchema);
+const projectModel = mongoose.model('project', projectSchema);
 module.exports = projectModel;

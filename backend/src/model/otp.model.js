@@ -8,7 +8,7 @@ const otpSchema = new mongoose.Schema(
         },
         user: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
+            ref: "user",
             required: [true,"user is required"]
         },
         otpHash: {
@@ -21,5 +21,5 @@ const otpSchema = new mongoose.Schema(
     }
 );
 
-const otpModel = mongoose.model("OTP", otpSchema);
+const otpModel = mongoose.model("otp", otpSchema);
 module.exports = otpModel;
