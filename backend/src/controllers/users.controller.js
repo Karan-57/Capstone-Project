@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const userModel = require('../model/user.model');
 const config = require('../config/config');
+const { uploadToImageKit } = require('../services/imagekit.service');
 
 /**
  * @name getMeController
@@ -34,7 +35,7 @@ async function getMeController(req, res) {
 
 /**
  * @name updateMeController
- * @description update current user profile
+ * @description update current user profile (text details)
  * @access Private
  */
 async function updateMeController(req, res) {
@@ -48,7 +49,6 @@ async function updateMeController(req, res) {
         const allowedUpdates = [
             'name',
             'username',
-            'profileImage',
             'bio',
             'location',
             'phone',
@@ -60,7 +60,7 @@ async function updateMeController(req, res) {
 
         const updates = {};
         for (const key of allowedUpdates) {
-            if (req.body[key] !== undefined) {
+            if (req.body && req.body[key] !== undefined) {
                 updates[key] = req.body[key];
             }
         }
@@ -98,6 +98,56 @@ async function updateMeController(req, res) {
         console.error("Error in updateMeController:", err);
         return res.status(500).json({
             message: "Internal server error during profile update",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name uploadProfileImageController
+ * @description upload and update user profile image
+ * @access Private
+ */
+async function uploadProfileImageController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user ID not found" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: "Profile image file is required" });
+        }
+
+        const fileExtension = req.file.originalname.split('.').pop() || 'png';
+        const fileName = `profile_${userId}_${Date.now()}.${fileExtension}`;
+
+        const uploadResult = await uploadToImageKit(
+            req.file.buffer,
+            fileName,
+            '/Capstone-storage/profile-pictures'
+        );
+
+        const updatedUser = await userModel.findByIdAndUpdate(
+            userId,
+            { $set: { profileImage: uploadResult.url } },
+            { new: true }
+        ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({
+            message: "Profile image updated successfully",
+            profileImage: uploadResult.url,
+            user: updatedUser
+        });
+    } catch (err) {
+        console.error("Error in uploadProfileImageController:", err);
+        return res.status(500).json({
+            message: "Internal server error during profile image upload",
             error: err.message
         });
     }
@@ -168,6 +218,7 @@ async function searchUsersController(req, res) {
 module.exports = {
     getMeController,
     updateMeController,
+    uploadProfileImageController,
     getUserByIdController,
     searchUsersController
 };
