@@ -55,4 +55,18 @@ authRouter.get('/resend-otp', authMiddleware.authUser, authController.resendOtpC
  */
 authRouter.get('/refresh-token', authController.refreshToken);
 
+/**
+ * @route POST api/auth/forgot-password
+ * @description send password reset link to user's email
+ * @access Public
+ */
+authRouter.post('/forgot-password', authController.forgotPasswordController);
+
+/**
+ * @route POST api/auth/reset-password
+ * @description reset user password using token
+ * @access Public
+ */
+authRouter.post('/reset-password', authController.resetPasswordController);
+
 module.exports = authRouter;

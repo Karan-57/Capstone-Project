@@ -483,6 +483,145 @@ async function refreshToken(req, res) {
     }
 }
 
+/**
+ * @name forgotPasswordController
+ * @description send password reset link to user's email
+ * @access Public
+ */
+async function forgotPasswordController(req, res) {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Email is required"
+            });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await userModel.findOne({ email: normalizedEmail });
+
+        // Always return success response to prevent email enumeration
+        if (!user) {
+            return res.status(200).json({
+                message: "If an account with that email exists, a password reset link has been sent."
+            });
+        }
+
+        // Generate temporary reset token (15m validity)
+        const resetToken = jwt.sign(
+            { id: user._id, type: "password-reset" },
+            config.JWT_SECRET,
+            { expiresIn: "15m" }
+        );
+
+        // Placeholder link (to be updated with frontend URL later)
+        const resetLink = `http://localhost:5173/reset-password?token=${resetToken}`;
+
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+                <h2>Password Reset Request</h2>
+                <p>Hello ${user.name || user.username},</p>
+                <p>You requested to reset your password. Click the link below to set a new password:</p>
+                <p><a href="${resetLink}" style="display:inline-block; padding: 10px 20px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
+                <p>Or copy and paste this URL into your browser:</p>
+                <p>${resetLink}</p>
+                <p>This link will expire in 15 minutes.</p>
+                <p>If you didn't request this, you can safely ignore this email.</p>
+            </div>
+        `;
+
+        await sendEmail(
+            normalizedEmail,
+            "Reset Your Password",
+            `Reset your password: ${resetLink}`,
+            html
+        );
+
+        return res.status(200).json({
+            message: "If an account with that email exists, a password reset link has been sent."
+        });
+    } catch (err) {
+        console.error("Error in forgotPasswordController:", err);
+        return res.status(500).json({
+            message: "Internal server error during password reset request",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name resetPasswordController
+ * @description verify reset token and update user password
+ * @access Public
+ */
+async function resetPasswordController(req, res) {
+    try {
+        const { token, password, confirmPassword } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({
+                message: "Token and new password are required"
+            });
+        }
+
+        if (confirmPassword && password !== confirmPassword) {
+            return res.status(400).json({
+                message: "Passwords do not match"
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                message: "Password must be at least 6 characters long"
+            });
+        }
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, config.JWT_SECRET);
+        } catch (err) {
+            return res.status(400).json({
+                message: "Invalid or expired password reset link"
+            });
+        }
+
+        if (decoded.type !== "password-reset") {
+            return res.status(400).json({
+                message: "Invalid token type"
+            });
+        }
+
+        const user = await userModel.findById(decoded.id);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        // Revoke all existing sessions so old logins are terminated
+        await sessionModel.updateMany(
+            { user: user._id, revoked: false },
+            { $set: { revoked: true } }
+        );
+
+        return res.status(200).json({
+            message: "Password reset successfully. You can now login with your new password."
+        });
+    } catch (err) {
+        console.error("Error in resetPasswordController:", err);
+        return res.status(500).json({
+            message: "Internal server error during password reset",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     registerUserController,
     loginUserController,
@@ -490,5 +629,7 @@ module.exports = {
     logoutAllController,
     verifyEmailController,
     resendOtpController,
-    refreshToken
+    refreshToken,
+    forgotPasswordController,
+    resetPasswordController
 };

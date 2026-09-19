@@ -32,6 +32,78 @@ async function getMeController(req, res) {
     }
 }
 
+/**
+ * @name updateMeController
+ * @description update current user profile
+ * @access Private
+ */
+async function updateMeController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user ID not found" });
+        }
+
+        const allowedUpdates = [
+            'name',
+            'username',
+            'profileImage',
+            'bio',
+            'location',
+            'phone',
+            'skills',
+            'software',
+            'experience',
+            'portfolio'
+        ];
+
+        const updates = {};
+        for (const key of allowedUpdates) {
+            if (req.body[key] !== undefined) {
+                updates[key] = req.body[key];
+            }
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ message: "No valid fields provided for update" });
+        }
+
+        if (updates.username) {
+            const existingUsername = await userModel.findOne({
+                username: updates.username.trim(),
+                _id: { $ne: userId }
+            });
+            if (existingUsername) {
+                return res.status(409).json({ message: "Username is already taken" });
+            }
+            updates.username = updates.username.trim();
+        }
+
+        const updatedUser = await userModel.findByIdAndUpdate(
+            userId,
+            { $set: updates },
+            { new: true, runValidators: true }
+        ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({
+            message: "Profile updated successfully",
+            user: updatedUser
+        });
+    } catch (err) {
+        console.error("Error in updateMeController:", err);
+        return res.status(500).json({
+            message: "Internal server error during profile update",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
-    getMeController
+    getMeController,
+    updateMeController
 };
