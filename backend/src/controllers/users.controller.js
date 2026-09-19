@@ -103,7 +103,71 @@ async function updateMeController(req, res) {
     }
 }
 
+/**
+ * @name getUserByIdController
+ * @description get user public profile by ID
+ * @access Public
+ */
+async function getUserByIdController(req, res) {
+    try {
+        const { id } = req.params;
+
+        const user = await userModel.findById(id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({ user });
+    } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+        console.error("Error in getUserByIdController:", err);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name searchUsersController
+ * @description search users by username or name
+ * @access Public
+ */
+async function searchUsersController(req, res) {
+    try {
+        const { q } = req.query;
+
+        if (!q || !q.trim()) {
+            return res.status(200).json({ users: [] });
+        }
+
+        const query = q.trim();
+
+        const users = await userModel.find({
+            $or: [
+                { username: { $regex: query, $options: 'i' } },
+                { name: { $regex: query, $options: 'i' } }
+            ]
+        })
+        .select('name username profileImage role rating skills software bio')
+        .limit(10);
+
+        return res.status(200).json({ users });
+    } catch (err) {
+        console.error("Error in searchUsersController:", err);
+        return res.status(500).json({
+            message: "Internal server error during search",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     getMeController,
-    updateMeController
+    updateMeController,
+    getUserByIdController,
+    searchUsersController
 };

@@ -18,4 +18,18 @@ usersRouter.get('/me', authMiddleware.authUser, usersController.getMeController)
  */
 usersRouter.patch('/me', authMiddleware.authUser, usersController.updateMeController);
 
+/**
+ * @route GET api/users/search
+ * @description search users by username or name
+ * @access Public
+ */
+usersRouter.get('/search', usersController.searchUsersController);
+
+/**
+ * @route GET api/users/:id
+ * @description get user public profile by ID
+ * @access Public
+ */
+usersRouter.get('/:id', usersController.getUserByIdController);
+
 module.exports = usersRouter;
