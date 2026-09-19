@@ -157,6 +157,6 @@ userSchema.index({ software: 1 });
 userSchema.index({ rating: -1 });
 
 // Create Model
-const userModel = mongoose.model("User", userSchema);
+const userModel = mongoose.model("user", userSchema);
 
 module.exports = userModel;

@@ -27,11 +27,12 @@ authRouter.post('/login', authController.loginUserController);
 authRouter.get('/logout', authController.logoutUserController);
 
 /**
- * @route GET api/auth/get-me
- * @description to get user info
- * @access Private   
+ * @route GET api/auth/logout-all
+ * @description logout all the sesssions of user
+ * @access Public   
  */
-authRouter.get('/get-me', authMiddleware.authUser, authController.getMeController);
+authRouter.get('/logout-all', authController.logoutAllController);
+
 
 /**
  * @route POST api/auth/verify-email
@@ -41,10 +42,17 @@ authRouter.get('/get-me', authMiddleware.authUser, authController.getMeControlle
 authRouter.post('/verify-email', authMiddleware.authUser, authController.verifyEmailController);
 
 /**
- * @route POST api/auth/refresh-token
+ * @route GET api/auth/resend-otp
+ * @description resend OTP for email verification
+ * @access Private
+ */
+authRouter.get('/resend-otp', authMiddleware.authUser, authController.resendOtpController);
+
+/**
+ * @route GET api/auth/refresh-token
  * @description refresh access token using refresh token
  * @access Public
  */
-authRouter.post('/refresh-token', authController.refreshToken);
+authRouter.get('/refresh-token', authController.refreshToken);
 
 module.exports = authRouter;

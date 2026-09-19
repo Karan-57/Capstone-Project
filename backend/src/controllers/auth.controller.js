@@ -317,35 +317,6 @@ async function logoutAllController(req, res) {
 }
 
 
-/**
- * @name getMeController
- * @description to get current user info
- * @access Private
- */
-async function getMeController(req, res) {
-    try {
-        if (req.user) {
-            return res.status(200).json({ user: req.user });
-        }
-
-        const token = req.cookies?.accessToken || req.cookies?.token || req.headers.authorization?.split(" ")[1];
-
-        if (!token) {
-            return res.status(401).json({ message: "Token not found" });
-        }
-
-        const decoded = jwt.verify(token, config.JWT_SECRET);
-        const user = await userModel.findById(decoded.id).select("-password");
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        return res.status(200).json({ user, decoded });
-    } catch (err) {
-        return res.status(401).json({ message: "Invalid or expired token" });
-    }
-}
 
 /**
  * @name verifyEmailController
@@ -407,13 +378,14 @@ async function verifyEmailController(req, res) {
 /**
  * @name resendOtp
  * @description resend verification OTP to user email
- * @access Public
+ * @access private
  */
 async function resendOtpController(req, res) {
     try {
         const user = req.user;
         const email = req.user?.email || req.body?.email;
         const normalizedEmail = email.toLowerCase().trim();
+
 
         if(!email){
             return res.status(400).json({
@@ -516,7 +488,6 @@ module.exports = {
     loginUserController,
     logoutUserController,
     logoutAllController,
-    getMeController,
     verifyEmailController,
     resendOtpController,
     refreshToken

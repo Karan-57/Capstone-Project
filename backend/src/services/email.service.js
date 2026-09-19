@@ -1,76 +1,59 @@
-const nodemailer = require('nodemailer');
-const { google } = require('googleapis');
-const config = require('../config/config');
+const nodemailer = require("nodemailer");
+const config = require("../config/config");
 
-const OAuth2 = google.auth.OAuth2;
+// Create Nodemailer transporter using Gmail OAuth2.
+// Nodemailer uses the refresh token to obtain access tokens automatically.
+const transporter = nodemailer.createTransport({
+    service: "gmail",
 
-async function createTransporter() {
-    if (!config.GOOGLE_CLIENT_ID || !config.GOOGLE_CLIENT_SECRET || !config.GOOGLE_REFRESH_TOKEN || !config.GOOGLE_USER) {
-        return null;
+    auth: {
+        type: "OAuth2",
+        user: config.GOOGLE_USER,
+        clientId: config.GOOGLE_CLIENT_ID,
+        clientSecret: config.GOOGLE_CLIENT_SECRET,
+        refreshToken: config.GOOGLE_REFRESH_TOKEN,
+    },
+});
+
+// Optional: verify the Gmail connection when the application starts
+transporter.verify((error, success) => {
+    if (error) {
+        console.error("[EMAIL SERVICE] Gmail transporter verification failed:");
+        console.error(error.message);
+    } else {
+        console.log("[EMAIL SERVICE] Gmail OAuth2 transporter is ready.");
     }
+});
 
-    try {
-        const oauth2Client = new OAuth2(
-            config.GOOGLE_CLIENT_ID,
-            config.GOOGLE_CLIENT_SECRET,
-            "https://developers.google.com/oauthplayground"
-        );
-
-        oauth2Client.setCredentials({
-            refresh_token: config.GOOGLE_REFRESH_TOKEN
-        });
-
-        const accessToken = await oauth2Client.getAccessToken();
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                type: 'OAuth2',
-                user: config.GOOGLE_USER,
-                clientId: config.GOOGLE_CLIENT_ID,
-                clientSecret: config.GOOGLE_CLIENT_SECRET,
-                refreshToken: config.GOOGLE_REFRESH_TOKEN,
-                accessToken: accessToken?.token || accessToken
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-
-        return transporter;
-    } catch (error) {
-        console.error("Failed to create OAuth2 email transporter:", error.message);
-        return null;
-    }
-}
-
-// Function to send email
+// Send email
 const sendEmail = async (to, subject, text, html) => {
     try {
-        const transporter = await createTransporter();
-
-        if (!transporter) {
-            console.log(`\n========================================`);
-            console.log(`[EMAIL SERVICE] Email credentials not configured or failed.`);
-            console.log(`To: ${to}`);
-            console.log(`Subject: ${subject}`);
-            console.log(`Content: ${text}`);
-            console.log(`========================================\n`);
-            return;
-        }
-
         const info = await transporter.sendMail({
-            from: `"Authentication Service" <${config.GOOGLE_USER}>`,
+            from: `"Collabo" <${config.GOOGLE_USER}>`,
             to,
             subject,
             text,
             html,
         });
 
-        console.log("Message sent:", info.messageId);
+        console.log("[EMAIL SERVICE] Message sent:", info.messageId);
+
+        return info;
     } catch (error) {
-        console.error("Error sending email:", error.message);
+        console.error("[EMAIL SERVICE] Failed to send email:");
+        console.error(error.message);
+
+        // Log useful debugging information without exposing secrets
+        console.error("[EMAIL SERVICE] Recipient:", to);
+        console.error("[EMAIL SERVICE] Subject:", subject);
+
+        // IMPORTANT:
+        // Re-throw the error so the controller knows that
+        // email delivery failed.
+        throw error;
     }
 };
 
-module.exports = { sendEmail };
+module.exports = {
+    sendEmail,
+};
