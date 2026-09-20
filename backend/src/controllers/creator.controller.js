@@ -224,36 +224,6 @@ async function deleteProjectController(req, res) {
     }
 }
 
-/**
- * @name getCreatorPublicProjectsController
- * @description get all public projects of a specific creator (for other users to view)
- * @access Public
- */
-async function getCreatorPublicProjectsController(req, res) {
-    try {
-        const { creatorId } = req.params;
-
-        const projects = await projectModel.find({
-            creatorId,
-            status: { $ne: 'cancelled' }
-        })
-        .sort({ createdAt: -1 });
-
-        return res.status(200).json({
-            count: projects.length,
-            projects
-        });
-    } catch (err) {
-        if (err.name === 'CastError') {
-            return res.status(400).json({ message: "Invalid creator ID" });
-        }
-        console.error("Error in getCreatorPublicProjectsController:", err);
-        return res.status(500).json({
-            message: "Internal server error while fetching creator projects",
-            error: err.message
-        });
-    }
-}
 
 /**
  * @name cancelProjectController
@@ -313,7 +283,6 @@ async function cancelProjectController(req, res) {
 module.exports = {
     createProjectController,
     getMyProjectsController,
-    getCreatorPublicProjectsController,
     updateProjectController,
     deleteProjectController,
     cancelProjectController

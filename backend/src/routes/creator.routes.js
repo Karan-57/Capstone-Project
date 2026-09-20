@@ -39,11 +39,4 @@ creatorRouter.delete('/projects/:projectId', authMiddleware.authUser, creatorCon
  */
 creatorRouter.patch('/projects/:projectId/cancel', authMiddleware.authUser, creatorController.cancelProjectController);
 
-/**
- * @route GET api/creator/:creatorId/projects
- * @description get all public projects of a specific creator
- * @access Public
- */
-creatorRouter.get('/:creatorId/projects', creatorController.getCreatorPublicProjectsController);
-
 module.exports = creatorRouter;

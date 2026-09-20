@@ -40,11 +40,4 @@ usersRouter.get('/search', usersController.searchUsersController);
  */
 usersRouter.get('/:id', usersController.getUserByIdController);
 
-/**
- * @route GET api/users/:id/projects
- * @description get all public projects of a specific creator
- * @access Public
- */
-usersRouter.get('/:id/projects', usersController.getCreatorPublicProjectsController);
-
 module.exports = usersRouter;

@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const authRouter = require("./routes/auth.routes");
 const usersRouter = require("./routes/users.routes");
 const creatorRouter = require("./routes/creator.routes");
+const projectRouter = require("./routes/projects.routes");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter); 
 app.use("/api/creator", creatorRouter);
+app.use("/api/projects", projectRouter);
 
 //for testing only not for real project
 // Global error handler (handles Multer errors, file type rejections, etc.)
