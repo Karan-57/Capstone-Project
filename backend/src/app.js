@@ -17,10 +17,16 @@ app.use("/api/users", usersRouter);
 app.use("/api/creator", creatorRouter);
 
 //for testing only not for real project
-app.get("/", (req, res) => {
-  res.status(200).json({
-    message: "collabo API is running"
-  });
+// Global error handler (handles Multer errors, file type rejections, etc.)
+app.use((err, req, res, next) => {
+  if (err.message && err.message.includes('image files are allowed')) {
+    return res.status(400).json({ message: err.message });
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ message: 'File too large. Maximum size allowed is 5MB.' });
+  }
+  console.error("Unhandled error:", err);
+  return res.status(500).json({ message: "Internal server error", error: err.message });
 });
 
 module.exports = app;

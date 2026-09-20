@@ -129,26 +129,33 @@ async function registerUserController(req, res) {
 
 /**
  * @name loginUserController
- * @description login a user, expect email and password
+ * @description login a user, expect email/username and password
  * @access Public
  */
 
 async function loginUserController(req, res) {
     try {
-        const { email, password } = req.body;
+        const { email, username, identifier, password } = req.body;
+        const loginIdentifier = (identifier || email || username || '').trim();
 
-        if (!email || !password) {
+        if (!loginIdentifier || !password) {
             return res.status(400).json({
-                message: "Email and password are required"
+                message: "Email or username, and password are required"
             });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
-        const user = await userModel.findOne({ email: normalizedEmail });
+        const normalizedIdentifier = loginIdentifier.toLowerCase();
+
+        const user = await userModel.findOne({
+            $or: [
+                { email: normalizedIdentifier },
+                { username: loginIdentifier }
+            ]
+        });
 
         if (!user) {
             return res.status(401).json({
-                message: "Invalid email or password"
+                message: "Invalid credentials"
             });
         }
 
@@ -156,7 +163,7 @@ async function loginUserController(req, res) {
 
         if (!isPasswordValid) {
             return res.status(401).json({
-                message: "Invalid email or password"
+                message: "Invalid credentials"
             });
         }
 
