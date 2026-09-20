@@ -255,10 +255,66 @@ async function getCreatorPublicProjectsController(req, res) {
     }
 }
 
+/**
+ * @name cancelProjectController
+ * @description cancel a project and set its status to 'cancelled' (only by owning creator)
+ * @access Private (Creator)
+ */
+async function cancelProjectController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        const { projectId } = req.params;
+
+        if (!creatorId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        if (req.user?.role !== 'creator') {
+            return res.status(403).json({ message: "Forbidden: Only creators can cancel projects" });
+        }
+
+        const project = await projectModel.findOne({ _id: projectId, creatorId });
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found or unauthorized" });
+        }
+
+        if (project.status === 'cancelled') {
+            return res.status(400).json({ message: "Project is already cancelled" });
+        }
+
+        if (project.status === 'in_progress'){
+            return res.status(400).json({message:"Project is in progress"});
+        }
+
+        if (project.status === 'completed') {
+            return res.status(400).json({ message: "Cannot cancel a completed project" });
+        }
+
+        project.status = 'cancelled';
+        await project.save();
+
+        return res.status(200).json({
+            message: "Project cancelled successfully",
+            project
+        });
+    } catch (err) {
+        if (err.name === 'CastError') {
+            return res.status(400).json({ message: "Invalid project ID" });
+        }
+        console.error("Error in cancelProjectController:", err);
+        return res.status(500).json({
+            message: "Internal server error during project cancellation",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     createProjectController,
     getMyProjectsController,
     getCreatorPublicProjectsController,
     updateProjectController,
-    deleteProjectController
+    deleteProjectController,
+    cancelProjectController
 };

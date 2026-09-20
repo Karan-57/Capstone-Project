@@ -33,6 +33,13 @@ creatorRouter.patch('/projects/:projectId', authMiddleware.authUser, creatorCont
 creatorRouter.delete('/projects/:projectId', authMiddleware.authUser, creatorController.deleteProjectController);
 
 /**
+ * @route PATCH api/creator/projects/:projectId/cancel
+ * @description cancel a project and set status to cancelled
+ * @access Private (Creator)
+ */
+creatorRouter.patch('/projects/:projectId/cancel', authMiddleware.authUser, creatorController.cancelProjectController);
+
+/**
  * @route GET api/creator/:creatorId/projects
  * @description get all public projects of a specific creator
  * @access Public
