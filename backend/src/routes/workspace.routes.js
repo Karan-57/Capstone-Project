@@ -32,4 +32,12 @@ workspaceRouter.post('/:workspaceId/revision', authMiddleware, workspaceControll
  */
 workspaceRouter.get('/:workspaceId/revision', authMiddleware, workspaceController.getWorkspaceRevisionsController);
 
+/**
+ * @route PATCH api/workspace/:revisionId/revision
+ * @description Update a revision request status or description
+ * @access Private (Workspace Creator or Editor)
+ */
+workspaceRouter.patch(['/:revisionId/revision', '/revision/:revisionId'], authMiddleware, workspaceController.updateRevisionController);
+
 module.exports = workspaceRouter;
+

@@ -71,6 +71,7 @@ This document tracks all modifications, architectural updates, and schema deviat
   - Applications: `:applicationId`
   - Portfolios: `:editorId` for public lookup; personal endpoints (`GET /my`, `PATCH /`, `DELETE /`) use authenticated `req.user.id` directly without requiring route ID params.
   - Workspaces: `:workspaceId`
+  - Revisions: `:revisionId`
 * **Rationale:** Prevents parameter collision, ambiguous controller handler logic, and improves client readability.
 
 ### 2.6 Workspace Progress Tracking (`/api/workspace`)
@@ -78,7 +79,14 @@ This document tracks all modifications, architectural updates, and schema deviat
   - `GET /api/workspace/:workspaceId/progress`: Fetches all progress updates and current workspace status for participants (creator or assigned editor).
   - `PATCH /api/workspace/:workspaceId/progress`: Allows the assigned editor to submit incremental progress updates. Supports predefined milestone selection (`footage_organized` [15%], `rough_cut` [35%], `broll_and_graphics` [55%], `sound_and_music` [75%], `color_and_polish` [90%], `review_ready` [100%]) with auto-calculated percentages, or fine-tuned custom percentages (0-100), syncing directly with workspace status (`active`, `in_review`, `completed`).
 
+### 2.7 Workspace Revision Management (`/api/workspace`)
+* **Endpoints Added:**
+  - `POST /api/workspace/:workspaceId/revision`: Allows creator or editor to file revision requests with descriptions and optional file references, transitioning workspace to `in_review`.
+  - `GET /api/workspace/:workspaceId/revision`: Retrieves revision requests for a workspace with populated requester and file details, with optional `?status=` filtering.
+  - `PATCH /api/workspace/:revisionId/revision`: Allows workspace participants to update revision status (`pending`, `in_progress`, `resolved`) and descriptions, setting `resolvedAt` timestamp automatically upon resolution.
+
 ---
+
 
 ## 3. Session & Authentication Adjustments
 

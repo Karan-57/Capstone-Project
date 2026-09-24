@@ -341,9 +341,104 @@ async function getWorkspaceRevisionsController(req, res) {
     }
 }
 
+/**
+ * @name updateRevisionController
+ * @description Update a revision request status or description
+ * @route PATCH /api/workspace/:revisionId/revision
+ * @access Private (Workspace Creator or Editor)
+ */
+async function updateRevisionController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const revisionId = req.params.revisionId || req.params.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(revisionId)) {
+            return res.status(400).json({ message: "Invalid revision ID" });
+        }
+
+        const revision = await revisionModel.findById(revisionId);
+        if (!revision) {
+            return res.status(404).json({ message: "Revision not found" });
+        }
+
+        const workspace = await workspaceModel.findById(revision.workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Associated workspace not found" });
+        }
+
+        // Verify the user is a participant (creator or editor)
+        const isCreator = workspace.creatorId.toString() === userId.toString();
+        const isEditor = workspace.editorId.toString() === userId.toString();
+
+        if (!isCreator && !isEditor) {
+            return res.status(403).json({
+                message: "Forbidden: You are not a participant in this workspace"
+            });
+        }
+
+        if (workspace.status === 'completed' || workspace.status === 'cancelled') {
+            return res.status(400).json({
+                message: `Cannot update revision. Workspace is already ${workspace.status}`
+            });
+        }
+
+        const { status, description } = req.body;
+
+        if (!status && description === undefined) {
+            return res.status(400).json({
+                message: "At least one field (status or description) is required to update"
+            });
+        }
+
+        if (status) {
+            const allowedStatuses = ['pending', 'in_progress', 'resolved'];
+            if (!allowedStatuses.includes(status)) {
+                return res.status(400).json({
+                    message: `Invalid status. Allowed values: ${allowedStatuses.join(', ')}`
+                });
+            }
+            revision.status = status;
+            if (status === 'resolved') {
+                revision.resolvedAt = new Date();
+            } else {
+                revision.resolvedAt = null;
+            }
+        }
+
+        if (description !== undefined) {
+            if (typeof description !== 'string' || description.trim() === '') {
+                return res.status(400).json({ message: "Revision description cannot be empty" });
+            }
+            revision.description = description.trim();
+        }
+
+        await revision.save();
+
+        await revision.populate('requestedBy', 'name username role profileImage');
+        await revision.populate('fileId', 'originalName fileUrl fileType');
+
+        return res.status(200).json({
+            message: "Revision updated successfully",
+            revision
+        });
+    } catch (err) {
+        console.error("Error in updateRevisionController:", err);
+        return res.status(500).json({
+            message: "Internal server error while updating revision",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     getWorkspaceProgressController,
     updateWorkspaceProgressController,
     createRevisionController,
-    getWorkspaceRevisionsController
+    getWorkspaceRevisionsController,
+    updateRevisionController
 };
+
