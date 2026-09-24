@@ -18,4 +18,18 @@ workspaceRouter.get('/:workspaceId/progress', authMiddleware, workspaceControlle
  */
 workspaceRouter.patch('/:workspaceId/progress', authMiddleware, workspaceController.updateWorkspaceProgressController);
 
+/**
+ * @route POST api/workspace/:workspaceId/revision
+ * @description Request a revision in a workspace
+ * @access Private (Workspace Creator or Editor)
+ */
+workspaceRouter.post('/:workspaceId/revision', authMiddleware, workspaceController.createRevisionController);
+
+/**
+ * @route GET api/workspace/:workspaceId/revision
+ * @description View all revisions for a workspace
+ * @access Private (Workspace Creator or Editor)
+ */
+workspaceRouter.get('/:workspaceId/revision', authMiddleware, workspaceController.getWorkspaceRevisionsController);
+
 module.exports = workspaceRouter;

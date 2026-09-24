@@ -1,5 +1,6 @@
 const workspaceModel = require('../model/workspace.model');
 const progressUpdateModel = require('../model/progressUpdate.model');
+const revisionModel = require('../model/revision.model');
 const mongoose = require('mongoose');
 
 /**
@@ -204,7 +205,145 @@ async function updateWorkspaceProgressController(req, res) {
     }
 }
 
+/**
+ * @name createRevisionController
+ * @description Create a revision request for a workspace (typically by creator or editor)
+ * @route POST /api/workspace/:workspaceId/revision
+ * @access Private (Workspace Creator or Editor)
+ */
+async function createRevisionController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const { workspaceId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace ID" });
+        }
+
+        const workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Workspace not found" });
+        }
+
+        // Verify the user is a participant (creator or editor)
+        const isCreator = workspace.creatorId.toString() === userId.toString();
+        const isEditor = workspace.editorId.toString() === userId.toString();
+
+        if (!isCreator && !isEditor) {
+            return res.status(403).json({
+                message: "Forbidden: You are not a participant in this workspace"
+            });
+        }
+
+        if (workspace.status === 'completed' || workspace.status === 'cancelled') {
+            return res.status(400).json({
+                message: `Cannot request revision. Workspace is ${workspace.status}`
+            });
+        }
+
+        const { description, fileId } = req.body;
+
+        if (!description || typeof description !== 'string' || description.trim() === '') {
+            return res.status(400).json({ message: "Revision description is required" });
+        }
+
+        if (fileId && !mongoose.Types.ObjectId.isValid(fileId)) {
+            return res.status(400).json({ message: "Invalid file ID" });
+        }
+
+        const revision = await revisionModel.create({
+            workspaceId,
+            requestedBy: userId,
+            fileId: fileId || null,
+            description: description.trim(),
+            status: 'pending'
+        });
+
+        // Set workspace status to in_review if it was active
+        if (workspace.status === 'active') {
+            workspace.status = 'in_review';
+            await workspace.save();
+        }
+
+        return res.status(201).json({
+            message: "Revision requested successfully",
+            revision,
+            workspaceStatus: workspace.status
+        });
+    } catch (err) {
+        console.error("Error in createRevisionController:", err);
+        return res.status(500).json({
+            message: "Internal server error while creating revision",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name getWorkspaceRevisionsController
+ * @description View all revisions for a workspace
+ * @route GET /api/workspace/:workspaceId/revision
+ * @access Private (Workspace Creator or Editor)
+ */
+async function getWorkspaceRevisionsController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const { workspaceId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace ID" });
+        }
+
+        const workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Workspace not found" });
+        }
+
+        const isCreator = workspace.creatorId.toString() === userId.toString();
+        const isEditor = workspace.editorId.toString() === userId.toString();
+
+        if (!isCreator && !isEditor) {
+            return res.status(403).json({
+                message: "Forbidden: You are not a participant in this workspace"
+            });
+        }
+
+        const { status } = req.query;
+        const filter = { workspaceId };
+        if (status) {
+            filter.status = status;
+        }
+
+        const revisions = await revisionModel
+            .find(filter)
+            .populate('requestedBy', 'name username role profileImage')
+            .populate('fileId', 'originalName fileUrl fileType')
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            count: revisions.length,
+            revisions
+        });
+    } catch (err) {
+        console.error("Error in getWorkspaceRevisionsController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching revisions",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     getWorkspaceProgressController,
-    updateWorkspaceProgressController
+    updateWorkspaceProgressController,
+    createRevisionController,
+    getWorkspaceRevisionsController
 };

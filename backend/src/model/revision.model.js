@@ -4,17 +4,17 @@ const revisionSchema = new mongoose.Schema(
   {
     workspaceId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Workspace',
+      ref: 'workspace',
       required: [true, 'Workspace ID is required'],
     },
     requestedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: [true, 'RequestedBy User ID is required'],
     },
     fileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'File',
+      ref: 'file',
       default: null,
     },
     description: {
@@ -38,5 +38,5 @@ const revisionSchema = new mongoose.Schema(
 
 revisionSchema.index({ workspaceId: 1 });
 
-const revisionModel = mongoose.model('Revision', revisionSchema);
+const revisionModel = mongoose.model('revision', revisionSchema);
 module.exports = revisionModel;

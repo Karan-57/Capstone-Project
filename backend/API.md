@@ -1134,6 +1134,92 @@ Base URL: `http://localhost:3000`
   - `403 Forbidden`: User is not an editor or not the assigned editor for this workspace
   - `404 Not Found`: Workspace not found
 
+---
+
+### 7.3 Request Revision
+* **Method:** `POST`
+* **Endpoint:** `/api/workspace/:workspaceId/revision`
+* **Access:** Private (Workspace Creator or Editor)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:workspaceId` (Workspace ID)
+* **Body (JSON):**
+```json
+{
+  "description": "Please adjust the background music volume during 01:15 to 02:00 so voiceover is clearer",
+  "fileId": "64d3..." // optional: specific draft file referenced
+}
+```
+* **Response (201 Created):**
+```json
+{
+  "message": "Revision requested successfully",
+  "revision": {
+    "_id": "64d4...",
+    "workspaceId": "64d1...",
+    "requestedBy": "64a9...",
+    "fileId": "64d3...",
+    "description": "Please adjust the background music volume during 01:15 to 02:00 so voiceover is clearer",
+    "status": "pending",
+    "resolvedAt": null,
+    "createdAt": "2026-09-24T18:30:00.000Z",
+    "updatedAt": "2026-09-24T18:30:00.000Z"
+  },
+  "workspaceStatus": "in_review"
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Description is required or invalid fileId
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not a participant in this workspace
+  - `404 Not Found`: Workspace not found
+
+---
+
+### 7.4 View Workspace Revisions
+* **Method:** `GET`
+* **Endpoint:** `/api/workspace/:workspaceId/revision`
+* **Access:** Private (Workspace Creator or Editor)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:workspaceId` (Workspace ID)
+* **Query Params:**
+  - `status` (optional: `pending`, `in_progress`, `resolved`)
+* **Response (200 OK):**
+```json
+{
+  "count": 1,
+  "revisions": [
+    {
+      "_id": "64d4...",
+      "workspaceId": "64d1...",
+      "requestedBy": {
+        "_id": "64a9...",
+        "name": "Creator Name",
+        "username": "creatorname",
+        "role": "creator",
+        "profileImage": "https://..."
+      },
+      "fileId": {
+        "_id": "64d3...",
+        "originalName": "rough_cut_v1.mp4",
+        "fileUrl": "https://...",
+        "fileType": "video"
+      },
+      "description": "Please adjust the background music volume...",
+      "status": "pending",
+      "resolvedAt": null,
+      "createdAt": "2026-09-24T18:30:00.000Z",
+      "updatedAt": "2026-09-24T18:30:00.000Z"
+    }
+  ]
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid workspace ID
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not a participant in this workspace
+  - `404 Not Found`: Workspace not found
+
+
 
 
 
