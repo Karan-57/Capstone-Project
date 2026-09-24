@@ -506,12 +506,10 @@ Base URL: `http://localhost:3000`
 
 ### 5.2 Get Applications for a Project
 * **Method:** `GET`
-* **Endpoints:**
-  - `/api/application/:id`
-  - `/api/creator/projects/:projectId/applications`
+* **Endpoint:** `/api/creator/projects/:projectId/applications`
 * **Access:** Private (Creator only - must own the project)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:id` or `:projectId` (Project ID)
+* **URL Params:** `:projectId` (Project ID)
 * **Query Params:**
   - `status` (optional: `pending`, `accepted`, `rejected`, `withdrawn`)
 * **Response (200 OK):**
@@ -599,5 +597,124 @@ Base URL: `http://localhost:3000`
 * **Error Responses:**
   - `401 Unauthorized`: Token missing or invalid
   - `403 Forbidden`: User role is not `editor`
+
+---
+
+### 5.4 Get Application Details by Application ID
+* **Method:** `GET`
+* **Endpoint:** `/api/application/:id`
+* **Access:** Private (Applicant Editor or Project Creator)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:id` (Application ID)
+* **Response (200 OK):**
+```json
+{
+  "application": {
+    "_id": "64c8...",
+    "projectId": {
+      "_id": "64b1...",
+      "title": "Weekly Tech Vlog Editing",
+      "description": "Looking for video editor...",
+      "category": "vlog",
+      "status": "open",
+      "budget": { "min": 100, "max": 200 },
+      "deadline": "2026-10-01T00:00:00.000Z",
+      "creatorId": {
+        "_id": "64a9...",
+        "name": "Creator Name",
+        "username": "creatorname",
+        "profileImage": "https://...",
+        "rating": 4.9
+      }
+    },
+    "editorId": {
+      "_id": "64a0...",
+      "name": "Jane Editor",
+      "username": "janeeditor",
+      "email": "jane@example.com",
+      "profileImage": "https://...",
+      "bio": "Specialized in travel and tech vlogs",
+      "skills": ["Premiere Pro", "After Effects"],
+      "rating": 4.8
+    },
+    "proposal": "I have 4 years of experience editing tech vlogs...",
+    "bidAmount": 150,
+    "estimatedDeliveryDays": 3,
+    "status": "pending",
+    "createdAt": "2026-09-24T12:00:00.000Z",
+    "updatedAt": "2026-09-24T12:00:00.000Z"
+  }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid application ID
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is neither the applicant editor nor the project creator
+  - `404 Not Found`: Application not found
+
+---
+
+### 5.5 Update Application (Proposal / Bid / Delivery Days)
+* **Method:** `PATCH`
+* **Endpoint:** `/api/application/:id`
+* **Access:** Private (Editor who submitted the application)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:id` (Application ID)
+* **Body (JSON):** Any combination of editable fields
+```json
+{
+  "proposal": "Updated proposal text with additional portfolio link",
+  "bidAmount": 140,
+  "estimatedDeliveryDays": 2
+}
+```
+* **Response (200 OK):**
+```json
+{
+  "message": "Application updated successfully",
+  "application": {
+    "_id": "64c8...",
+    "projectId": "64b1...",
+    "editorId": "64a0...",
+    "proposal": "Updated proposal text with additional portfolio link",
+    "bidAmount": 140,
+    "estimatedDeliveryDays": 2,
+    "status": "pending",
+    "createdAt": "2026-09-24T12:00:00.000Z",
+    "updatedAt": "2026-09-24T12:30:00.000Z"
+  }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid application ID, empty proposal, negative/zero numbers, or application is no longer `pending`
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not an editor or does not own this application
+  - `404 Not Found`: Application not found
+
+---
+
+### 5.6 Withdraw Application
+* **Method:** `DELETE`
+* **Endpoint:** `/api/application/:id`
+* **Access:** Private (Editor who submitted the application)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:id` (Application ID)
+* **Response (200 OK):**
+```json
+{
+  "message": "Application withdrawn successfully",
+  "application": {
+    "_id": "64c8...",
+    "status": "withdrawn",
+    "updatedAt": "2026-09-24T12:35:00.000Z"
+  }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Cannot withdraw if application is already `accepted`
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not an editor or does not own this application
+  - `404 Not Found`: Application not found
+
 
 

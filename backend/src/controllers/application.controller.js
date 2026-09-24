@@ -223,8 +223,200 @@ async function getMyApplicationsController(req, res) {
     }
 }
 
+/**
+ * @name getApplicationByIdController
+ * @description get application details by application ID (editor who applied or project creator)
+ * @route GET /api/application/:id
+ * @access Private
+ */
+async function getApplicationByIdController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const { id: applicationId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+            return res.status(400).json({ message: "Invalid application ID" });
+        }
+
+        const application = await applicationModel
+            .findById(applicationId)
+            .populate('editorId', 'name username email profileImage bio skills rating')
+            .populate({
+                path: 'projectId',
+                select: 'title description category budget deadline status creatorId',
+                populate: {
+                    path: 'creatorId',
+                    select: 'name username profileImage rating'
+                }
+            });
+
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        // Allow access only to the editor who applied OR the creator of the project
+        const isEditor = application.editorId?._id?.toString() === userId.toString();
+        const isCreator = application.projectId?.creatorId?._id?.toString() === userId.toString();
+
+        if (!isEditor && !isCreator) {
+            return res.status(403).json({
+                message: "Forbidden: You do not have permission to view this application"
+            });
+        }
+
+        return res.status(200).json({
+            application
+        });
+    } catch (err) {
+        console.error("Error in getApplicationByIdController:", err);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name updateApplicationController
+ * @description update application details (proposal, bidAmount, estimatedDeliveryDays)
+ * @route PATCH /api/application/:id
+ * @access Private (Editor who owns the application)
+ */
+async function updateApplicationController(req, res) {
+    try {
+        const editorId = req.user?._id || req.user?.id;
+        const { id: applicationId } = req.params;
+
+        if (!editorId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (req.user?.role !== 'editor') {
+            return res.status(403).json({ message: "Forbidden: Only editors can update applications" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+            return res.status(400).json({ message: "Invalid application ID" });
+        }
+
+        const application = await applicationModel.findById(applicationId);
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        if (application.editorId.toString() !== editorId.toString()) {
+            return res.status(403).json({ message: "Forbidden: You can only update your own applications" });
+        }
+
+        // Applications can only be edited while pending
+        if (application.status !== 'pending') {
+            return res.status(400).json({
+                message: `Cannot edit application. It is already ${application.status}`
+            });
+        }
+
+        const { proposal, bidAmount, estimatedDeliveryDays } = req.body;
+
+        if (proposal !== undefined) {
+            if (typeof proposal !== 'string' || proposal.trim() === '') {
+                return res.status(400).json({ message: "Proposal cannot be empty" });
+            }
+            application.proposal = proposal.trim();
+        }
+
+        if (bidAmount !== undefined) {
+            if (isNaN(Number(bidAmount)) || Number(bidAmount) <= 0) {
+                return res.status(400).json({ message: "Bid amount must be a number greater than 0" });
+            }
+            application.bidAmount = Number(bidAmount);
+        }
+
+        if (estimatedDeliveryDays !== undefined) {
+            if (isNaN(Number(estimatedDeliveryDays)) || Number(estimatedDeliveryDays) <= 0) {
+                return res.status(400).json({ message: "Estimated delivery days must be a number greater than 0" });
+            }
+            application.estimatedDeliveryDays = Number(estimatedDeliveryDays);
+        }
+
+        await application.save();
+
+        return res.status(200).json({
+            message: "Application updated successfully",
+            application
+        });
+    } catch (err) {
+        console.error("Error in updateApplicationController:", err);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name withdrawApplicationController
+ * @description editor withdraws (deletes) their application
+ * @route DELETE /api/application/:id
+ * @access Private (Editor who owns the application)
+ */
+async function withdrawApplicationController(req, res) {
+    try {
+        const editorId = req.user?._id || req.user?.id;
+        const { id: applicationId } = req.params;
+
+        if (!editorId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (req.user?.role !== 'editor') {
+            return res.status(403).json({ message: "Forbidden: Only editors can withdraw applications" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+            return res.status(400).json({ message: "Invalid application ID" });
+        }
+
+        const application = await applicationModel.findById(applicationId);
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        if (application.editorId.toString() !== editorId.toString()) {
+            return res.status(403).json({ message: "Forbidden: You can only withdraw your own applications" });
+        }
+
+        // Cannot withdraw if already accepted or rejected
+        if (application.status === 'accepted') {
+            return res.status(400).json({
+                message: "Cannot withdraw an accepted application. Please contact the project creator."
+            });
+        }
+
+        application.status = 'withdrawn';
+        await application.save();
+
+        return res.status(200).json({
+            message: "Application withdrawn successfully",
+            application
+        });
+    } catch (err) {
+        console.error("Error in withdrawApplicationController:", err);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     applyToProjectController,
     getProjectApplicationsController,
-    getMyApplicationsController
+    getMyApplicationsController,
+    getApplicationByIdController,
+    updateApplicationController,
+    withdrawApplicationController
 };

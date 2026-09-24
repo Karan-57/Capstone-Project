@@ -6,7 +6,7 @@ const applicationRouter = Router();
 
 /**
  * @route POST api/application/:id/apply
- * @description Apply to a project with a proposal
+ * @description Apply to a project with a proposal (:id is project ID)
  * @access Private (Editor)
  */
 applicationRouter.post('/:id/apply', authMiddleware, applicationController.applyToProjectController);
@@ -20,9 +20,23 @@ applicationRouter.get('/my', authMiddleware, applicationController.getMyApplicat
 
 /**
  * @route GET api/application/:id
- * @description View all applications for a project (creator only) using project id (:id)
- * @access Private (Creator)
+ * @description View application details by application ID (:id is application ID)
+ * @access Private (Applicant Editor or Project Creator)
  */
-applicationRouter.get('/:id', authMiddleware, applicationController.getProjectApplicationsController);
+applicationRouter.get('/:id', authMiddleware, applicationController.getApplicationByIdController);
+
+/**
+ * @route PATCH api/application/:id
+ * @description Update proposal, bidAmount, or delivery days (:id is application ID)
+ * @access Private (Editor who submitted the application)
+ */
+applicationRouter.patch('/:id', authMiddleware, applicationController.updateApplicationController);
+
+/**
+ * @route DELETE api/application/:id
+ * @description Withdraw application (:id is application ID)
+ * @access Private (Editor who submitted the application)
+ */
+applicationRouter.delete('/:id', authMiddleware, applicationController.withdrawApplicationController);
 
 module.exports = applicationRouter;
