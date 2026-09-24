@@ -4,12 +4,12 @@ const applicationSchema = new mongoose.Schema(
   {
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Project',
+      ref: 'project',
       required: [true, 'Project ID is required'],
     },
     editorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: [true, 'Editor ID is required'],
     },
     proposal: {
@@ -46,5 +46,5 @@ const applicationSchema = new mongoose.Schema(
 applicationSchema.index({ projectId: 1, editorId: 1 }, { unique: true });
 applicationSchema.index({ editorId: 1 });
 
-const applicationModel = mongoose.model('Application', applicationSchema);
+const applicationModel = mongoose.model('application', applicationSchema);
 module.exports = applicationModel;

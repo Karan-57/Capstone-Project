@@ -6,6 +6,7 @@ const authRouter = require("./routes/auth.routes");
 const usersRouter = require("./routes/users.routes");
 const creatorRouter = require("./routes/creator.routes");
 const projectRouter = require("./routes/projects.routes");
+const applicationRouter = require("./routes/application.routes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter); 
 app.use("/api/creator", creatorRouter);
 app.use("/api/projects", projectRouter);
+app.use("/api/application", applicationRouter);
 
 //for testing only not for real project
 // Global error handler (handles Multer errors, file type rejections, etc.)

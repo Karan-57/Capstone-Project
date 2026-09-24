@@ -2,7 +2,7 @@ const { Router } = require('express');
 const projectController = require('../controllers/projects.controller');
 
 const projectRouter = Router();
-
+ 
 /**
  * @route GET api/projects
  * @description get all open projects
@@ -30,5 +30,15 @@ projectRouter.get('/search', projectController.searchProjectsController);
  * @access Public
  */
 projectRouter.get('/:id', projectController.getProjectByIdController);
+
+const applicationController = require('../controllers/application.controller');
+const { authMiddleware } = require('../middleware/auth.middleware');
+
+/**
+ * @route POST api/projects/:id/apply
+ * @description apply to a project as editor
+ * @access Private (Editor)
+ */
+projectRouter.post('/:id/apply', authMiddleware, applicationController.applyToProjectController);
 
 module.exports = projectRouter;
