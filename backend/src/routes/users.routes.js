@@ -34,10 +34,10 @@ usersRouter.patch('/me/profile-image', authMiddleware.authUser, upload.single('p
 usersRouter.get('/search', usersController.searchUsersController);
 
 /**
- * @route GET api/users/:id
+ * @route GET api/users/:userId
  * @description get user public profile by ID
  * @access Public
  */
-usersRouter.get('/:id', usersController.getUserByIdController);
+usersRouter.get('/:userId', usersController.getUserByIdController);
 
 module.exports = usersRouter;

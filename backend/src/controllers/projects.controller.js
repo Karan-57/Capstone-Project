@@ -38,9 +38,9 @@ async function getCreatorPublicProjectsController(req, res) {
  */
 async function getProjectByIdController(req, res) {
     try {
-        const { id } = req.params;
+        const projectId = req.params.projectId || req.params.id;
 
-        const project = await projectModel.findById(id)
+        const project = await projectModel.findById(projectId)
             .populate('creatorId', 'name username profileImage rating')
             .populate('selectedEditorId', 'name username profileImage rating');
 

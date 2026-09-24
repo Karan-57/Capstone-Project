@@ -11,7 +11,7 @@ const mongoose = require('mongoose');
 async function applyToProjectController(req, res) {
     try {
         const editorId = req.user?._id || req.user?.id;
-        const { id: projectId } = req.params;
+        const projectId = req.params.projectId || req.params.id;
 
         // 1. Check authenticated user
         if (!editorId) {
@@ -232,7 +232,7 @@ async function getMyApplicationsController(req, res) {
 async function getApplicationByIdController(req, res) {
     try {
         const userId = req.user?._id || req.user?.id;
-        const { id: applicationId } = req.params;
+        const applicationId = req.params.applicationId || req.params.id;
 
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
@@ -289,7 +289,7 @@ async function getApplicationByIdController(req, res) {
 async function updateApplicationController(req, res) {
     try {
         const editorId = req.user?._id || req.user?.id;
-        const { id: applicationId } = req.params;
+        const applicationId = req.params.applicationId || req.params.id;
 
         if (!editorId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
@@ -366,7 +366,7 @@ async function updateApplicationController(req, res) {
 async function withdrawApplicationController(req, res) {
     try {
         const editorId = req.user?._id || req.user?.id;
-        const { id: applicationId } = req.params;
+        const applicationId = req.params.applicationId || req.params.id;
 
         if (!editorId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
@@ -421,7 +421,7 @@ async function withdrawApplicationController(req, res) {
 async function acceptApplicationController(req, res) {
     try {
         const creatorId = req.user?._id || req.user?.id;
-        const { id: applicationId } = req.params;
+        const applicationId = req.params.applicationId || req.params.id;
 
         if (!creatorId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
@@ -491,7 +491,7 @@ async function acceptApplicationController(req, res) {
 async function rejectApplicationController(req, res) {
     try {
         const creatorId = req.user?._id || req.user?.id;
-        const { id: applicationId } = req.params;
+        const applicationId = req.params.applicationId || req.params.id;
 
         if (!creatorId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });

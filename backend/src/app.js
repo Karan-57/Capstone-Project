@@ -7,6 +7,7 @@ const usersRouter = require("./routes/users.routes");
 const creatorRouter = require("./routes/creator.routes");
 const projectRouter = require("./routes/projects.routes");
 const applicationRouter = require("./routes/application.routes");
+const portfolioRouter = require("./routes/portfolio.routes");
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/creator", creatorRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/application", applicationRouter);
+app.use("/api/portfolio", portfolioRouter);
 
 //for testing only not for real project
 // Global error handler (handles Multer errors, file type rejections, etc.)

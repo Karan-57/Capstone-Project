@@ -160,9 +160,9 @@ async function uploadProfileImageController(req, res) {
  */
 async function getUserByIdController(req, res) {
     try {
-        const { id } = req.params;
+        const userId = req.params.userId || req.params.id;
 
-        const user = await userModel.findById(id).select("-password");
+        const user = await userModel.findById(userId).select("-password");
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });

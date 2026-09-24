@@ -267,8 +267,9 @@ Base URL: `http://localhost:3000`
 
 ### 2.5 Get User By ID
 * **Method:** `GET`
-* **Endpoint:** `/api/users/:id`
+* **Endpoint:** `/api/users/:userId`
 * **Access:** Public
+* **URL Params:** `:userId` (User ID)
 * **Response (200 OK):**
 ```json
 {
@@ -436,8 +437,9 @@ Base URL: `http://localhost:3000`
 
 ### 4.4 Get Project by ID
 * **Method:** `GET`
-* **Endpoint:** `/api/projects/:id`
+* **Endpoint:** `/api/projects/:projectId`
 * **Access:** Public
+* **URL Params:** `:projectId` (Project ID)
 * **Response (200 OK):**
 ```json
 {
@@ -463,11 +465,11 @@ Base URL: `http://localhost:3000`
 ### 5.1 Apply to a Project
 * **Method:** `POST`
 * **Endpoints:** 
-  - `/api/projects/:id/apply`
-  - `/api/application/:id/apply`
+  - `/api/projects/:projectId/apply`
+  - `/api/application/:projectId/apply`
 * **Access:** Private (Editor only)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:id` (Project ID)
+* **URL Params:** `:projectId` (Project ID)
 * **Body (JSON):**
 ```json
 {
@@ -602,10 +604,10 @@ Base URL: `http://localhost:3000`
 
 ### 5.4 Get Application Details by Application ID
 * **Method:** `GET`
-* **Endpoint:** `/api/application/:id`
+* **Endpoint:** `/api/application/:applicationId`
 * **Access:** Private (Applicant Editor or Project Creator)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:id` (Application ID)
+* **URL Params:** `:applicationId` (Application ID)
 * **Response (200 OK):**
 ```json
 {
@@ -656,10 +658,10 @@ Base URL: `http://localhost:3000`
 
 ### 5.5 Update Application (Proposal / Bid / Delivery Days)
 * **Method:** `PATCH`
-* **Endpoint:** `/api/application/:id`
+* **Endpoint:** `/api/application/:applicationId`
 * **Access:** Private (Editor who submitted the application)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:id` (Application ID)
+* **URL Params:** `:applicationId` (Application ID)
 * **Body (JSON):** Any combination of editable fields
 ```json
 {
@@ -695,10 +697,10 @@ Base URL: `http://localhost:3000`
 
 ### 5.6 Withdraw Application
 * **Method:** `DELETE`
-* **Endpoint:** `/api/application/:id`
+* **Endpoint:** `/api/application/:applicationId`
 * **Access:** Private (Editor who submitted the application)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:id` (Application ID)
+* **URL Params:** `:applicationId` (Application ID)
 * **Response (200 OK):**
 ```json
 {
@@ -720,10 +722,10 @@ Base URL: `http://localhost:3000`
 
 ### 5.7 Accept Application
 * **Method:** `POST`
-* **Endpoint:** `/api/application/:id/accept`
+* **Endpoint:** `/api/application/:applicationId/accept`
 * **Access:** Private (Creator who owns the project)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:id` (Application ID)
+* **URL Params:** `:applicationId` (Application ID)
 * **Action:**
   - Sets application `status` to `accepted`
   - Sets project `status` to `assigned` (editor chosen, negotiation / pre-start stage)
@@ -757,10 +759,10 @@ Base URL: `http://localhost:3000`
 
 ### 5.8 Reject Application
 * **Method:** `POST`
-* **Endpoint:** `/api/application/:id/reject`
+* **Endpoint:** `/api/application/:applicationId/reject`
 * **Access:** Private (Creator who owns the project)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:id` (Application ID)
+* **URL Params:** `:applicationId` (Application ID)
 * **Action:**
   - Sets application `status` to `rejected`
 * **Response (200 OK):**
@@ -813,6 +815,192 @@ Base URL: `http://localhost:3000`
   - `401 Unauthorized`: Token missing or invalid
   - `403 Forbidden`: User is not a creator or does not own the project
   - `404 Not Found`: Project not found
+
+---
+
+## 6. Portfolio (`/api/portfolio`)
+
+### 6.1 Get Logged-In Editor's Portfolio
+* **Method:** `GET`
+* **Endpoint:** `/api/portfolio/my`
+* **Access:** Private (Editor only)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **Response (200 OK):**
+```json
+{
+  "portfolio": {
+    "_id": "64c8...",
+    "editor": {
+      "_id": "64a0...",
+      "name": "Jane Editor",
+      "username": "janeeditor",
+      "email": "jane@example.com",
+      "profileImage": "https://...",
+      "bio": "Specialized in travel and tech vlogs",
+      "skills": ["Premiere Pro", "After Effects"],
+      "rating": 4.8
+    },
+    "title": "Senior Video Editor & Motion Designer",
+    "bio": "5+ years crafting high-engagement YouTube and short-form content.",
+    "skills": ["Video Editing", "Color Grading", "Sound Design"],
+    "software": ["Adobe Premiere Pro", "After Effects", "DaVinci Resolve"],
+    "experience": 4,
+    "experienceUnit": "years",
+    "specialization": ["YouTube Long-Form", "Reels/TikTok"],
+    "portfolioItems": [
+      {
+        "title": "Tech Showcase Video",
+        "description": "Dynamic editing and pacing",
+        "projectType": "YouTube Vlog",
+        "thumbnailUrl": "https://...",
+        "videoUrl": "https://youtube.com/watch?v=...",
+        "projectUrl": "https://...",
+        "skillsUsed": ["Premiere Pro", "Sound Design"]
+      }
+    ],
+    "socialLinks": {
+      "youtube": "https://youtube.com/@janeeditor",
+      "instagram": "https://instagram.com/janeeditor"
+    },
+    "hourlyRate": 35,
+    "availability": "available",
+    "isPublic": true,
+    "createdAt": "2026-09-24T12:00:00.000Z",
+    "updatedAt": "2026-09-24T12:00:00.000Z"
+  }
+}
+```
+* **Error Responses:**
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User role is not `editor`
+  - `404 Not Found`: Portfolio not found
+
+---
+
+### 6.2 Create / Upload Portfolio
+* **Method:** `POST`
+* **Endpoint:** `/api/portfolio`
+* **Access:** Private (Editor only)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **Body (JSON):**
+```json
+{
+  "title": "Senior Video Editor & Motion Designer",
+  "bio": "5+ years crafting high-engagement YouTube content.",
+  "skills": ["Video Editing", "Color Grading"],
+  "software": ["Adobe Premiere Pro", "After Effects"],
+  "experience": 4,
+  "experienceUnit": "years",
+  "specialization": ["YouTube Long-Form"],
+  "portfolioItems": [
+    {
+      "title": "Tech Showcase Video",
+      "description": "Dynamic editing and pacing",
+      "projectType": "YouTube Vlog",
+      "thumbnailUrl": "https://...",
+      "videoUrl": "https://youtube.com/watch?v=...",
+      "projectUrl": "https://...",
+      "skillsUsed": ["Premiere Pro"]
+    }
+  ],
+  "socialLinks": {
+    "youtube": "https://youtube.com/@janeeditor"
+  },
+  "hourlyRate": 35,
+  "availability": "available",
+  "isPublic": true
+}
+```
+* **Response (201 Created):**
+```json
+{
+  "message": "Portfolio created successfully",
+  "portfolio": { ... }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Title is required
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User role is not `editor`
+  - `409 Conflict`: Portfolio already exists for this editor (use PATCH to update)
+
+---
+
+### 6.3 Update Portfolio
+* **Method:** `PATCH`
+* **Endpoint:** `/api/portfolio/:portfolioId`
+* **Access:** Private (Editor who owns the portfolio)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:portfolioId` (Portfolio ID)
+* **Body (JSON):** Any fields to update (`title`, `bio`, `skills`, `software`, `portfolioItems`, `hourlyRate`, `availability`, etc.)
+* **Response (200 OK):**
+```json
+{
+  "message": "Portfolio updated successfully",
+  "portfolio": { ... }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid portfolio ID or empty title
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User does not own this portfolio
+  - `404 Not Found`: Portfolio not found
+
+---
+
+### 6.4 Delete Portfolio
+* **Method:** `DELETE`
+* **Endpoint:** `/api/portfolio/:portfolioId`
+* **Access:** Private (Editor who owns the portfolio)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:portfolioId` (Portfolio ID)
+* **Response (200 OK):**
+```json
+{
+  "message": "Portfolio deleted successfully"
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid portfolio ID
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User does not own this portfolio
+  - `404 Not Found`: Portfolio not found
+
+---
+
+### 6.5 Get Portfolio by Editor ID (Public)
+* **Method:** `GET`
+* **Endpoint:** `/api/portfolio/:editorId`
+* **Access:** Public (Private if `isPublic: false` unless accessed by the owner)
+* **URL Params:** `:editorId` (Editor User ID)
+* **Response (200 OK):**
+```json
+{
+  "portfolio": {
+    "_id": "64c8...",
+    "editor": {
+      "_id": "64a0...",
+      "name": "Jane Editor",
+      "username": "janeeditor",
+      "profileImage": "https://...",
+      "rating": 4.8,
+      "totalReviews": 12
+    },
+    "title": "Senior Video Editor & Motion Designer",
+    "bio": "...",
+    "skills": ["Video Editing"],
+    "software": ["Premiere Pro"],
+    "portfolioItems": [ ... ],
+    "hourlyRate": 35,
+    "availability": "available"
+  }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid editor ID
+  - `403 Forbidden`: Portfolio is set to private
+  - `404 Not Found`: Portfolio not found
+
 
 
 

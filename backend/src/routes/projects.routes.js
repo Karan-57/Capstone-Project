@@ -25,20 +25,20 @@ projectRouter.get('/creator/:creatorId', projectController.getCreatorPublicProje
 projectRouter.get('/search', projectController.searchProjectsController);
 
 /**
- * @route GET api/projects/:id
+ * @route GET api/projects/:projectId
  * @description get project details by project ID
  * @access Public
  */
-projectRouter.get('/:id', projectController.getProjectByIdController);
+projectRouter.get('/:projectId', projectController.getProjectByIdController);
 
 const applicationController = require('../controllers/application.controller');
 const { authMiddleware } = require('../middleware/auth.middleware');
 
 /**
- * @route POST api/projects/:id/apply
+ * @route POST api/projects/:projectId/apply
  * @description apply to a project as editor
  * @access Private (Editor)
  */
-projectRouter.post('/:id/apply', authMiddleware, applicationController.applyToProjectController);
+projectRouter.post('/:projectId/apply', authMiddleware, applicationController.applyToProjectController);
 
 module.exports = projectRouter;

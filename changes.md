@@ -23,6 +23,11 @@ This document tracks all modifications, architectural updates, and schema deviat
 * **Initial Plan:** Considered injecting nested subdocuments (`creatorProfile` and `editorProfile`) with granular rating metrics (e.g. `behavior`, `responseTime`, `boundaryRespect`).
 * **Change:** Put on hold by explicit user decision. Basic `rating` and `role` are used for now.
 
+### 1.4 Dedicated Portfolio Model (`portfolio.model.js`)
+* **Initial Blueprint:** Simple embedded `portfolio` array inside `user.model.js`.
+* **Change:** Created a dedicated model [`portfolio.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/portfolio.model.js) with 1-to-1 unique relationship to `editor` (`user`), including detailed item schemas (`projectType`, `skillsUsed`, `thumbnailUrl`, `videoUrl`), experience units, specialization, rates, social links, and availability status.
+* **Rationale:** Allows richer portfolio management without bloating the core `user` document.
+
 ---
 
 ## 2. Route & Architecture Adjustments
@@ -39,13 +44,30 @@ This document tracks all modifications, architectural updates, and schema deviat
 ### 2.3 Editor Application Workflow & Disband Mechanism
 * **Initial Blueprint:** Direct application acceptance leading directly into in-progress work.
 * **Changes Added:**
-  1. `POST /api/application/:id/apply` (or `/api/projects/:id/apply`): Editors can apply with `proposal`, `bidAmount`, `estimatedDeliveryDays`. Prevents duplicate applications.
+  1. `POST /api/application/:projectId/apply` (or `/api/projects/:projectId/apply`): Editors can apply with `proposal`, `bidAmount`, `estimatedDeliveryDays`. Prevents duplicate applications.
   2. `GET /api/application/my`: Cross-project query for editors with pagination and populated project/creator info.
-  3. `GET /api/application/:id`: Detail view restricted to applicant editor or project creator.
-  4. `PATCH /api/application/:id`: Editors can edit proposal/bid/delivery while still `pending`.
-  5. `DELETE /api/application/:id`: Editors can withdraw applications (soft status `'withdrawn'`), blocked if already accepted.
-  6. `POST /api/application/:id/accept`: Moves application to `accepted` and project to `assigned`.
+  3. `GET /api/application/:applicationId`: Detail view restricted to applicant editor or project creator.
+  4. `PATCH /api/application/:applicationId`: Editors can edit proposal/bid/delivery while still `pending`.
+  5. `DELETE /api/application/:applicationId`: Editors can withdraw applications (soft status `'withdrawn'`), blocked if already accepted.
+  6. `POST /api/application/:applicationId/accept`: Moves application to `accepted` and project to `assigned`.
   7. `POST /api/creator/projects/:projectId/disband`: If negotiations break down during the `assigned` stage, creator can disband the chosen editor, which reverts the project back to `open`, unassigns the editor, and marks their application as `rejected`.
+
+### 2.4 Dedicated Portfolio Endpoints (`/api/portfolio`)
+* **Endpoints Added:**
+  - `GET /api/portfolio/my`: Editor views their own portfolio.
+  - `POST /api/portfolio`: Editor creates/uploads a portfolio (1-to-1).
+  - `PATCH /api/portfolio/:portfolioId`: Updates portfolio fields.
+  - `DELETE /api/portfolio/:portfolioId`: Deletes portfolio.
+  - `GET /api/portfolio/:editorId`: Public view of an editor's portfolio (respects `isPublic`).
+
+### 2.5 Explicit Route Param Naming Standardization
+* **Initial Blueprint:** Many routes used generic `:id` across different resources.
+* **Change:** Standardized all route parameter names across backend routes to be explicit:
+  - Users: `:userId`
+  - Projects: `:projectId`
+  - Applications: `:applicationId`
+  - Portfolios: `:portfolioId` vs `:editorId`
+* **Rationale:** Prevents parameter collision, ambiguous controller handler logic, and improves client readability.
 
 ---
 
