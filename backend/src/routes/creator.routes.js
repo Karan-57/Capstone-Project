@@ -48,4 +48,11 @@ const applicationController = require('../controllers/application.controller');
  */
 creatorRouter.get('/projects/:projectId/applications', authMiddleware.authUser, applicationController.getProjectApplicationsController);
 
+/**
+ * @route POST api/creator/projects/:projectId/disband
+ * @description disband chosen editor during assigned stage and reopen project
+ * @access Private (Creator)
+ */
+creatorRouter.post('/projects/:projectId/disband', authMiddleware.authUser, applicationController.disbandEditorController);
+
 module.exports = creatorRouter;

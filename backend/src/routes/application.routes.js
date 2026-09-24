@@ -39,4 +39,18 @@ applicationRouter.patch('/:id', authMiddleware, applicationController.updateAppl
  */
 applicationRouter.delete('/:id', authMiddleware, applicationController.withdrawApplicationController);
 
+/**
+ * @route POST api/application/:id/accept
+ * @description Accept an application and assign editor to project (:id is application ID)
+ * @access Private (Creator who owns the project)
+ */
+applicationRouter.post('/:id/accept', authMiddleware, applicationController.acceptApplicationController);
+
+/**
+ * @route POST api/application/:id/reject
+ * @description Reject an application (:id is application ID)
+ * @access Private (Creator who owns the project)
+ */
+applicationRouter.post('/:id/reject', authMiddleware, applicationController.rejectApplicationController);
+
 module.exports = applicationRouter;

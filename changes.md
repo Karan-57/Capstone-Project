@@ -1,0 +1,60 @@
+# Changelog & Design Deviations (changes.md)
+
+This document tracks all modifications, architectural updates, and schema deviations made during development compared to the initial project blueprint.
+
+---
+
+## 1. Schema & Database Deviations
+
+### 1.1 Model Names & Reference Standardizations (Lowercase)
+* **Initial Blueprint:** Mixed casings were used across references (`'Project'`, `'User'`, `'Application'`).
+* **Change:** Standardized all Mongoose model registration and reference strings to strictly lowercase (`'user'`, `'project'`, `'session'`, `'otp'`, `'application'`, `'tokenBlacklist'`).
+* **Rationale:** Eliminates Mongoose populate mismatches and case-sensitivity errors across environments.
+
+### 1.2 Project Status Enum Expansion (`assigned` stage added)
+* **Initial Blueprint:** Project statuses were: `['open', 'in_progress', 'completed', 'cancelled']`.
+* **Change:** Added intermediate stage `'assigned'` to the enum:
+  ```js
+  enum: ['open', 'assigned', 'in_progress', 'completed', 'cancelled']
+  ```
+* **Rationale:** When a creator accepts an editor's application, work does not instantly start. Both parties enter an intermediate negotiation/pre-production stage (`assigned`). Only after mutual agreement does it advance to `in_progress`.
+
+### 1.3 Role-Specific Metrics / Reputation Subdocuments (Put On Hold)
+* **Initial Plan:** Considered injecting nested subdocuments (`creatorProfile` and `editorProfile`) with granular rating metrics (e.g. `behavior`, `responseTime`, `boundaryRespect`).
+* **Change:** Put on hold by explicit user decision. Basic `rating` and `role` are used for now.
+
+---
+
+## 2. Route & Architecture Adjustments
+
+### 2.1 Image Upload Architecture (ImageKit with Base64 Buffer)
+* **Initial Blueprint:** Unspecified or disk-based uploads.
+* **Change:** Implemented Multer `memoryStorage` limited to `5MB` and types `image/jpeg`, `image/png`, `image/webp`. Image files are converted to `base64` before pushing to ImageKit destination `/Capstone-storage/profile-pictures`.
+* **Change:** Dedicated endpoint `PATCH /api/users/me/profile-image` separated from profile text updates (`PATCH /api/users/me`).
+
+### 2.2 Creator Public Projects Route Consolidation
+* **Initial Blueprint:** Route was initially placed in `users.routes.js`.
+* **Change:** Consolidated under `projects.routes.js` as `GET /api/projects/creator/:creatorId` to keep project querying cohesive under the `/api/projects` resource.
+
+### 2.3 Editor Application Workflow & Disband Mechanism
+* **Initial Blueprint:** Direct application acceptance leading directly into in-progress work.
+* **Changes Added:**
+  1. `POST /api/application/:id/apply` (or `/api/projects/:id/apply`): Editors can apply with `proposal`, `bidAmount`, `estimatedDeliveryDays`. Prevents duplicate applications.
+  2. `GET /api/application/my`: Cross-project query for editors with pagination and populated project/creator info.
+  3. `GET /api/application/:id`: Detail view restricted to applicant editor or project creator.
+  4. `PATCH /api/application/:id`: Editors can edit proposal/bid/delivery while still `pending`.
+  5. `DELETE /api/application/:id`: Editors can withdraw applications (soft status `'withdrawn'`), blocked if already accepted.
+  6. `POST /api/application/:id/accept`: Moves application to `accepted` and project to `assigned`.
+  7. `POST /api/creator/projects/:projectId/disband`: If negotiations break down during the `assigned` stage, creator can disband the chosen editor, which reverts the project back to `open`, unassigns the editor, and marks their application as `rejected`.
+
+---
+
+## 3. Session & Authentication Adjustments
+
+### 3.1 Identifier-Based Login
+* **Initial Blueprint:** Traditional email-only login.
+* **Change:** Extended to accept either `email` or `username` via an `identifier` field in `POST /api/auth/login`.
+
+### 3.2 Auto-Login Upon Registration
+* **Initial Blueprint:** Separate registration and login requests.
+* **Change:** Registration automatically creates a session and returns auth tokens + refresh cookie immediately.

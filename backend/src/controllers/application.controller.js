@@ -412,11 +412,215 @@ async function withdrawApplicationController(req, res) {
     }
 }
 
+/**
+ * @name acceptApplicationController
+ * @description accept an application for a project (creator only)
+ * @route POST /api/application/:id/accept
+ * @access Private (Creator who owns the project)
+ */
+async function acceptApplicationController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        const { id: applicationId } = req.params;
+
+        if (!creatorId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (req.user?.role !== 'creator') {
+            return res.status(403).json({ message: "Forbidden: Only creators can accept applications" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+            return res.status(400).json({ message: "Invalid application ID" });
+        }
+
+        const application = await applicationModel.findById(applicationId);
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        const project = await projectModel.findById(application.projectId);
+        if (!project) {
+            return res.status(404).json({ message: "Associated project not found" });
+        }
+
+        if (project.creatorId.toString() !== creatorId.toString()) {
+            return res.status(403).json({
+                message: "Forbidden: You do not have permission to accept applications for this project"
+            });
+        }
+
+        if (application.status === 'accepted') {
+            return res.status(400).json({ message: "Application is already accepted" });
+        }
+
+        if (application.status === 'withdrawn') {
+            return res.status(400).json({ message: "Cannot accept a withdrawn application" });
+        }
+
+        // Update application status
+        application.status = 'accepted';
+        await application.save();
+
+        // Update project status to assigned and assign selected editor
+        project.status = 'assigned';
+        project.selectedEditorId = application.editorId;
+        await project.save();
+
+        return res.status(200).json({
+            message: "Application accepted successfully. Project status updated to 'assigned'.",
+            application,
+            project
+        });
+    } catch (err) {
+        console.error("Error in acceptApplicationController:", err);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name rejectApplicationController
+ * @description reject an application for a project (creator only)
+ * @route POST /api/application/:id/reject
+ * @access Private (Creator who owns the project)
+ */
+async function rejectApplicationController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        const { id: applicationId } = req.params;
+
+        if (!creatorId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (req.user?.role !== 'creator') {
+            return res.status(403).json({ message: "Forbidden: Only creators can reject applications" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+            return res.status(400).json({ message: "Invalid application ID" });
+        }
+
+        const application = await applicationModel.findById(applicationId);
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        const project = await projectModel.findById(application.projectId);
+        if (!project) {
+            return res.status(404).json({ message: "Associated project not found" });
+        }
+
+        if (project.creatorId.toString() !== creatorId.toString()) {
+            return res.status(403).json({
+                message: "Forbidden: You do not have permission to reject applications for this project"
+            });
+        }
+
+        if (application.status === 'rejected') {
+            return res.status(400).json({ message: "Application is already rejected" });
+        }
+
+        if (application.status === 'accepted') {
+            return res.status(400).json({ message: "Cannot reject an already accepted application" });
+        }
+
+        application.status = 'rejected';
+        await application.save();
+
+        return res.status(200).json({
+            message: "Application rejected successfully",
+            application
+        });
+    } catch (err) {
+        console.error("Error in rejectApplicationController:", err);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name disbandEditorController
+ * @description disband the selected editor and reopen the project to review applications again
+ * @route POST /api/creator/projects/:projectId/disband
+ * @access Private (Creator who owns the project)
+ */
+async function disbandEditorController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        const projectId = req.params.projectId || req.params.id;
+
+        if (!creatorId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (req.user?.role !== 'creator') {
+            return res.status(403).json({ message: "Forbidden: Only creators can disband editors from projects" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ message: "Invalid project ID" });
+        }
+
+        const project = await projectModel.findById(projectId);
+        if (!project) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+
+        if (project.creatorId.toString() !== creatorId.toString()) {
+            return res.status(403).json({
+                message: "Forbidden: You do not have permission to modify this project"
+            });
+        }
+
+        if (project.status !== 'assigned') {
+            return res.status(400).json({
+                message: `Cannot disband editor. Project must be in 'assigned' stage, but is currently '${project.status}'`
+            });
+        }
+
+        const previousEditorId = project.selectedEditorId;
+
+        // Reset the accepted application back to rejected (or withdrawn) for that editor
+        if (previousEditorId) {
+            await applicationModel.findOneAndUpdate(
+                { projectId: project._id, editorId: previousEditorId, status: 'accepted' },
+                { status: 'rejected' }
+            );
+        }
+
+        // Reopen project and remove selected editor
+        project.status = 'open';
+        project.selectedEditorId = null;
+        await project.save();
+
+        return res.status(200).json({
+            message: "Editor disbanded successfully. Project is now 'open' again for other applications.",
+            project
+        });
+    } catch (err) {
+        console.error("Error in disbandEditorController:", err);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     applyToProjectController,
     getProjectApplicationsController,
     getMyApplicationsController,
     getApplicationByIdController,
     updateApplicationController,
-    withdrawApplicationController
+    withdrawApplicationController,
+    acceptApplicationController,
+    rejectApplicationController,
+    disbandEditorController
 };

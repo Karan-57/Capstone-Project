@@ -716,5 +716,104 @@ Base URL: `http://localhost:3000`
   - `403 Forbidden`: User is not an editor or does not own this application
   - `404 Not Found`: Application not found
 
+---
+
+### 5.7 Accept Application
+* **Method:** `POST`
+* **Endpoint:** `/api/application/:id/accept`
+* **Access:** Private (Creator who owns the project)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:id` (Application ID)
+* **Action:**
+  - Sets application `status` to `accepted`
+  - Sets project `status` to `assigned` (editor chosen, negotiation / pre-start stage)
+  - Sets project `selectedEditorId` to the applicant's `editorId`
+* **Response (200 OK):**
+```json
+{
+  "message": "Application accepted successfully. Project status updated to 'assigned'.",
+  "application": {
+    "_id": "64c8...",
+    "projectId": "64b1...",
+    "editorId": "64a0...",
+    "status": "accepted",
+    "updatedAt": "2026-09-24T12:40:00.000Z"
+  },
+  "project": {
+    "_id": "64b1...",
+    "status": "assigned",
+    "selectedEditorId": "64a0...",
+    "updatedAt": "2026-09-24T12:40:00.000Z"
+  }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid application ID, application already accepted, or withdrawn
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not a creator or does not own the project
+  - `404 Not Found`: Application or project not found
+
+---
+
+### 5.8 Reject Application
+* **Method:** `POST`
+* **Endpoint:** `/api/application/:id/reject`
+* **Access:** Private (Creator who owns the project)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:id` (Application ID)
+* **Action:**
+  - Sets application `status` to `rejected`
+* **Response (200 OK):**
+```json
+{
+  "message": "Application rejected successfully",
+  "application": {
+    "_id": "64c8...",
+    "projectId": "64b1...",
+    "editorId": "64a0...",
+    "status": "rejected",
+    "updatedAt": "2026-09-24T12:45:00.000Z"
+  }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid application ID, application already rejected, or already accepted
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not a creator or does not own the project
+  - `404 Not Found`: Application or project not found
+
+---
+
+### 5.9 Disband Editor (Reopen Project)
+* **Method:** `POST`
+* **Endpoint:** `/api/creator/projects/:projectId/disband`
+* **Access:** Private (Creator who owns the project)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:projectId` (Project ID)
+* **Action:**
+  - Requires project to currently be in `'assigned'` status
+  - Resets project status from `'assigned'` back to `'open'`
+  - Resets project `selectedEditorId` back to `null`
+  - Resets the disbanded editor's application from `'accepted'` to `'rejected'`
+  - Creator can now review all other applications or receive new applications again
+* **Response (200 OK):**
+```json
+{
+  "message": "Editor disbanded successfully. Project is now 'open' again for other applications.",
+  "project": {
+    "_id": "64b1...",
+    "status": "open",
+    "selectedEditorId": null,
+    "updatedAt": "2026-09-24T12:50:00.000Z"
+  }
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid project ID or project is not currently in `'assigned'` status
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not a creator or does not own the project
+  - `404 Not Found`: Project not found
+
+
 
 

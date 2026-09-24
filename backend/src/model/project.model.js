@@ -62,7 +62,7 @@ const projectSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['open', 'in_progress', 'completed', 'cancelled'],
+      enum: ['open', 'assigned', 'in_progress', 'completed', 'cancelled'],
       default: 'open',
     },
     selectedEditorId: {
