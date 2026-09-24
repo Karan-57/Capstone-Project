@@ -4,12 +4,12 @@ const progressUpdateSchema = new mongoose.Schema(
   {
     workspaceId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Workspace',
+      ref: 'workspace',
       required: [true, 'Workspace ID is required'],
     },
     editorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: [true, 'Editor ID is required'],
     },
     status: {
@@ -35,5 +35,5 @@ const progressUpdateSchema = new mongoose.Schema(
 
 progressUpdateSchema.index({ workspaceId: 1, createdAt: -1 });
 
-const progressUpdateModel = mongoose.model('ProgressUpdate', progressUpdateSchema);
+const progressUpdateModel = mongoose.model('progressUpdate', progressUpdateSchema);
 module.exports = progressUpdateModel;

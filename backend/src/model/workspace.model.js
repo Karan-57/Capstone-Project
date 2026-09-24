@@ -4,18 +4,18 @@ const workspaceSchema = new mongoose.Schema(
   {
     projectId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Project',
+      ref: 'project',
       required: [true, 'Project ID is required'],
       unique: true,
     },
     creatorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: [true, 'Creator ID is required'],
     },
     editorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: [true, 'Editor ID is required'],
     },
     status: {
@@ -36,5 +36,5 @@ const workspaceSchema = new mongoose.Schema(
 workspaceSchema.index({ creatorId: 1 });
 workspaceSchema.index({ editorId: 1 });
 
-const workspaceModel = mongoose.model('Workspace', workspaceSchema);
+const workspaceModel = mongoose.model('workspace', workspaceSchema);
 module.exports = workspaceModel;

@@ -70,7 +70,13 @@ This document tracks all modifications, architectural updates, and schema deviat
   - Projects: `:projectId`
   - Applications: `:applicationId`
   - Portfolios: `:editorId` for public lookup; personal endpoints (`GET /my`, `PATCH /`, `DELETE /`) use authenticated `req.user.id` directly without requiring route ID params.
+  - Workspaces: `:workspaceId`
 * **Rationale:** Prevents parameter collision, ambiguous controller handler logic, and improves client readability.
+
+### 2.6 Workspace Progress Tracking (`/api/workspace`)
+* **Endpoints Added:**
+  - `GET /api/workspace/:workspaceId/progress`: Fetches all progress updates and current workspace status for participants (creator or assigned editor).
+  - `PATCH /api/workspace/:workspaceId/progress`: Allows the assigned editor to submit incremental progress updates (`progressPercentage`, `message`, `status`), syncing with the workspace status (`active`, `in_review`, `completed`).
 
 ---
 

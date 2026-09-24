@@ -997,6 +997,115 @@ Base URL: `http://localhost:3000`
   - `403 Forbidden`: Portfolio is set to private
   - `404 Not Found`: Portfolio not found
 
+---
+
+## 7. Workspace (`/api/workspace`)
+
+### 7.1 Get Workspace Progress
+* **Method:** `GET`
+* **Endpoint:** `/api/workspace/:workspaceId/progress`
+* **Access:** Private (Creator or Assigned Editor of the workspace)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:workspaceId` (Workspace ID)
+* **Response (200 OK):**
+```json
+{
+  "workspace": {
+    "_id": "64d1...",
+    "projectId": {
+      "_id": "64b1...",
+      "title": "Weekly Tech Vlog Editing",
+      "category": "vlog",
+      "status": "in_progress",
+      "budget": { "min": 100, "max": 200 },
+      "deadline": "2026-10-01T00:00:00.000Z"
+    },
+    "creator": {
+      "_id": "64a9...",
+      "name": "Creator Name",
+      "username": "creatorname",
+      "email": "creator@example.com",
+      "profileImage": "https://...",
+      "rating": 4.9
+    },
+    "editor": {
+      "_id": "64a0...",
+      "name": "Jane Editor",
+      "username": "janeeditor",
+      "email": "jane@example.com",
+      "profileImage": "https://...",
+      "rating": 4.8
+    },
+    "status": "active",
+    "currentProgress": 65,
+    "currentStatus": "in_progress"
+  },
+  "latestUpdate": {
+    "_id": "64d2...",
+    "workspaceId": "64d1...",
+    "editorId": {
+      "_id": "64a0...",
+      "name": "Jane Editor",
+      "username": "janeeditor",
+      "profileImage": "https://..."
+    },
+    "status": "in_progress",
+    "progressPercentage": 65,
+    "message": "Rough cut complete, working on b-roll and color grading",
+    "createdAt": "2026-09-24T18:00:00.000Z",
+    "updatedAt": "2026-09-24T18:00:00.000Z"
+  },
+  "totalUpdates": 3,
+  "updates": [ ... ]
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid workspace ID
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is neither the creator nor editor of this workspace
+  - `404 Not Found`: Workspace not found
+
+---
+
+### 7.2 Update Workspace Progress
+* **Method:** `PATCH`
+* **Endpoint:** `/api/workspace/:workspaceId/progress`
+* **Access:** Private (Assigned Editor of the workspace only)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:workspaceId` (Workspace ID)
+* **Body (JSON):**
+```json
+{
+  "message": "Rough cut complete, working on b-roll and color grading",
+  "progressPercentage": 65,
+  "status": "in_progress"
+}
+```
+* **Available Statuses:** `'pending'`, `'in_progress'`, `'review_ready'`, `'completed'`
+* **Response (200 OK):**
+```json
+{
+  "message": "Workspace progress updated successfully",
+  "progressUpdate": {
+    "_id": "64d2...",
+    "workspaceId": "64d1...",
+    "editorId": "64a0...",
+    "status": "in_progress",
+    "progressPercentage": 65,
+    "message": "Rough cut complete, working on b-roll and color grading",
+    "createdAt": "2026-09-24T18:00:00.000Z",
+    "updatedAt": "2026-09-24T18:00:00.000Z"
+  },
+  "workspaceStatus": "active"
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid workspace ID, invalid percentage (must be 0-100), missing message, or invalid status
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not an editor or not the assigned editor for this workspace
+  - `404 Not Found`: Workspace not found
+
+
 
 
 
