@@ -928,10 +928,9 @@ Base URL: `http://localhost:3000`
 
 ### 6.3 Update Portfolio
 * **Method:** `PATCH`
-* **Endpoint:** `/api/portfolio/:portfolioId`
-* **Access:** Private (Editor who owns the portfolio)
+* **Endpoint:** `/api/portfolio`
+* **Access:** Private (Editor only)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:portfolioId` (Portfolio ID)
 * **Body (JSON):** Any fields to update (`title`, `bio`, `skills`, `software`, `portfolioItems`, `hourlyRate`, `availability`, etc.)
 * **Response (200 OK):**
 ```json
@@ -941,19 +940,18 @@ Base URL: `http://localhost:3000`
 }
 ```
 * **Error Responses:**
-  - `400 Bad Request`: Invalid portfolio ID or empty title
+  - `400 Bad Request`: Empty title
   - `401 Unauthorized`: Token missing or invalid
-  - `403 Forbidden`: User does not own this portfolio
+  - `403 Forbidden`: User role is not `editor`
   - `404 Not Found`: Portfolio not found
 
 ---
 
 ### 6.4 Delete Portfolio
 * **Method:** `DELETE`
-* **Endpoint:** `/api/portfolio/:portfolioId`
-* **Access:** Private (Editor who owns the portfolio)
+* **Endpoint:** `/api/portfolio`
+* **Access:** Private (Editor only)
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
-* **URL Params:** `:portfolioId` (Portfolio ID)
 * **Response (200 OK):**
 ```json
 {
@@ -961,9 +959,8 @@ Base URL: `http://localhost:3000`
 }
 ```
 * **Error Responses:**
-  - `400 Bad Request`: Invalid portfolio ID
   - `401 Unauthorized`: Token missing or invalid
-  - `403 Forbidden`: User does not own this portfolio
+  - `403 Forbidden`: User role is not `editor`
   - `404 Not Found`: Portfolio not found
 
 ---

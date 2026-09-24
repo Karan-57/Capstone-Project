@@ -117,14 +117,13 @@ async function createPortfolioController(req, res) {
 
 /**
  * @name updatePortfolioController
- * @description update portfolio by portfolioId
- * @route PATCH /api/portfolio/:portfolioId
- * @access Private (Editor who owns the portfolio)
+ * @description update portfolio of the authenticated editor
+ * @route PATCH /api/portfolio
+ * @access Private (Editor)
  */
 async function updatePortfolioController(req, res) {
     try {
         const editorId = req.user?._id || req.user?.id;
-        const portfolioId = req.params.portfolioId || req.params.id;
 
         if (!editorId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
@@ -134,17 +133,9 @@ async function updatePortfolioController(req, res) {
             return res.status(403).json({ message: "Forbidden: Only editors can update their portfolio" });
         }
 
-        if (!mongoose.Types.ObjectId.isValid(portfolioId)) {
-            return res.status(400).json({ message: "Invalid portfolio ID" });
-        }
-
-        const portfolio = await portfolioModel.findById(portfolioId);
+        const portfolio = await portfolioModel.findOne({ editor: editorId });
         if (!portfolio) {
-            return res.status(404).json({ message: "Portfolio not found" });
-        }
-
-        if (portfolio.editor.toString() !== editorId.toString()) {
-            return res.status(403).json({ message: "Forbidden: You do not own this portfolio" });
+            return res.status(404).json({ message: "Portfolio not found. Please create one first." });
         }
 
         const allowedFields = [
@@ -194,14 +185,13 @@ async function updatePortfolioController(req, res) {
 
 /**
  * @name deletePortfolioController
- * @description delete portfolio by portfolioId
- * @route DELETE /api/portfolio/:portfolioId
- * @access Private (Editor who owns the portfolio)
+ * @description delete portfolio of the authenticated editor
+ * @route DELETE /api/portfolio
+ * @access Private (Editor)
  */
 async function deletePortfolioController(req, res) {
     try {
         const editorId = req.user?._id || req.user?.id;
-        const portfolioId = req.params.portfolioId || req.params.id;
 
         if (!editorId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
@@ -211,20 +201,10 @@ async function deletePortfolioController(req, res) {
             return res.status(403).json({ message: "Forbidden: Only editors can delete their portfolio" });
         }
 
-        if (!mongoose.Types.ObjectId.isValid(portfolioId)) {
-            return res.status(400).json({ message: "Invalid portfolio ID" });
-        }
-
-        const portfolio = await portfolioModel.findById(portfolioId);
+        const portfolio = await portfolioModel.findOneAndDelete({ editor: editorId });
         if (!portfolio) {
             return res.status(404).json({ message: "Portfolio not found" });
         }
-
-        if (portfolio.editor.toString() !== editorId.toString()) {
-            return res.status(403).json({ message: "Forbidden: You do not own this portfolio" });
-        }
-
-        await portfolioModel.findByIdAndDelete(portfolioId);
 
         return res.status(200).json({
             message: "Portfolio deleted successfully"

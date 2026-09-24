@@ -19,18 +19,18 @@ portfolioRouter.get('/my', authMiddleware, portfolioController.getMyPortfolioCon
 portfolioRouter.post('/', authMiddleware, portfolioController.createPortfolioController);
 
 /**
- * @route PATCH api/portfolio/:portfolioId
- * @description Update portfolio by portfolioId
+ * @route PATCH api/portfolio
+ * @description Update the logged-in editor's portfolio
  * @access Private (Editor)
  */
-portfolioRouter.patch('/:portfolioId', authMiddleware, portfolioController.updatePortfolioController);
+portfolioRouter.patch('/', authMiddleware, portfolioController.updatePortfolioController);
 
 /**
- * @route DELETE api/portfolio/:portfolioId
- * @description Delete portfolio by portfolioId
+ * @route DELETE api/portfolio
+ * @description Delete the logged-in editor's portfolio
  * @access Private (Editor)
  */
-portfolioRouter.delete('/:portfolioId', authMiddleware, portfolioController.deletePortfolioController);
+portfolioRouter.delete('/', authMiddleware, portfolioController.deletePortfolioController);
 
 /**
  * @route GET api/portfolio/:editorId

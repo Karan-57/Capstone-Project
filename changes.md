@@ -56,8 +56,8 @@ This document tracks all modifications, architectural updates, and schema deviat
 * **Endpoints Added:**
   - `GET /api/portfolio/my`: Editor views their own portfolio.
   - `POST /api/portfolio`: Editor creates/uploads a portfolio (1-to-1).
-  - `PATCH /api/portfolio/:portfolioId`: Updates portfolio fields.
-  - `DELETE /api/portfolio/:portfolioId`: Deletes portfolio.
+  - `PATCH /api/portfolio`: Updates portfolio fields directly using authenticated `req.user.id`.
+  - `DELETE /api/portfolio`: Deletes portfolio directly using authenticated `req.user.id`.
   - `GET /api/portfolio/:editorId`: Public view of an editor's portfolio (respects `isPublic`).
 
 ### 2.5 Explicit Route Param Naming Standardization
@@ -66,7 +66,7 @@ This document tracks all modifications, architectural updates, and schema deviat
   - Users: `:userId`
   - Projects: `:projectId`
   - Applications: `:applicationId`
-  - Portfolios: `:portfolioId` vs `:editorId`
+  - Portfolios: `:editorId` for public lookup; personal endpoints (`GET /my`, `PATCH /`, `DELETE /`) use authenticated `req.user.id` directly without requiring route ID params.
 * **Rationale:** Prevents parameter collision, ambiguous controller handler logic, and improves client readability.
 
 ---
