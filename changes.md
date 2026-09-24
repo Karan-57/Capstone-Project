@@ -76,7 +76,7 @@ This document tracks all modifications, architectural updates, and schema deviat
 ### 2.6 Workspace Progress Tracking (`/api/workspace`)
 * **Endpoints Added:**
   - `GET /api/workspace/:workspaceId/progress`: Fetches all progress updates and current workspace status for participants (creator or assigned editor).
-  - `PATCH /api/workspace/:workspaceId/progress`: Allows the assigned editor to submit incremental progress updates (`progressPercentage`, `message`, `status`), syncing with the workspace status (`active`, `in_review`, `completed`).
+  - `PATCH /api/workspace/:workspaceId/progress`: Allows the assigned editor to submit incremental progress updates. Supports predefined milestone selection (`footage_organized` [15%], `rough_cut` [35%], `broll_and_graphics` [55%], `sound_and_music` [75%], `color_and_polish` [90%], `review_ready` [100%]) with auto-calculated percentages, or fine-tuned custom percentages (0-100), syncing directly with workspace status (`active`, `in_review`, `completed`).
 
 ---
 

@@ -17,6 +17,18 @@ const progressUpdateSchema = new mongoose.Schema(
       enum: ['pending', 'in_progress', 'review_ready', 'completed'],
       default: 'in_progress',
     },
+    milestone: {
+      type: String,
+      enum: [
+        'footage_organized', // 15%
+        'rough_cut',          // 35%
+        'broll_and_graphics', // 55%
+        'sound_and_music',    // 75%
+        'color_and_polish',   // 90%
+        'review_ready'        // 100%
+      ],
+      default: null,
+    },
     progressPercentage: {
       type: Number,
       min: 0,

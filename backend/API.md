@@ -1074,14 +1074,42 @@ Base URL: `http://localhost:3000`
 * **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
 * **URL Params:** `:workspaceId` (Workspace ID)
 * **Body (JSON):**
-```json
-{
-  "message": "Rough cut complete, working on b-roll and color grading",
-  "progressPercentage": 65,
-  "status": "in_progress"
-}
-```
-* **Available Statuses:** `'pending'`, `'in_progress'`, `'review_ready'`, `'completed'`
+  - **Option A (Recommended — Milestone based):**
+  ```json
+  {
+    "milestone": "rough_cut",
+    "message": "A-roll dialogue cut is complete, moving to b-roll assets"
+  }
+  ```
+  *(Backend automatically maps `rough_cut` to `35%`)*
+
+  - **Option B (Milestone + Custom fine-tuned %):**
+  ```json
+  {
+    "milestone": "rough_cut",
+    "progressPercentage": 45,
+    "message": "Rough cut mostly done with rough music track in place"
+  }
+  ```
+
+  - **Option C (Direct custom %):**
+  ```json
+  {
+    "progressPercentage": 60,
+    "message": "B-roll selection halfway done"
+  }
+  ```
+
+* **Standard Video Editing Milestones & Auto-Calculated Percentages:**
+  | Milestone Key | Auto % | Stage Description |
+  | :--- | :---: | :--- |
+  | `footage_organized` | **15%** | Raw files imported, categorized & timeline sync |
+  | `rough_cut` | **35%** | A-roll assembly & core story structure done |
+  | `broll_and_graphics` | **55%** | B-roll overlays, titles, motion elements added |
+  | `sound_and_music` | **75%** | Music cues, audio clean-up, SFX mixing |
+  | `color_and_polish` | **90%** | Color grading, subtitles, final master polish |
+  | `review_ready` | **100%** | Full draft ready for creator inspection |
+
 * **Response (200 OK):**
 ```json
 {
@@ -1090,9 +1118,10 @@ Base URL: `http://localhost:3000`
     "_id": "64d2...",
     "workspaceId": "64d1...",
     "editorId": "64a0...",
+    "milestone": "rough_cut",
+    "progressPercentage": 35,
     "status": "in_progress",
-    "progressPercentage": 65,
-    "message": "Rough cut complete, working on b-roll and color grading",
+    "message": "A-roll dialogue cut is complete, moving to b-roll assets",
     "createdAt": "2026-09-24T18:00:00.000Z",
     "updatedAt": "2026-09-24T18:00:00.000Z"
   },
@@ -1100,7 +1129,7 @@ Base URL: `http://localhost:3000`
 }
 ```
 * **Error Responses:**
-  - `400 Bad Request`: Invalid workspace ID, invalid percentage (must be 0-100), missing message, or invalid status
+  - `400 Bad Request`: Invalid milestone key or invalid percentage (must be 0-100), missing message, or invalid status
   - `401 Unauthorized`: Token missing or invalid
   - `403 Forbidden`: User is not an editor or not the assigned editor for this workspace
   - `404 Not Found`: Workspace not found

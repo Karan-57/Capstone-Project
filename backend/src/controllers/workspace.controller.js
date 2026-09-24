@@ -77,6 +77,22 @@ async function getWorkspaceProgressController(req, res) {
  * @route PATCH /api/workspace/:workspaceId/progress
  * @access Private (Assigned Editor)
  */
+// Predefined production milestone percentages for video editing
+const MILESTONE_PERCENTAGES = {
+    'footage_organized': 15,
+    'rough_cut': 35,
+    'broll_and_graphics': 55,
+    'sound_and_music': 75,
+    'color_and_polish': 90,
+    'review_ready': 100
+};
+
+/**
+ * @name updateWorkspaceProgressController
+ * @description Add a progress update to workspace using milestones or percentage
+ * @route PATCH /api/workspace/:workspaceId/progress
+ * @access Private (Assigned Editor)
+ */
 async function updateWorkspaceProgressController(req, res) {
     try {
         const editorId = req.user?._id || req.user?.id;
@@ -112,18 +128,40 @@ async function updateWorkspaceProgressController(req, res) {
             });
         }
 
-        const { message, progressPercentage, status } = req.body;
+        const { message, milestone, progressPercentage, status } = req.body;
 
         if (!message || typeof message !== 'string' || message.trim() === '') {
             return res.status(400).json({ message: "Progress message is required" });
         }
 
-        if (progressPercentage === undefined || isNaN(Number(progressPercentage)) || Number(progressPercentage) < 0 || Number(progressPercentage) > 100) {
-            return res.status(400).json({ message: "progressPercentage must be a number between 0 and 100" });
+        // Calculate progress percentage:
+        // 1. If valid milestone provided, use its mapped percentage
+        // 2. Or allow custom percentage (0 - 100)
+        let calculatedPercentage;
+        if (milestone && MILESTONE_PERCENTAGES[milestone] !== undefined) {
+            calculatedPercentage = progressPercentage !== undefined 
+                ? Math.min(100, Math.max(0, Number(progressPercentage))) 
+                : MILESTONE_PERCENTAGES[milestone];
+        } else if (progressPercentage !== undefined && !isNaN(Number(progressPercentage))) {
+            const num = Number(progressPercentage);
+            if (num < 0 || num > 100) {
+                return res.status(400).json({ message: "progressPercentage must be a number between 0 and 100" });
+            }
+            calculatedPercentage = num;
+        } else {
+            return res.status(400).json({
+                message: "Either a valid milestone ('footage_organized', 'rough_cut', 'broll_and_graphics', 'sound_and_music', 'color_and_polish', 'review_ready') or progressPercentage (0-100) is required",
+                availableMilestones: Object.keys(MILESTONE_PERCENTAGES)
+            });
         }
 
+        // Determine progress update status
         const allowedStatuses = ['pending', 'in_progress', 'review_ready', 'completed'];
-        const progressStatus = status || 'in_progress';
+        let progressStatus = status || 'in_progress';
+        if (milestone === 'review_ready' || calculatedPercentage === 100) {
+            progressStatus = status || 'review_ready';
+        }
+
         if (!allowedStatuses.includes(progressStatus)) {
             return res.status(400).json({
                 message: `Invalid status. Allowed values: ${allowedStatuses.join(', ')}`
@@ -135,15 +173,16 @@ async function updateWorkspaceProgressController(req, res) {
             workspaceId,
             editorId,
             message: message.trim(),
-            progressPercentage: Number(progressPercentage),
+            milestone: milestone || null,
+            progressPercentage: calculatedPercentage,
             status: progressStatus
         });
 
-        // Optionally update workspace status according to progress
+        // Sync workspace status
         if (progressStatus === 'review_ready' && workspace.status !== 'in_review') {
             workspace.status = 'in_review';
             await workspace.save();
-        } else if (progressStatus === 'completed' && Number(progressPercentage) === 100) {
+        } else if (progressStatus === 'completed' && calculatedPercentage === 100) {
             workspace.status = 'completed';
             await workspace.save();
         } else if (progressStatus === 'in_progress' && workspace.status !== 'active') {
