@@ -39,4 +39,13 @@ creatorRouter.delete('/projects/:projectId', authMiddleware.authUser, creatorCon
  */
 creatorRouter.patch('/projects/:projectId/cancel', authMiddleware.authUser, creatorController.cancelProjectController);
 
+const applicationController = require('../controllers/application.controller');
+
+/**
+ * @route GET api/creator/projects/:projectId/applications
+ * @description get all applications for a specific creator project
+ * @access Private (Creator)
+ */
+creatorRouter.get('/projects/:projectId/applications', authMiddleware.authUser, applicationController.getProjectApplicationsController);
+
 module.exports = creatorRouter;

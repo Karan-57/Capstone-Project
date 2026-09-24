@@ -501,3 +501,103 @@ Base URL: `http://localhost:3000`
   - `403 Forbidden`: User role is not `editor`
   - `404 Not Found`: Project not found
   - `409 Conflict`: Editor has already applied to this project
+
+---
+
+### 5.2 Get Applications for a Project
+* **Method:** `GET`
+* **Endpoints:**
+  - `/api/application/:id`
+  - `/api/creator/projects/:projectId/applications`
+* **Access:** Private (Creator only - must own the project)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:id` or `:projectId` (Project ID)
+* **Query Params:**
+  - `status` (optional: `pending`, `accepted`, `rejected`, `withdrawn`)
+* **Response (200 OK):**
+```json
+{
+  "count": 2,
+  "applications": [
+    {
+      "_id": "64c8...",
+      "projectId": "64b1...",
+      "editorId": {
+        "_id": "64a0...",
+        "name": "Jane Editor",
+        "username": "janeeditor",
+        "email": "jane@example.com",
+        "profileImage": "https://...",
+        "bio": "Specialized in travel and tech vlogs",
+        "skills": ["Premiere Pro", "After Effects"],
+        "rating": 4.8
+      },
+      "proposal": "I have 4 years of experience editing tech vlogs...",
+      "bidAmount": 150,
+      "estimatedDeliveryDays": 3,
+      "status": "pending",
+      "createdAt": "2026-09-24T12:00:00.000Z",
+      "updatedAt": "2026-09-24T12:00:00.000Z"
+    }
+  ]
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid project ID
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not a creator, or does not own this project
+  - `404 Not Found`: Project not found
+
+---
+
+### 5.3 Get Editor's Own Applications (All Projects)
+* **Method:** `GET`
+* **Endpoint:** `/api/application/my`
+* **Access:** Private (Editor only)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **Query Params:**
+  - `status` (optional: `pending`, `accepted`, `rejected`, `withdrawn`)
+  - `page` (default: 1)
+  - `limit` (default: 20)
+* **Response (200 OK):**
+```json
+{
+  "count": 1,
+  "total": 1,
+  "page": 1,
+  "pages": 1,
+  "applications": [
+    {
+      "_id": "64c8...",
+      "projectId": {
+        "_id": "64b1...",
+        "title": "Weekly Tech Vlog Editing",
+        "description": "Looking for video editor...",
+        "category": "vlog",
+        "status": "open",
+        "budget": { "min": 100, "max": 200 },
+        "deadline": "2026-10-01T00:00:00.000Z",
+        "creatorId": {
+          "_id": "64a9...",
+          "name": "Creator Name",
+          "username": "creatorname",
+          "profileImage": "https://...",
+          "rating": 4.9
+        }
+      },
+      "editorId": "64a0...",
+      "proposal": "I have 4 years of experience editing tech vlogs...",
+      "bidAmount": 150,
+      "estimatedDeliveryDays": 3,
+      "status": "pending",
+      "createdAt": "2026-09-24T12:00:00.000Z",
+      "updatedAt": "2026-09-24T12:00:00.000Z"
+    }
+  ]
+}
+```
+* **Error Responses:**
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User role is not `editor`
+
+

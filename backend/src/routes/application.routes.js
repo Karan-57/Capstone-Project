@@ -11,4 +11,18 @@ const applicationRouter = Router();
  */
 applicationRouter.post('/:id/apply', authMiddleware, applicationController.applyToProjectController);
 
+/**
+ * @route GET api/application/my
+ * @description View all applications submitted by the logged-in editor
+ * @access Private (Editor)
+ */
+applicationRouter.get('/my', authMiddleware, applicationController.getMyApplicationsController);
+
+/**
+ * @route GET api/application/:id
+ * @description View all applications for a project (creator only) using project id (:id)
+ * @access Private (Creator)
+ */
+applicationRouter.get('/:id', authMiddleware, applicationController.getProjectApplicationsController);
+
 module.exports = applicationRouter;
