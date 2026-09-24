@@ -23,10 +23,13 @@ This document tracks all modifications, architectural updates, and schema deviat
 * **Initial Plan:** Considered injecting nested subdocuments (`creatorProfile` and `editorProfile`) with granular rating metrics (e.g. `behavior`, `responseTime`, `boundaryRespect`).
 * **Change:** Put on hold by explicit user decision. Basic `rating` and `role` are used for now.
 
-### 1.4 Dedicated Portfolio Model (`portfolio.model.js`)
-* **Initial Blueprint:** Simple embedded `portfolio` array inside `user.model.js`.
-* **Change:** Created a dedicated model [`portfolio.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/portfolio.model.js) with 1-to-1 unique relationship to `editor` (`user`), including detailed item schemas (`projectType`, `skillsUsed`, `thumbnailUrl`, `videoUrl`), experience units, specialization, rates, social links, and availability status.
-* **Rationale:** Allows richer portfolio management without bloating the core `user` document.
+### 1.4 Dedicated Portfolio Model & Decoupling from UserModel
+* **Initial Blueprint:** Simple embedded `portfolio` array, `skills`, `software`, and `experience` directly inside `user.model.js`.
+* **Change:** 
+  - Extracted all editor-specific fields (`skills`, `software`, `experience`, `experienceUnit`, `portfolioItems`, `specialization`, `socialLinks`, `hourlyRate`, `availability`) completely into [`portfolio.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/portfolio.model.js) with indexing on `editor`, `skills`, and `software`.
+  - Removed duplicate `portfolio` array, `skills`, `software`, and `experience` fields from [`user.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/user.model.js).
+  - Cleaned up user controllers (`PATCH /api/users/me` and `GET /api/users/search`) to reflect the clean user profile schema.
+* **Rationale:** Establishes clean single-source-of-truth separation between base user identity/auth and editor portfolio/professional showcases.
 
 ---
 

@@ -81,50 +81,7 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Editor Information
-    skills: {
-      type: [String],
-      default: [],
-    },
-
-    software: {
-      type: [String],
-      default: [],
-    },
-
-    experience: {
-      type: Number,
-      default: 0,
-      min: [0, "Experience cannot be negative"],
-    },
-
-    // Portfolio
-    portfolio: [
-      {
-        title: {
-          type: String,
-          required: [true, "Portfolio title is required"],
-          trim: true,
-        },
-
-        description: {
-          type: String,
-          default: "",
-        },
-
-        projectUrl: {
-          type: String,
-          required: [true, "Portfolio project URL is required"],
-        },
-
-        thumbnailUrl: {
-          type: String,
-          default: "",
-        },
-      },
-    ],
-
-    // Editor Reputation
+    // Reputation
     rating: {
       type: Number,
       default: 0,
@@ -152,8 +109,6 @@ const userSchema = new mongoose.Schema(
 
 // Indexes
 userSchema.index({ role: 1 });
-userSchema.index({ skills: 1 });
-userSchema.index({ software: 1 });
 userSchema.index({ rating: -1 });
 
 // Create Model

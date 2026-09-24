@@ -143,7 +143,7 @@ async function getProjectApplicationsController(req, res) {
 
         const applications = await applicationModel
             .find(filter)
-            .populate('editorId', 'name username email profileImage bio skills rating')
+            .populate('editorId', 'name username email profileImage bio rating')
             .sort({ createdAt: -1 });
 
         return res.status(200).json({
@@ -244,7 +244,7 @@ async function getApplicationByIdController(req, res) {
 
         const application = await applicationModel
             .findById(applicationId)
-            .populate('editorId', 'name username email profileImage bio skills rating')
+            .populate('editorId', 'name username email profileImage bio rating')
             .populate({
                 path: 'projectId',
                 select: 'title description category budget deadline status creatorId',

@@ -212,8 +212,7 @@ Base URL: `http://localhost:3000`
   "name": "Johnathan Doe",
   "bio": "Tech YouTuber with 100k subs",
   "location": "New York, USA",
-  "skills": ["Premiere Pro", "After Effects"],
-  "software": ["DaVinci Resolve"]
+  "phone": "+1234567890"
 }
 ```
 * **Response (200 OK):**

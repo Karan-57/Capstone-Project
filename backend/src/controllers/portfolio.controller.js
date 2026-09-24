@@ -21,7 +21,7 @@ async function getMyPortfolioController(req, res) {
 
         const portfolio = await portfolioModel
             .findOne({ editor: editorId })
-            .populate('editor', 'name username email profileImage bio skills rating');
+            .populate('editor', 'name username email profileImage bio rating');
 
         if (!portfolio) {
             return res.status(404).json({ message: "Portfolio not found. You have not created a portfolio yet." });
@@ -234,7 +234,7 @@ async function getPortfolioByEditorIdController(req, res) {
 
         const portfolio = await portfolioModel
             .findOne({ editor: editorId })
-            .populate('editor', 'name username email profileImage bio skills rating totalReviews');
+            .populate('editor', 'name username email profileImage bio rating totalReviews');
 
         if (!portfolio) {
             return res.status(404).json({ message: "Portfolio not found for this editor" });

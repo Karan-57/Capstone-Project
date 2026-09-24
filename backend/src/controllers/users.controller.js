@@ -51,11 +51,7 @@ async function updateMeController(req, res) {
             'username',
             'bio',
             'location',
-            'phone',
-            'skills',
-            'software',
-            'experience',
-            'portfolio'
+            'phone'
         ];
 
         const updates = {};
@@ -202,7 +198,7 @@ async function searchUsersController(req, res) {
                 { name: { $regex: query, $options: 'i' } }
             ]
         })
-        .select('name username profileImage role rating skills software bio')
+        .select('name username profileImage role rating bio location')
         .limit(10);
 
         return res.status(200).json({ users });
