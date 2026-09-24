@@ -4,12 +4,12 @@ const fileSchema = new mongoose.Schema(
   {
     workspaceId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Workspace',
+      ref: 'workspace',
       required: [true, 'Workspace ID is required'],
     },
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'user',
       required: [true, 'UploadedBy User ID is required'],
     },
     fileName: {
@@ -45,5 +45,5 @@ const fileSchema = new mongoose.Schema(
 
 fileSchema.index({ workspaceId: 1 });
 
-const fileModel = mongoose.model('File', fileSchema);
+const fileModel = mongoose.model('file', fileSchema);
 module.exports = fileModel;

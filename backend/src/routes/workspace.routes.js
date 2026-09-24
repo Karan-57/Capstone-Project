@@ -39,5 +39,20 @@ workspaceRouter.get('/:workspaceId/revision', authMiddleware, workspaceControlle
  */
 workspaceRouter.patch(['/:revisionId/revision', '/revision/:revisionId'], authMiddleware, workspaceController.updateRevisionController);
 
+/**
+ * @route POST api/workspace/:workspaceId/deliver
+ * @description Deliver final video cut for a workspace
+ * @access Private (Assigned Editor)
+ */
+workspaceRouter.post('/:workspaceId/deliver', authMiddleware, workspaceController.deliverWorkspaceController);
+
+/**
+ * @route GET api/workspace/:workspaceId/deliveries
+ * @description View all deliveries for a workspace
+ * @access Private (Workspace Creator or Editor)
+ */
+workspaceRouter.get('/:workspaceId/deliveries', authMiddleware, workspaceController.getWorkspaceDeliveriesController);
+
 module.exports = workspaceRouter;
+
 

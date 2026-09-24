@@ -1268,6 +1268,104 @@ Base URL: `http://localhost:3000`
   - `403 Forbidden`: User is not a participant in this workspace
   - `404 Not Found`: Revision or associated workspace not found
 
+---
+
+### 7.6 Deliver Final Video
+* **Method:** `POST`
+* **Endpoint:** `/api/workspace/:workspaceId/deliver`
+* **Access:** Private (Assigned Editor only)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:workspaceId` (Workspace ID)
+* **Body (JSON):**
+```json
+{
+  "videoUrl": "https://storage.example.com/renders/vlog_final_master_v1.mp4", // required (or fileUrl)
+  "title": "Final Cut v1 - 4K Master", // optional (default: "Final Cut v{version}")
+  "notes": "Added color grading, normalized dialogue loudness to -14 LUFS, and synced audio cues at 01:25.", // optional
+  "fileId": "64d3...", // optional reference to a File record
+  "version": 1 // optional (defaults to next incremented version)
+}
+```
+* **Response (201 Created):**
+```json
+{
+  "message": "Final video delivered successfully",
+  "delivery": {
+    "_id": "64d5...",
+    "workspaceId": "64d1...",
+    "editorId": {
+      "_id": "64a0...",
+      "name": "Jane Editor",
+      "username": "janeeditor",
+      "email": "jane@example.com",
+      "profileImage": "https://...",
+      "rating": 4.8
+    },
+    "fileId": null,
+    "videoUrl": "https://storage.example.com/renders/vlog_final_master_v1.mp4",
+    "title": "Final Cut v1 - 4K Master",
+    "notes": "Added color grading, normalized dialogue loudness to -14 LUFS, and synced audio cues at 01:25.",
+    "version": 1,
+    "status": "pending_review",
+    "approvedAt": null,
+    "rejectionReason": null,
+    "createdAt": "2026-09-24T20:00:00.000Z",
+    "updatedAt": "2026-09-24T20:00:00.000Z"
+  },
+  "workspaceStatus": "in_review"
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Missing videoUrl/fileUrl, invalid workspace ID, or workspace already completed/cancelled
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not an editor or not the assigned editor for this workspace
+  - `404 Not Found`: Workspace not found
+
+---
+
+### 7.7 View Workspace Deliveries
+* **Method:** `GET`
+* **Endpoint:** `/api/workspace/:workspaceId/deliveries`
+* **Access:** Private (Workspace Creator or Editor)
+* **Headers:** `Authorization: Bearer <accessToken>` (or via cookies)
+* **URL Params:** `:workspaceId` (Workspace ID)
+* **Response (200 OK):**
+```json
+{
+  "count": 1,
+  "deliveries": [
+    {
+      "_id": "64d5...",
+      "workspaceId": "64d1...",
+      "editorId": {
+        "_id": "64a0...",
+        "name": "Jane Editor",
+        "username": "janeeditor",
+        "email": "jane@example.com",
+        "profileImage": "https://...",
+        "rating": 4.8
+      },
+      "fileId": null,
+      "videoUrl": "https://storage.example.com/renders/vlog_final_master_v1.mp4",
+      "title": "Final Cut v1 - 4K Master",
+      "notes": "Added color grading, normalized dialogue loudness to -14 LUFS, and synced audio cues at 01:25.",
+      "version": 1,
+      "status": "pending_review",
+      "approvedAt": null,
+      "rejectionReason": null,
+      "createdAt": "2026-09-24T20:00:00.000Z",
+      "updatedAt": "2026-09-24T20:00:00.000Z"
+    }
+  ]
+}
+```
+* **Error Responses:**
+  - `400 Bad Request`: Invalid workspace ID
+  - `401 Unauthorized`: Token missing or invalid
+  - `403 Forbidden`: User is not a participant in this workspace
+  - `404 Not Found`: Workspace not found
+
+
 
 
 

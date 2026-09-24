@@ -1,6 +1,7 @@
 const workspaceModel = require('../model/workspace.model');
 const progressUpdateModel = require('../model/progressUpdate.model');
 const revisionModel = require('../model/revision.model');
+const deliveryModel = require('../model/delivery.model');
 const mongoose = require('mongoose');
 
 /**
@@ -434,11 +435,177 @@ async function updateRevisionController(req, res) {
     }
 }
 
+/**
+ * @name deliverWorkspaceController
+ * @description Editor delivers final video cut for a workspace
+ * @route POST /api/workspace/:workspaceId/deliver
+ * @access Private (Assigned Editor)
+ */
+async function deliverWorkspaceController(req, res) {
+    try {
+        const editorId = req.user?._id || req.user?.id;
+        const { workspaceId } = req.params;
+
+        if (!editorId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (req.user?.role !== 'editor') {
+            return res.status(403).json({ message: "Forbidden: Only editors can deliver projects" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace ID" });
+        }
+
+        const workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Workspace not found" });
+        }
+
+        // Verify logged in user is the assigned editor
+        if (workspace.editorId.toString() !== editorId.toString()) {
+            return res.status(403).json({
+                message: "Forbidden: You are not the assigned editor for this workspace"
+            });
+        }
+
+        if (workspace.status === 'completed' || workspace.status === 'cancelled') {
+            return res.status(400).json({
+                message: `Cannot deliver final video. Workspace is already ${workspace.status}`
+            });
+        }
+
+        const { videoUrl, fileUrl, title, notes, fileId, version } = req.body;
+        const targetUrl = videoUrl || fileUrl;
+
+        if (!targetUrl || typeof targetUrl !== 'string' || targetUrl.trim() === '') {
+            return res.status(400).json({
+                message: "Video URL or file link is required (videoUrl or fileUrl)"
+            });
+        }
+
+        if (fileId && !mongoose.Types.ObjectId.isValid(fileId)) {
+            return res.status(400).json({ message: "Invalid file ID" });
+        }
+
+        // Compute version: use provided version or auto-increment based on existing deliveries
+        let deliveryVersion;
+        if (version !== undefined && !isNaN(Number(version)) && Number(version) > 0) {
+            deliveryVersion = Number(version);
+        } else {
+            const existingCount = await deliveryModel.countDocuments({ workspaceId });
+            deliveryVersion = existingCount + 1;
+        }
+
+        const delivery = await deliveryModel.create({
+            workspaceId,
+            editorId,
+            fileId: fileId || null,
+            videoUrl: targetUrl.trim(),
+            title: title && typeof title === 'string' && title.trim() !== '' ? title.trim() : `Final Cut v${deliveryVersion}`,
+            notes: notes && typeof notes === 'string' ? notes.trim() : '',
+            version: deliveryVersion,
+            status: 'pending_review'
+        });
+
+        // Set workspace status to in_review
+        if (workspace.status !== 'in_review') {
+            workspace.status = 'in_review';
+            await workspace.save();
+        }
+
+        // Automatically create a progress update indicating review_ready (100%)
+        await progressUpdateModel.create({
+            workspaceId,
+            editorId,
+            milestone: 'review_ready',
+            progressPercentage: 100,
+            status: 'review_ready',
+            message: notes && typeof notes === 'string' && notes.trim() !== ''
+                ? `Delivered Cut v${deliveryVersion}: ${notes.trim()}`
+                : `Delivered final video cut v${deliveryVersion} for review.`
+        });
+
+        await delivery.populate('editorId', 'name username email profileImage rating');
+        if (fileId) {
+            await delivery.populate('fileId', 'fileName fileType fileSize fileUrl');
+        }
+
+        return res.status(201).json({
+            message: "Final video delivered successfully",
+            delivery,
+            workspaceStatus: workspace.status
+        });
+    } catch (err) {
+        console.error("Error in deliverWorkspaceController:", err);
+        return res.status(500).json({
+            message: "Internal server error while delivering final video",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name getWorkspaceDeliveriesController
+ * @description View all deliveries related to a workspace
+ * @route GET /api/workspace/:workspaceId/deliveries
+ * @access Private (Workspace Creator or Editor)
+ */
+async function getWorkspaceDeliveriesController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const { workspaceId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace ID" });
+        }
+
+        const workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Workspace not found" });
+        }
+
+        const isCreator = workspace.creatorId.toString() === userId.toString();
+        const isEditor = workspace.editorId.toString() === userId.toString();
+
+        if (!isCreator && !isEditor) {
+            return res.status(403).json({
+                message: "Forbidden: You are not a participant in this workspace"
+            });
+        }
+
+        const deliveries = await deliveryModel
+            .find({ workspaceId })
+            .populate('editorId', 'name username email profileImage rating')
+            .populate('fileId', 'fileName fileType fileSize fileUrl')
+            .sort({ version: -1, createdAt: -1 });
+
+        return res.status(200).json({
+            count: deliveries.length,
+            deliveries
+        });
+    } catch (err) {
+        console.error("Error in getWorkspaceDeliveriesController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching deliveries",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     getWorkspaceProgressController,
     updateWorkspaceProgressController,
     createRevisionController,
     getWorkspaceRevisionsController,
-    updateRevisionController
+    updateRevisionController,
+    deliverWorkspaceController,
+    getWorkspaceDeliveriesController
 };
+
 

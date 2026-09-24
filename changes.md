@@ -85,7 +85,14 @@ This document tracks all modifications, architectural updates, and schema deviat
   - `GET /api/workspace/:workspaceId/revision`: Retrieves revision requests for a workspace with populated requester and file details, with optional `?status=` filtering.
   - `PATCH /api/workspace/:revisionId/revision`: Allows workspace participants to update revision status (`pending`, `in_progress`, `resolved`) and descriptions, setting `resolvedAt` timestamp automatically upon resolution.
 
+### 2.8 Workspace Final Video Deliveries (`/api/workspace`)
+* **Model Created:** `backend/src/model/delivery.model.js` (`delivery`) tracking `workspaceId`, `editorId`, `fileId`, `videoUrl`, `title`, `notes`, `version`, and review status.
+* **Endpoints Added:**
+  - `POST /api/workspace/:workspaceId/deliver`: Allows the assigned editor to deliver final cuts / video URLs. Auto-increments delivery version, shifts workspace status to `in_review`, and records a `review_ready` (100%) progress milestone.
+  - `GET /api/workspace/:workspaceId/deliveries`: Allows workspace participants (creator or editor) to view all submitted cut versions with populated editor and file details sorted newest first.
+
 ---
+
 
 
 ## 3. Session & Authentication Adjustments
