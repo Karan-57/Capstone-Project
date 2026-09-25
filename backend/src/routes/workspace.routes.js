@@ -19,11 +19,19 @@ workspaceRouter.get('/:workspaceId/progress', authMiddleware, workspaceControlle
 workspaceRouter.patch('/:workspaceId/progress', authMiddleware, workspaceController.updateWorkspaceProgressController);
 
 /**
- * @route POST api/workspace/:workspaceId/revision
- * @description Request a revision in a workspace
+ * @route POST api/workspace/:deliveryId/revision
+ * @description Request a revision for a delivery
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.post('/:workspaceId/revision', authMiddleware, workspaceController.createRevisionController);
+workspaceRouter.post(['/:deliveryId/revision', '/delivery/:deliveryId/revision'], authMiddleware, workspaceController.createRevisionController);
+
+/**
+ * @route GET api/workspace/:revisionId/revsion
+ * @route GET api/workspace/revision/:revisionId
+ * @description Get a revision by its ID
+ * @access Private (Workspace Creator or Editor)
+ */
+workspaceRouter.get(['/:revisionId/revsion', '/revision/:revisionId'], authMiddleware, workspaceController.getRevisionByIdController);
 
 /**
  * @route GET api/workspace/:workspaceId/revision

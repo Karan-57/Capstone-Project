@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const revisionSchema = new mongoose.Schema(
   {
+    deliveryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'delivery',
+      required: [true, 'Delivery ID is required'],
+    },
     workspaceId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'workspace',
@@ -36,6 +41,7 @@ const revisionSchema = new mongoose.Schema(
   }
 );
 
+revisionSchema.index({ deliveryId: 1 });
 revisionSchema.index({ workspaceId: 1 });
 
 const revisionModel = mongoose.model('revision', revisionSchema);

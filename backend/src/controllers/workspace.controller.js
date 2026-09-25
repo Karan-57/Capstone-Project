@@ -208,26 +208,31 @@ async function updateWorkspaceProgressController(req, res) {
 
 /**
  * @name createRevisionController
- * @description Create a revision request for a workspace (typically by creator or editor)
- * @route POST /api/workspace/:workspaceId/revision
+ * @description Create a revision request for a delivery
+ * @route POST /api/workspace/:deliveryId/revision
  * @access Private (Workspace Creator or Editor)
  */
 async function createRevisionController(req, res) {
     try {
         const userId = req.user?._id || req.user?.id;
-        const { workspaceId } = req.params;
+        const deliveryId = req.params.deliveryId || req.params.workspaceId || req.body.deliveryId;
 
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
-            return res.status(400).json({ message: "Invalid workspace ID" });
+        if (!deliveryId || !mongoose.Types.ObjectId.isValid(deliveryId)) {
+            return res.status(400).json({ message: "Invalid delivery ID" });
         }
 
-        const workspace = await workspaceModel.findById(workspaceId);
+        const delivery = await deliveryModel.findById(deliveryId);
+        if (!delivery) {
+            return res.status(404).json({ message: "Delivery not found" });
+        }
+
+        const workspace = await workspaceModel.findById(delivery.workspaceId);
         if (!workspace) {
-            return res.status(404).json({ message: "Workspace not found" });
+            return res.status(404).json({ message: "Associated workspace not found" });
         }
 
         // Verify the user is a participant (creator or editor)
@@ -257,12 +262,17 @@ async function createRevisionController(req, res) {
         }
 
         const revision = await revisionModel.create({
-            workspaceId,
+            deliveryId: delivery._id,
+            workspaceId: workspace._id,
             requestedBy: userId,
             fileId: fileId || null,
             description: description.trim(),
             status: 'pending'
         });
+
+        // Update delivery status to revision_requested
+        delivery.status = 'revision_requested';
+        await delivery.save();
 
         // Set workspace status to in_review if it was active
         if (workspace.status === 'active') {
@@ -270,15 +280,74 @@ async function createRevisionController(req, res) {
             await workspace.save();
         }
 
+        await revision.populate('requestedBy', 'name username role profileImage');
+        await revision.populate('deliveryId', 'title version videoUrl status notes');
+        if (fileId) {
+            await revision.populate('fileId', 'fileName fileType fileSize fileUrl');
+        }
+
         return res.status(201).json({
             message: "Revision requested successfully",
             revision,
+            deliveryStatus: delivery.status,
             workspaceStatus: workspace.status
         });
     } catch (err) {
         console.error("Error in createRevisionController:", err);
         return res.status(500).json({
             message: "Internal server error while creating revision",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name getRevisionByIdController
+ * @description Get a revision by its ID
+ * @route GET /api/workspace/:revisionId/revsion or /api/workspace/revision/:revisionId
+ * @access Private (Workspace Creator or Editor)
+ */
+async function getRevisionByIdController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const revisionId = req.params.revisionId || req.params.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!revisionId || !mongoose.Types.ObjectId.isValid(revisionId)) {
+            return res.status(400).json({ message: "Invalid revision ID" });
+        }
+
+        const revision = await revisionModel.findById(revisionId)
+            .populate('requestedBy', 'name username role profileImage')
+            .populate('deliveryId', 'title version videoUrl status notes')
+            .populate('fileId', 'fileName originalName fileUrl fileType fileSize');
+
+        if (!revision) {
+            return res.status(404).json({ message: "Revision not found" });
+        }
+
+        const workspace = await workspaceModel.findById(revision.workspaceId);
+        if (workspace) {
+            const isCreator = workspace.creatorId.toString() === userId.toString();
+            const isEditor = workspace.editorId.toString() === userId.toString();
+
+            if (!isCreator && !isEditor) {
+                return res.status(403).json({
+                    message: "Forbidden: You are not a participant in this workspace"
+                });
+            }
+        }
+
+        return res.status(200).json({
+            revision
+        });
+    } catch (err) {
+        console.error("Error in getRevisionByIdController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching revision",
             error: err.message
         });
     }
@@ -305,6 +374,26 @@ async function getWorkspaceRevisionsController(req, res) {
 
         const workspace = await workspaceModel.findById(workspaceId);
         if (!workspace) {
+            // Fallback check if the param is actually a revisionId
+            const singleRevision = await revisionModel.findById(workspaceId)
+                .populate('requestedBy', 'name username role profileImage')
+                .populate('deliveryId', 'title version videoUrl status notes')
+                .populate('fileId', 'fileName originalName fileUrl fileType');
+
+            if (singleRevision) {
+                const assocWorkspace = await workspaceModel.findById(singleRevision.workspaceId);
+                if (assocWorkspace) {
+                    const isCreator = assocWorkspace.creatorId.toString() === userId.toString();
+                    const isEditor = assocWorkspace.editorId.toString() === userId.toString();
+                    if (!isCreator && !isEditor) {
+                        return res.status(403).json({
+                            message: "Forbidden: You are not a participant in this workspace"
+                        });
+                    }
+                }
+                return res.status(200).json({ revision: singleRevision });
+            }
+
             return res.status(404).json({ message: "Workspace not found" });
         }
 
@@ -317,16 +406,20 @@ async function getWorkspaceRevisionsController(req, res) {
             });
         }
 
-        const { status } = req.query;
+        const { status, deliveryId } = req.query;
         const filter = { workspaceId };
         if (status) {
             filter.status = status;
+        }
+        if (deliveryId) {
+            filter.deliveryId = deliveryId;
         }
 
         const revisions = await revisionModel
             .find(filter)
             .populate('requestedBy', 'name username role profileImage')
-            .populate('fileId', 'originalName fileUrl fileType')
+            .populate('deliveryId', 'title version videoUrl status notes')
+            .populate('fileId', 'fileName originalName fileUrl fileType')
             .sort({ createdAt: -1 });
 
         return res.status(200).json({
@@ -420,7 +513,8 @@ async function updateRevisionController(req, res) {
         await revision.save();
 
         await revision.populate('requestedBy', 'name username role profileImage');
-        await revision.populate('fileId', 'originalName fileUrl fileType');
+        await revision.populate('deliveryId', 'title version videoUrl status notes');
+        await revision.populate('fileId', 'fileName originalName fileUrl fileType');
 
         return res.status(200).json({
             message: "Revision updated successfully",
@@ -602,6 +696,7 @@ module.exports = {
     getWorkspaceProgressController,
     updateWorkspaceProgressController,
     createRevisionController,
+    getRevisionByIdController,
     getWorkspaceRevisionsController,
     updateRevisionController,
     deliverWorkspaceController,
