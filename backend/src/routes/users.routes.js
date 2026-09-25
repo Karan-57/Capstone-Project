@@ -34,6 +34,20 @@ usersRouter.patch('/me/profile-image', authMiddleware.authUser, upload.single('p
 usersRouter.get('/search', usersController.searchUsersController);
 
 /**
+ * @route GET api/users/:userId/get-review
+ * @description get all reviews of a user with pagination (limit 10)
+ * @access Public
+ */
+usersRouter.get('/:userId/get-review', usersController.getUserReviewsController);
+
+/**
+ * @route GET api/users/:userId/ratings
+ * @description get average ratings and metrics for a user based on role
+ * @access Public
+ */
+usersRouter.get('/:userId/ratings', usersController.getUserRatingsController);
+
+/**
  * @route GET api/users/:userId
  * @description get user public profile by ID
  * @access Public

@@ -81,11 +81,60 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Reputation
+    // Reputation & Aggregated Review Metrics
     totalReviews: {
       type: Number,
       default: 0,
       min: [0, "Total reviews cannot be negative"],
+    },
+
+    rating: {
+      type: Number,
+      default: 0,
+      min: [0, "Rating cannot be negative"],
+      max: [5, "Rating cannot exceed 5"],
+    },
+
+    responseTime: {
+      type: Number,
+      default: 0,
+      min: [0, "Response time cannot be negative"],
+      max: [10, "Response time cannot exceed 10"],
+    },
+
+    behaviour: {
+      type: Number,
+      default: 0,
+      min: [0, "Behaviour cannot be negative"],
+      max: [10, "Behaviour cannot exceed 10"],
+    },
+
+    speed: {
+      type: Number,
+      default: 0,
+      min: [0, "Speed cannot be negative"],
+      max: [10, "Speed cannot exceed 10"],
+    },
+
+    quality: {
+      type: Number,
+      default: 0,
+      min: [0, "Quality cannot be negative"],
+      max: [10, "Quality cannot exceed 10"],
+    },
+
+    boundaryRespect: {
+      type: Number,
+      default: 0,
+      min: [0, "Boundary respect cannot be negative"],
+      max: [10, "Boundary respect cannot exceed 10"],
+    },
+
+    boundary: {
+      type: Number,
+      default: 0,
+      min: [0, "Boundary cannot be negative"],
+      max: [10, "Boundary cannot exceed 10"],
     },
 
     // Account Status

@@ -31,10 +31,10 @@ This document tracks all modifications, architectural updates, and schema deviat
   - Cleaned up user controllers (`PATCH /api/users/me` and `GET /api/users/search`) to reflect the clean user profile schema.
 * **Rationale:** Establishes clean single-source-of-truth separation between base user identity/auth and editor portfolio/professional showcases.
 
-### 1.5 Decoupling `rating` from `user.model.js` (Exclusive to `review.model.js`)
-* **Initial Blueprint:** Both `user.model.js` and `review.model.js` maintained a `rating` field, introducing duplicate and potentially conflicting state.
-* **Change:** Removed the duplicate `rating` field and its index from [`user.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/user.model.js). Ratings and role-specific feedback metrics (`speed`, `quality`, `behaviour`, `responseTime`, `boundaryRespect`) are now exclusively defined and managed within [`review.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/review.model.js).
-* **Rationale:** Establishes a single source of truth for review scores and metrics within dedicated review records rather than mutating user records with duplicate fields.
+### 1.5 Aggregated Metrics & Ratings in `user.model.js` (Computed from `review.model.js`)
+* **Initial Blueprint:** Both `user.model.js` and `review.model.js` maintained individual static rating fields, leading to ambiguity.
+* **Change:** Individual review scores and granular feedback metrics are recorded and owned exclusively within [`review.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/review.model.js). Aggregated average fields (`rating`, `responseTime`, `behaviour`, `speed`, `quality`, `boundaryRespect`, `boundary`, and `totalReviews`) are stored on [`user.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/user.model.js). These are recomputed on-the-fly and atomically updated when reviews are submitted via `/reviewEditor` and `/reviewCreator`.
+* **Rationale:** Provides high-performance profile and rating queries without requiring aggregation across all review documents on every user profile visit, while keeping raw historical reviews as the ground truth.
 
 ---
 
@@ -98,9 +98,14 @@ This document tracks all modifications, architectural updates, and schema deviat
 
 ### 2.9 Bidirectional Project Reviews (`/api/users`)
 * **Endpoints Added:**
-  - `POST /api/users/:projectId/reviewEditor`: Allows the project creator to review the assigned editor with overall `rating` (1–5), optional `reviewText`, and mandatory metrics out of 10 (`speed`, `quality`, `behaviour`, `responseTime`).
-  - `POST /api/users/:projectId/reviewCreator`: Allows the assigned editor to review the creator with overall `rating` (1–5), optional `reviewText`, and mandatory metrics out of 10 (`behaviour`, `responseTime`, `boundaryRespect`).
+  - `POST /api/users/:projectId/reviewEditor`: Allows the project creator to review the assigned editor with overall `rating` (1–5), optional `reviewText`, and mandatory metrics out of 10 (`speed`, `quality`, `behaviour`, `responseTime`). Automatically recalculates and updates the editor's aggregated averages on `userModel`.
+  - `POST /api/users/:projectId/reviewCreator`: Allows the assigned editor to review the creator with overall `rating` (1–5), optional `reviewText`, and mandatory metrics out of 10 (`behaviour`, `responseTime`, `boundaryRespect`). Automatically recalculates and updates the creator's aggregated averages on `userModel`.
 * **Access Control:** Restricted strictly to the creator and editor who actively worked together on that specific project.
+
+### 2.10 User Reviews & Aggregated Ratings Querying (`/api/users`)
+* **Endpoints Added:**
+  - `GET /api/users/:userId/get-review`: Returns all reviews received by the user with pagination (`limit: 10`), sorting newest first. Response fields dynamically adapt based on role (editors receive `speed`, `quality`, `behaviour`, `responseTime`; creators receive `behaviour`, `responseTime`, `boundaryRespect`).
+  - `GET /api/users/:userId/ratings`: Returns only the user's aggregated averages directly from `userModel` according to their role (`editor`: `rating`, `speed`, `quality`, `behaviour`, `responseTime`; `creator`: `rating`, `behaviour`, `responseTime`, `boundaryRespect`).
 
 ---
 

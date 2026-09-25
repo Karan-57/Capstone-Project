@@ -353,11 +353,33 @@ async function reviewEditorController(req, res) {
             responseTime: numResponseTime
         });
 
-        // Update totalReviews count on User model
-        const totalReviews = await reviewModel.countDocuments({ revieweeId });
-        await userModel.findByIdAndUpdate(revieweeId, {
-            totalReviews
-        });
+        // Calculate aggregated review metrics and update editor's userModel
+        const stats = await reviewModel.aggregate([
+            { $match: { revieweeId: new mongoose.Types.ObjectId(revieweeId) } },
+            {
+                $group: {
+                    _id: "$revieweeId",
+                    avgRating: { $avg: "$rating" },
+                    avgSpeed: { $avg: "$speed" },
+                    avgQuality: { $avg: "$quality" },
+                    avgBehaviour: { $avg: "$behaviour" },
+                    avgResponseTime: { $avg: "$responseTime" },
+                    totalReviews: { $sum: 1 }
+                }
+            }
+        ]);
+
+        if (stats.length > 0) {
+            const s = stats[0];
+            await userModel.findByIdAndUpdate(revieweeId, {
+                totalReviews: s.totalReviews || 0,
+                rating: s.avgRating != null ? Math.round(s.avgRating * 10) / 10 : 0,
+                speed: s.avgSpeed != null ? Math.round(s.avgSpeed * 10) / 10 : 0,
+                quality: s.avgQuality != null ? Math.round(s.avgQuality * 10) / 10 : 0,
+                behaviour: s.avgBehaviour != null ? Math.round(s.avgBehaviour * 10) / 10 : 0,
+                responseTime: s.avgResponseTime != null ? Math.round(s.avgResponseTime * 10) / 10 : 0
+            });
+        }
 
         await review.populate('reviewerId', 'name username profileImage role');
         await review.populate('revieweeId', 'name username profileImage role totalReviews');
@@ -492,11 +514,33 @@ async function reviewCreatorController(req, res) {
             boundaryRespect: numBoundaryRespect
         });
 
-        // Update totalReviews count on User model
-        const totalReviews = await reviewModel.countDocuments({ revieweeId: creatorId });
-        await userModel.findByIdAndUpdate(creatorId, {
-            totalReviews
-        });
+        // Calculate aggregated review metrics and update creator's userModel
+        const stats = await reviewModel.aggregate([
+            { $match: { revieweeId: new mongoose.Types.ObjectId(creatorId) } },
+            {
+                $group: {
+                    _id: "$revieweeId",
+                    avgRating: { $avg: "$rating" },
+                    avgBehaviour: { $avg: "$behaviour" },
+                    avgResponseTime: { $avg: "$responseTime" },
+                    avgBoundaryRespect: { $avg: "$boundaryRespect" },
+                    totalReviews: { $sum: 1 }
+                }
+            }
+        ]);
+
+        if (stats.length > 0) {
+            const s = stats[0];
+            const avgBoundary = s.avgBoundaryRespect != null ? Math.round(s.avgBoundaryRespect * 10) / 10 : 0;
+            await userModel.findByIdAndUpdate(creatorId, {
+                totalReviews: s.totalReviews || 0,
+                rating: s.avgRating != null ? Math.round(s.avgRating * 10) / 10 : 0,
+                behaviour: s.avgBehaviour != null ? Math.round(s.avgBehaviour * 10) / 10 : 0,
+                responseTime: s.avgResponseTime != null ? Math.round(s.avgResponseTime * 10) / 10 : 0,
+                boundaryRespect: avgBoundary,
+                boundary: avgBoundary
+            });
+        }
 
         await review.populate('reviewerId', 'name username profileImage role');
         await review.populate('revieweeId', 'name username profileImage role totalReviews');
@@ -515,6 +559,138 @@ async function reviewCreatorController(req, res) {
     }
 }
 
+/**
+ * @name getUserReviewsController
+ * @description Get all reviews of a user with pagination (limit 10), returning fields depending on the user's role
+ * @route GET /api/users/:userId/get-review
+ * @access Public
+ */
+async function getUserReviewsController(req, res) {
+    try {
+        const { userId } = req.params;
+
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+
+        const user = await userModel.findById(userId).select('role name username profileImage');
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        const totalReviews = await reviewModel.countDocuments({ revieweeId: userId });
+        const totalPages = Math.ceil(totalReviews / limit) || 1;
+
+        // Determine fields projection depending on role
+        let fieldSelection = '';
+        if (user.role === 'editor') {
+            // Editor metrics: rating, speed, quality, behaviour, responseTime (exclude boundaryRespect)
+            fieldSelection = '-boundaryRespect';
+        } else {
+            // Creator metrics: rating, behaviour, responseTime, boundaryRespect (exclude speed, quality)
+            fieldSelection = '-speed -quality';
+        }
+
+        const reviews = await reviewModel.find({ revieweeId: userId })
+            .select(fieldSelection)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('reviewerId', 'name username profileImage role')
+            .populate('projectId', 'title category status');
+
+        return res.status(200).json({
+            message: "User reviews retrieved successfully",
+            userRole: user.role,
+            pagination: {
+                totalReviews,
+                totalPages,
+                currentPage: page,
+                limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            },
+            reviews
+        });
+    } catch (err) {
+        console.error("Error in getUserReviewsController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching user reviews",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name getUserRatingsController
+ * @description Get aggregated average ratings and metrics for a user directly from userModel based on role
+ * @route GET /api/users/:userId/ratings
+ * @access Public
+ */
+async function getUserRatingsController(req, res) {
+    try {
+        const { userId } = req.params;
+
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+
+        const user = await userModel.findById(userId).select(
+            'role name username profileImage rating speed quality behaviour responseTime boundaryRespect boundary totalReviews'
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        let ratingsData = {};
+
+        if (user.role === 'editor') {
+            ratingsData = {
+                userId: user._id,
+                name: user.name,
+                username: user.username,
+                role: user.role,
+                totalReviews: user.totalReviews || 0,
+                rating: user.rating || 0,
+                speed: user.speed || 0,
+                quality: user.quality || 0,
+                behaviour: user.behaviour || 0,
+                responseTime: user.responseTime || 0
+            };
+        } else {
+            // Creator
+            ratingsData = {
+                userId: user._id,
+                name: user.name,
+                username: user.username,
+                role: user.role,
+                totalReviews: user.totalReviews || 0,
+                rating: user.rating || 0,
+                behaviour: user.behaviour || 0,
+                responseTime: user.responseTime || 0,
+                boundaryRespect: user.boundaryRespect !== undefined ? user.boundaryRespect : (user.boundary || 0),
+                boundary: user.boundary !== undefined ? user.boundary : (user.boundaryRespect || 0)
+            };
+        }
+
+        return res.status(200).json({
+            message: "User ratings retrieved successfully",
+            ratings: ratingsData
+        });
+    } catch (err) {
+        console.error("Error in getUserRatingsController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching user ratings",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     getMeController,
     updateMeController,
@@ -523,5 +699,7 @@ module.exports = {
     searchUsersController,
     reviewEditorController,
     reviewCreatorController,
+    getUserReviewsController,
+    getUserRatingsController,
     addReviewController: reviewEditorController
 };
