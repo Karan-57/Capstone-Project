@@ -82,13 +82,6 @@ const userSchema = new mongoose.Schema(
     },
 
     // Reputation
-    rating: {
-      type: Number,
-      default: 0,
-      min: [0, "Rating cannot be less than 0"],
-      max: [5, "Rating cannot be greater than 5"],
-    },
-
     totalReviews: {
       type: Number,
       default: 0,
@@ -109,7 +102,6 @@ const userSchema = new mongoose.Schema(
 
 // Indexes
 userSchema.index({ role: 1 });
-userSchema.index({ rating: -1 });
 
 // Create Model
 const userModel = mongoose.model("user", userSchema);

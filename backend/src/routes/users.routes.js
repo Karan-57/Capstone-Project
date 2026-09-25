@@ -40,4 +40,18 @@ usersRouter.get('/search', usersController.searchUsersController);
  */
 usersRouter.get('/:userId', usersController.getUserByIdController);
 
+/**
+ * @route POST api/users/:projectId/reviewEditor
+ * @description Creator adds a review for an editor based on projectId
+ * @access Private (Creator)
+ */
+usersRouter.post('/:projectId/reviewEditor', authMiddleware.authUser, usersController.reviewEditorController);
+
+/**
+ * @route POST api/users/:projectId/reviewCreator
+ * @description Editor adds a review for a creator based on projectId
+ * @access Private (Editor)
+ */
+usersRouter.post('/:projectId/reviewCreator', authMiddleware.authUser, usersController.reviewCreatorController);
+
 module.exports = usersRouter;

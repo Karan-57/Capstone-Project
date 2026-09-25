@@ -31,6 +31,11 @@ This document tracks all modifications, architectural updates, and schema deviat
   - Cleaned up user controllers (`PATCH /api/users/me` and `GET /api/users/search`) to reflect the clean user profile schema.
 * **Rationale:** Establishes clean single-source-of-truth separation between base user identity/auth and editor portfolio/professional showcases.
 
+### 1.5 Decoupling `rating` from `user.model.js` (Exclusive to `review.model.js`)
+* **Initial Blueprint:** Both `user.model.js` and `review.model.js` maintained a `rating` field, introducing duplicate and potentially conflicting state.
+* **Change:** Removed the duplicate `rating` field and its index from [`user.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/user.model.js). Ratings and role-specific feedback metrics (`speed`, `quality`, `behaviour`, `responseTime`, `boundaryRespect`) are now exclusively defined and managed within [`review.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/review.model.js).
+* **Rationale:** Establishes a single source of truth for review scores and metrics within dedicated review records rather than mutating user records with duplicate fields.
+
 ---
 
 ## 2. Route & Architecture Adjustments
@@ -90,6 +95,12 @@ This document tracks all modifications, architectural updates, and schema deviat
 * **Endpoints Added:**
   - `POST /api/workspace/:workspaceId/deliver`: Allows the assigned editor to deliver final cuts / video URLs. Auto-increments delivery version, shifts workspace status to `in_review`, and records a `review_ready` (100%) progress milestone.
   - `GET /api/workspace/:workspaceId/deliveries`: Allows workspace participants (creator or editor) to view all submitted cut versions with populated editor and file details sorted newest first.
+
+### 2.9 Bidirectional Project Reviews (`/api/users`)
+* **Endpoints Added:**
+  - `POST /api/users/:projectId/reviewEditor`: Allows the project creator to review the assigned editor with overall `rating` (1–5), optional `reviewText`, and mandatory metrics out of 10 (`speed`, `quality`, `behaviour`, `responseTime`).
+  - `POST /api/users/:projectId/reviewCreator`: Allows the assigned editor to review the creator with overall `rating` (1–5), optional `reviewText`, and mandatory metrics out of 10 (`behaviour`, `responseTime`, `boundaryRespect`).
+* **Access Control:** Restricted strictly to the creator and editor who actively worked together on that specific project.
 
 ---
 
