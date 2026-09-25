@@ -2,6 +2,7 @@ const workspaceModel = require('../model/workspace.model');
 const progressUpdateModel = require('../model/progressUpdate.model');
 const revisionModel = require('../model/revision.model');
 const deliveryModel = require('../model/delivery.model');
+const projectModel = require('../model/project.model');
 const mongoose = require('mongoose');
 
 /**
@@ -692,6 +693,105 @@ async function getWorkspaceDeliveriesController(req, res) {
     }
 }
 
+/**
+ * @name approveDeliveryController
+ * @description Creator approves a delivered final video cut for a workspace
+ * @route POST /api/workspace/:deliveryId/approve
+ * @access Private (Workspace Creator)
+ */
+async function approveDeliveryController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const deliveryId = req.params.deliveryId || req.params.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!deliveryId || !mongoose.Types.ObjectId.isValid(deliveryId)) {
+            return res.status(400).json({ message: "Invalid delivery ID" });
+        }
+
+        const delivery = await deliveryModel.findById(deliveryId);
+        if (!delivery) {
+            return res.status(404).json({ message: "Delivery not found" });
+        }
+
+        const workspace = await workspaceModel.findById(delivery.workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Associated workspace not found" });
+        }
+
+        // Only the creator of the workspace can approve deliveries
+        const isCreator = workspace.creatorId.toString() === userId.toString();
+        if (!isCreator) {
+            return res.status(403).json({
+                message: "Forbidden: Only the workspace creator can approve a delivery"
+            });
+        }
+
+        if (delivery.status === 'approved') {
+            return res.status(400).json({
+                message: "Delivery is already approved"
+            });
+        }
+
+        if (workspace.status === 'cancelled') {
+            return res.status(400).json({
+                message: "Cannot approve delivery. Workspace is cancelled"
+            });
+        }
+
+        // Update delivery status and approvedAt
+        delivery.status = 'approved';
+        delivery.approvedAt = new Date();
+        delivery.rejectionReason = null;
+        await delivery.save();
+
+        // Update workspace status to completed
+        workspace.status = 'completed';
+        await workspace.save();
+
+        // Sync project status to completed if linked
+        if (workspace.projectId) {
+            await projectModel.findByIdAndUpdate(workspace.projectId, { status: 'completed' });
+        }
+
+        // Automatically resolve any open revisions for this delivery
+        await revisionModel.updateMany(
+            { deliveryId: delivery._id, status: { $ne: 'resolved' } },
+            { status: 'resolved', resolvedAt: new Date() }
+        );
+
+        // Record a progress update marking milestone completed (100%)
+        await progressUpdateModel.create({
+            workspaceId: workspace._id,
+            editorId: delivery.editorId,
+            milestone: 'review_ready',
+            progressPercentage: 100,
+            status: 'completed',
+            message: `Delivery cut v${delivery.version} approved by creator. Workspace completed.`
+        });
+
+        await delivery.populate('editorId', 'name username email profileImage rating');
+        if (delivery.fileId) {
+            await delivery.populate('fileId', 'fileName fileType fileSize fileUrl');
+        }
+
+        return res.status(200).json({
+            message: "Delivery approved successfully",
+            delivery,
+            workspaceStatus: workspace.status
+        });
+    } catch (err) {
+        console.error("Error in approveDeliveryController:", err);
+        return res.status(500).json({
+            message: "Internal server error while approving delivery",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     getWorkspaceProgressController,
     updateWorkspaceProgressController,
@@ -700,7 +800,8 @@ module.exports = {
     getWorkspaceRevisionsController,
     updateRevisionController,
     deliverWorkspaceController,
-    getWorkspaceDeliveriesController
+    getWorkspaceDeliveriesController,
+    approveDeliveryController
 };
 
 

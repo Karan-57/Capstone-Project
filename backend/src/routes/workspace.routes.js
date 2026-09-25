@@ -23,15 +23,14 @@ workspaceRouter.patch('/:workspaceId/progress', authMiddleware, workspaceControl
  * @description Request a revision for a delivery
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.post(['/:deliveryId/revision', '/delivery/:deliveryId/revision'], authMiddleware, workspaceController.createRevisionController);
+workspaceRouter.post('/:deliveryId/revision', authMiddleware, workspaceController.createRevisionController);
 
 /**
  * @route GET api/workspace/:revisionId/revsion
- * @route GET api/workspace/revision/:revisionId
  * @description Get a revision by its ID
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.get(['/:revisionId/revsion', '/revision/:revisionId'], authMiddleware, workspaceController.getRevisionByIdController);
+workspaceRouter.get('/:revisionId/revsion', authMiddleware, workspaceController.getRevisionByIdController);
 
 /**
  * @route GET api/workspace/:workspaceId/revision
@@ -45,7 +44,7 @@ workspaceRouter.get('/:workspaceId/revision', authMiddleware, workspaceControlle
  * @description Update a revision request status or description
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.patch(['/:revisionId/revision', '/revision/:revisionId'], authMiddleware, workspaceController.updateRevisionController);
+workspaceRouter.patch('/:revisionId/revision', authMiddleware, workspaceController.updateRevisionController);
 
 /**
  * @route POST api/workspace/:workspaceId/deliver
@@ -60,6 +59,13 @@ workspaceRouter.post('/:workspaceId/deliver', authMiddleware, workspaceControlle
  * @access Private (Workspace Creator or Editor)
  */
 workspaceRouter.get('/:workspaceId/deliveries', authMiddleware, workspaceController.getWorkspaceDeliveriesController);
+
+/**
+ * @route POST api/workspace/:deliveryId/approve
+ * @description Approve a delivery for a workspace
+ * @access Private (Workspace Creator)
+ */
+workspaceRouter.post('/:deliveryId/approve', authMiddleware, workspaceController.approveDeliveryController);
 
 module.exports = workspaceRouter;
 
