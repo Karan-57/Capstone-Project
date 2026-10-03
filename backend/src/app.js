@@ -10,6 +10,7 @@ const applicationRouter = require("./routes/application.routes");
 const portfolioRouter = require("./routes/portfolio.routes");
 const workspaceRouter = require("./routes/workspace.routes");
 const notificationRouter = require("./routes/notification.routes");
+const conversationRouter = require("./routes/conversation.routes");
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(["/api/application", "/api/applications"], applicationRouter);
 app.use("/api/portfolio", portfolioRouter);
 app.use(["/api/workspace", "/api/workspaces"], workspaceRouter);
 app.use("/api/notifications", notificationRouter);
+app.use(["/api/conversation", "/api/conversations"], conversationRouter);
 
 //for testing only not for real project
 // Global error handler (handles Multer errors, file type rejections, etc.)

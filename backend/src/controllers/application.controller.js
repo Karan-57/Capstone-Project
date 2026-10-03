@@ -1,7 +1,9 @@
 const applicationModel = require('../model/application.model');
 const projectModel = require('../model/project.model');
+const workspaceModel = require('../model/workspace.model');
 const mongoose = require('mongoose');
 const { createNotification } = require('../services/notification.service');
+const { getOrCreateProjectConversation } = require('../services/chat.service');
 
 /**
  * @name applyToProjectController
@@ -493,6 +495,45 @@ async function acceptApplicationController(req, res) {
         project.status = 'assigned';
         project.selectedEditorId = application.editorId;
         await project.save();
+
+        // Ensure workspace exists and add editor as an active member
+        let workspace = await workspaceModel.findOne({ projectId: project._id });
+        if (!workspace) {
+            workspace = await workspaceModel.create({
+                projectId: project._id,
+                creatorId,
+                editorId: application.editorId,
+                status: 'active',
+                members: [
+                    { user: creatorId, projectRole: 'creator', status: 'active' },
+                    { user: application.editorId, projectRole: 'lead_editor', status: 'active' }
+                ]
+            });
+        } else {
+            // Update editorId and sync to members
+            workspace.editorId = application.editorId;
+            if (!Array.isArray(workspace.members)) workspace.members = [];
+            
+            const existingMember = workspace.members.find(
+                m => (m.user?._id || m.user || m).toString() === application.editorId.toString()
+            );
+
+            if (existingMember) {
+                existingMember.status = 'active';
+            } else {
+                workspace.members.push({
+                    user: application.editorId,
+                    projectRole: 'editor',
+                    status: 'active'
+                });
+            }
+            await workspace.save();
+        }
+
+        // Initialize / sync project chat group conversation
+        await getOrCreateProjectConversation(workspace._id).catch(err => {
+            console.error('[Chat] Error initializing project conversation on accept:', err.message);
+        });
 
         // Notify the selected editor
         createNotification({

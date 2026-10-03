@@ -2,33 +2,49 @@ const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema(
   {
-    workspaceId: {
+    conversationId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Workspace',
-      required: [true, 'Workspace ID is required'],
+      ref: 'conversation',
+      required: [true, 'Conversation ID is required'],
     },
-    senderId: {
+    sender: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Sender ID is required'],
-    },
-    receiverId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Receiver ID is required'],
-    },
-    message: {
-      type: String,
-      required: [true, 'Message text is required'],
+      ref: 'user',
+      required: [true, 'Sender is required'],
     },
     messageType: {
       type: String,
-      enum: ['text', 'file', 'image', 'system'],
+      enum: ['text', 'file', 'image'],
       default: 'text',
     },
-    read: {
-      type: Boolean,
-      default: false,
+    text: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    attachments: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        url: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          default: 'file',
+        },
+        size: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   {
@@ -36,8 +52,9 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-messageSchema.index({ workspaceId: 1, createdAt: 1 });
-messageSchema.index({ receiverId: 1, read: 1 });
+// Indexes
+messageSchema.index({ conversationId: 1, createdAt: -1 });
+messageSchema.index({ sender: 1 });
 
-const messageModel = mongoose.model('Message', messageSchema);
+const messageModel = mongoose.model('message', messageSchema);
 module.exports = messageModel;
