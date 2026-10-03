@@ -9,6 +9,7 @@ const projectRouter = require("./routes/projects.routes");
 const applicationRouter = require("./routes/application.routes");
 const portfolioRouter = require("./routes/portfolio.routes");
 const workspaceRouter = require("./routes/workspace.routes");
+const notificationRouter = require("./routes/notification.routes");
 
 const app = express();
 
@@ -20,9 +21,10 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter); 
 app.use("/api/creator", creatorRouter);
 app.use("/api/projects", projectRouter);
-app.use("/api/application", applicationRouter);
+app.use(["/api/application", "/api/applications"], applicationRouter);
 app.use("/api/portfolio", portfolioRouter);
-app.use("/api/workspace", workspaceRouter);
+app.use(["/api/workspace", "/api/workspaces"], workspaceRouter);
+app.use("/api/notifications", notificationRouter);
 
 //for testing only not for real project
 // Global error handler (handles Multer errors, file type rejections, etc.)

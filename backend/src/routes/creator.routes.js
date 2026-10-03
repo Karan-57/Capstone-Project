@@ -34,10 +34,10 @@ creatorRouter.delete('/projects/:projectId', authMiddleware.authUser, creatorCon
 
 /**
  * @route PATCH api/creator/projects/:projectId/cancel
- * @description cancel a project and set status to cancelled
+ * @description cancel or close a project and set status to cancelled
  * @access Private (Creator)
  */
-creatorRouter.patch('/projects/:projectId/cancel', authMiddleware.authUser, creatorController.cancelProjectController);
+creatorRouter.patch(['/projects/:projectId/cancel', '/projects/:projectId/close', '/:projectId/cancel', '/:projectId/close'], authMiddleware.authUser, creatorController.cancelProjectController);
 
 const applicationController = require('../controllers/application.controller');
 

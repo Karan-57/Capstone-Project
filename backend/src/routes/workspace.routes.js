@@ -23,35 +23,35 @@ workspaceRouter.patch('/:workspaceId/progress', authMiddleware, workspaceControl
  * @description Request a revision for a delivery
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.post('/:deliveryId/revision', authMiddleware, workspaceController.createRevisionController);
+workspaceRouter.post(['/:deliveryId/revision', '/:deliveryId/revisions'], authMiddleware, workspaceController.createRevisionController);
 
 /**
- * @route GET api/workspace/:revisionId/revsion
+ * @route GET api/workspace/:revisionId/revision
  * @description Get a revision by its ID
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.get('/:revisionId/revsion', authMiddleware, workspaceController.getRevisionByIdController);
+workspaceRouter.get(['/:revisionId/revision', '/:revisionId/revsion', '/revision/:revisionId', '/:revisionId/revisions'], authMiddleware, workspaceController.getRevisionByIdController);
 
 /**
  * @route GET api/workspace/:workspaceId/revision
  * @description View all revisions for a workspace
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.get('/:workspaceId/revision', authMiddleware, workspaceController.getWorkspaceRevisionsController);
+workspaceRouter.get(['/:workspaceId/revision', '/:workspaceId/revisions'], authMiddleware, workspaceController.getWorkspaceRevisionsController);
 
 /**
  * @route PATCH api/workspace/:revisionId/revision
  * @description Update a revision request status or description
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.patch('/:revisionId/revision', authMiddleware, workspaceController.updateRevisionController);
+workspaceRouter.patch(['/:revisionId/revision', '/:revisionId/revisions', '/revision/:revisionId'], authMiddleware, workspaceController.updateRevisionController);
 
 /**
  * @route POST api/workspace/:workspaceId/deliver
  * @description Deliver final video cut for a workspace
  * @access Private (Assigned Editor)
  */
-workspaceRouter.post('/:workspaceId/deliver', authMiddleware, workspaceController.deliverWorkspaceController);
+workspaceRouter.post(['/:workspaceId/deliver', '/:workspaceId/deliveries'], authMiddleware, workspaceController.deliverWorkspaceController);
 
 /**
  * @route GET api/workspace/:workspaceId/deliveries
@@ -65,7 +65,28 @@ workspaceRouter.get('/:workspaceId/deliveries', authMiddleware, workspaceControl
  * @description Approve a delivery for a workspace
  * @access Private (Workspace Creator)
  */
-workspaceRouter.post('/:deliveryId/approve', authMiddleware, workspaceController.approveDeliveryController);
+workspaceRouter.post(['/:deliveryId/approve', '/delivery/:deliveryId/approve'], authMiddleware, workspaceController.approveDeliveryController);
+
+/**
+ * @route POST api/workspace/:workspaceId/files
+ * @description Upload or add a file to the workspace
+ * @access Private (Workspace Creator or Editor)
+ */
+workspaceRouter.post('/:workspaceId/files', authMiddleware, workspaceController.uploadWorkspaceFileController);
+
+/**
+ * @route GET api/workspace/:workspaceId/files
+ * @description View all files for a workspace
+ * @access Private (Workspace Creator or Editor)
+ */
+workspaceRouter.get('/:workspaceId/files', authMiddleware, workspaceController.getWorkspaceFilesController);
+
+/**
+ * @route DELETE api/workspace/:workspaceId/files/:fileId
+ * @description Delete a file from a workspace
+ * @access Private (Workspace Creator or Uploader)
+ */
+workspaceRouter.delete(['/:workspaceId/files/:fileId', '/:workspaceId/files/:id'], authMiddleware, workspaceController.deleteWorkspaceFileController);
 
 module.exports = workspaceRouter;
 

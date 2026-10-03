@@ -1,4 +1,47 @@
 const projectModel = require('../model/project.model');
+const workspaceModel = require('../model/workspace.model');
+const mongoose = require('mongoose');
+const { createNotification } = require('../services/notification.service');
+
+/**
+ * Helper to get all relevant recipients for a project excluding the actor
+ */
+async function getProjectRecipients(project, actorId) {
+    const recipients = new Set();
+    if (project.creatorId) recipients.add(project.creatorId.toString());
+    if (project.selectedEditorId) recipients.add(project.selectedEditorId.toString());
+    if (Array.isArray(project.assignedEditors)) {
+        project.assignedEditors.forEach(id => id && recipients.add(id.toString()));
+    }
+    if (Array.isArray(project.members)) {
+        project.members.forEach(id => id && recipients.add(id.toString()));
+    }
+
+    try {
+        const workspace = await workspaceModel.findOne({ projectId: project._id });
+        if (workspace) {
+            if (workspace.creatorId) recipients.add(workspace.creatorId.toString());
+            if (workspace.editorId) recipients.add(workspace.editorId.toString());
+            if (Array.isArray(workspace.assignedEditors)) {
+                workspace.assignedEditors.forEach(id => id && recipients.add(id.toString()));
+            }
+            if (Array.isArray(workspace.members)) {
+                workspace.members.forEach(m => {
+                    const userId = m?.user?._id || m?.user || m;
+                    const status = m?.status || 'active';
+                    if (userId && status !== 'removed' && status !== 'inactive') {
+                        recipients.add(userId.toString());
+                    }
+                });
+            }
+        }
+    } catch (err) {
+        console.error('[Notification Helper] Error fetching workspace:', err.message);
+    }
+
+    if (actorId) recipients.delete(actorId.toString());
+    return Array.from(recipients);
+}
 
 /**
  * @name createProjectController
@@ -169,6 +212,39 @@ async function updateProjectController(req, res) {
             { new: true, runValidators: true }
         );
 
+        // Dynamically notify all relevant active project members (multi-member safe)
+        const relevantRecipients = await getProjectRecipients(updatedProject, creatorId);
+
+        if (relevantRecipients.length > 0) {
+            if (updates.deadline) {
+                relevantRecipients.forEach(memberId => {
+                    createNotification({
+                        recipient: memberId,
+                        type: 'DEADLINE_UPDATED',
+                        title: 'Project Deadline Updated',
+                        message: `The deadline for project "${updatedProject.title}" has been updated to ${new Date(updates.deadline).toLocaleDateString()}.`,
+                        project: updatedProject._id,
+                        relatedUser: creatorId
+                    }).catch(err => console.error("[Notification] Error:", err.message));
+                });
+            }
+
+            const reqFields = ['description', 'additionalInstructions', 'requiredSkills', 'requiredSoftware', 'editingStyle', 'videoDuration'];
+            const hasReqUpdated = reqFields.some(f => updates[f] !== undefined);
+            if (hasReqUpdated) {
+                relevantRecipients.forEach(memberId => {
+                    createNotification({
+                        recipient: memberId,
+                        type: 'REQUIREMENTS_UPDATED',
+                        title: 'Project Requirements Updated',
+                        message: `The requirements/instructions for project "${updatedProject.title}" have been updated by the creator.`,
+                        project: updatedProject._id,
+                        relatedUser: creatorId
+                    }).catch(err => console.error("[Notification] Error:", err.message));
+                });
+            }
+        }
+
         return res.status(200).json({
             message: "Project updated successfully",
             project: updatedProject
@@ -263,6 +339,18 @@ async function cancelProjectController(req, res) {
 
         project.status = 'cancelled';
         await project.save();
+
+        const recipients = await getProjectRecipients(project, creatorId);
+        recipients.forEach(recipientId => {
+            createNotification({
+                recipient: recipientId,
+                type: 'PROJECT_CANCELLED',
+                title: 'Project Cancelled',
+                message: `Project "${project.title}" has been cancelled by the creator.`,
+                project: project._id,
+                relatedUser: creatorId
+            }).catch(err => console.error("[Notification] Error:", err.message));
+        });
 
         return res.status(200).json({
             message: "Project cancelled successfully",

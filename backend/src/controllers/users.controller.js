@@ -6,6 +6,7 @@ const reviewModel = require('../model/review.model');
 const mongoose = require('mongoose');
 const config = require('../config/config');
 const { uploadToImageKit } = require('../services/imagekit.service');
+const { createNotification } = require('../services/notification.service');
 
 /**
  * @name getMeController
@@ -385,6 +386,16 @@ async function reviewEditorController(req, res) {
         await review.populate('revieweeId', 'name username profileImage role totalReviews');
         await review.populate('projectId', 'title category status');
 
+        // Notify the reviewed editor
+        createNotification({
+            recipient: revieweeId,
+            type: 'NEW_REVIEW',
+            title: 'New Review Received',
+            message: `${req.user?.name || 'A creator'} left you a ${numRating}-star review for project "${project.title}".`,
+            project: project._id,
+            relatedUser: creatorId
+        }).catch(err => console.error("[Notification] Error:", err.message));
+
         return res.status(201).json({
             message: "Review added successfully",
             review
@@ -545,6 +556,16 @@ async function reviewCreatorController(req, res) {
         await review.populate('reviewerId', 'name username profileImage role');
         await review.populate('revieweeId', 'name username profileImage role totalReviews');
         await review.populate('projectId', 'title category status');
+
+        // Notify the reviewed creator
+        createNotification({
+            recipient: creatorId,
+            type: 'NEW_REVIEW',
+            title: 'New Review Received',
+            message: `${req.user?.name || 'An editor'} left you a ${numRating}-star review for project "${project.title}".`,
+            project: project._id,
+            relatedUser: editorId
+        }).catch(err => console.error("[Notification] Error:", err.message));
 
         return res.status(201).json({
             message: "Review for creator added successfully",

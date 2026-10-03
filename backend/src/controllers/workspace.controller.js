@@ -3,7 +3,100 @@ const progressUpdateModel = require('../model/progressUpdate.model');
 const revisionModel = require('../model/revision.model');
 const deliveryModel = require('../model/delivery.model');
 const projectModel = require('../model/project.model');
+const fileModel = require('../model/file.model');
 const mongoose = require('mongoose');
+const { createNotification } = require('../services/notification.service');
+
+/**
+ * Helper to get only ACTIVE members of the workspace, strictly excluding the actor.
+ * Used for file operations (FILES_UPLOADED, FILE_DELETED) where only active workspace members should be notified.
+ */
+function getActiveWorkspaceRecipients(workspace, actorId) {
+    const recipients = new Set();
+    
+    // Check structured members array first
+    if (Array.isArray(workspace.members) && workspace.members.length > 0) {
+        workspace.members.forEach(m => {
+            const userId = m.user?._id || m.user || m;
+            const status = m.status || 'active';
+            if (userId && status === 'active') {
+                recipients.add(userId.toString());
+            }
+        });
+    }
+
+    // Fallback/backward compatibility for creatorId & editorId
+    if (workspace.creatorId) {
+        const cId = workspace.creatorId?._id || workspace.creatorId;
+        recipients.add(cId.toString());
+    }
+    if (workspace.editorId) {
+        const eId = workspace.editorId?._id || workspace.editorId;
+        recipients.add(eId.toString());
+    }
+
+    if (actorId) recipients.delete(actorId.toString());
+    return Array.from(recipients);
+}
+
+/**
+ * Helper to get all relevant participants/members for a workspace dynamically, excluding the actor.
+ */
+async function getWorkspaceRecipients(workspace, actorId) {
+    const recipients = new Set();
+    if (workspace.creatorId) recipients.add((workspace.creatorId?._id || workspace.creatorId).toString());
+    if (workspace.editorId) recipients.add((workspace.editorId?._id || workspace.editorId).toString());
+    if (Array.isArray(workspace.assignedEditors)) {
+        workspace.assignedEditors.forEach(id => id && recipients.add((id?._id || id).toString()));
+    }
+    if (Array.isArray(workspace.members)) {
+        workspace.members.forEach(m => {
+            const userId = m?.user?._id || m?.user || m;
+            const status = m?.status || 'active';
+            if (userId && status !== 'removed' && status !== 'inactive') {
+                recipients.add(userId.toString());
+            }
+        });
+    }
+
+    if (workspace.projectId) {
+        try {
+            const project = await projectModel.findById(workspace.projectId);
+            if (project) {
+                if (project.creatorId) recipients.add((project.creatorId?._id || project.creatorId).toString());
+                if (project.selectedEditorId) recipients.add((project.selectedEditorId?._id || project.selectedEditorId).toString());
+                if (Array.isArray(project.assignedEditors)) {
+                    project.assignedEditors.forEach(id => id && recipients.add((id?._id || id).toString()));
+                }
+                if (Array.isArray(project.members)) {
+                    project.members.forEach(id => id && recipients.add((id?._id || id).toString()));
+                }
+            }
+        } catch (err) {
+            console.error('[Notification Helper] Error checking project for workspace recipients:', err.message);
+        }
+    }
+
+    if (actorId) recipients.delete(actorId.toString());
+    return Array.from(recipients);
+}
+
+/**
+ * Helper to check if a user is an active member or participant of the workspace
+ */
+function isWorkspaceMember(workspace, userId) {
+    if (!workspace || !userId) return false;
+    const uid = userId.toString();
+    if (workspace.creatorId && (workspace.creatorId?._id || workspace.creatorId).toString() === uid) return true;
+    if (workspace.editorId && (workspace.editorId?._id || workspace.editorId).toString() === uid) return true;
+    if (Array.isArray(workspace.members)) {
+        return workspace.members.some(m => {
+            const mId = (m.user?._id || m.user || m).toString();
+            return mId === uid && (m.status || 'active') === 'active';
+        });
+    }
+    return false;
+}
 
 /**
  * @name getWorkspaceProgressController
@@ -171,6 +264,11 @@ async function updateWorkspaceProgressController(req, res) {
             });
         }
 
+        // Capture previous status for comparison
+        const previousWorkspaceStatus = workspace.status;
+        const lastUpdate = await progressUpdateModel.findOne({ workspaceId }).sort({ createdAt: -1 });
+        const previousProgressStatus = lastUpdate ? lastUpdate.status : null;
+
         // Create new progress update record
         const progressUpdate = await progressUpdateModel.create({
             workspaceId,
@@ -191,6 +289,28 @@ async function updateWorkspaceProgressController(req, res) {
         } else if (progressStatus === 'in_progress' && workspace.status !== 'active') {
             workspace.status = 'active';
             await workspace.save();
+        }
+
+        // Notify only if there is a meaningful status change (do NOT spam on minor % updates)
+        const hasWorkspaceStatusChanged = workspace.status !== previousWorkspaceStatus;
+        const hasProgressStatusChanged = progressStatus !== previousProgressStatus;
+
+        if (hasWorkspaceStatusChanged || hasProgressStatusChanged) {
+            const recipients = await getWorkspaceRecipients(workspace, editorId);
+            const statusLabel = workspace.status !== previousWorkspaceStatus 
+                ? workspace.status.replace('_', ' ') 
+                : progressStatus.replace('_', ' ');
+
+            recipients.forEach(recipientId => {
+                createNotification({
+                    recipient: recipientId,
+                    type: 'PROJECT_STATUS_UPDATED',
+                    title: 'Project Status Updated',
+                    message: `Project status moved to ${statusLabel} (${calculatedPercentage}% complete).`,
+                    project: workspace.projectId,
+                    relatedUser: editorId
+                }).catch(err => console.error("[Notification] Error:", err.message));
+            });
         }
 
         return res.status(200).json({
@@ -286,6 +406,19 @@ async function createRevisionController(req, res) {
         if (fileId) {
             await revision.populate('fileId', 'fileName fileType fileSize fileUrl');
         }
+
+        // Notify the relevant participants of the revision request
+        const recipients = await getWorkspaceRecipients(workspace, userId);
+        recipients.forEach(recipientId => {
+            createNotification({
+                recipient: recipientId,
+                type: 'REVISION_REQUESTED',
+                title: 'Revision Requested',
+                message: `${req.user?.name || 'Collaborator'} requested a revision on cut v${delivery.version}: "${description.trim()}"`,
+                project: workspace.projectId,
+                relatedUser: userId
+            }).catch(err => console.error("[Notification] Error:", err.message));
+        });
 
         return res.status(201).json({
             message: "Revision requested successfully",
@@ -517,6 +650,20 @@ async function updateRevisionController(req, res) {
         await revision.populate('deliveryId', 'title version videoUrl status notes');
         await revision.populate('fileId', 'fileName originalName fileUrl fileType');
 
+        if (status === 'resolved') {
+            const recipients = await getWorkspaceRecipients(workspace, userId);
+            recipients.forEach(recipientId => {
+                createNotification({
+                    recipient: recipientId,
+                    type: 'REVISION_SUBMITTED',
+                    title: 'Revision Submitted',
+                    message: `${req.user?.name || 'Editor'} submitted revisions and marked the request as resolved.`,
+                    project: workspace.projectId,
+                    relatedUser: userId
+                }).catch(err => console.error("[Notification] Error:", err.message));
+            });
+        }
+
         return res.status(200).json({
             message: "Revision updated successfully",
             revision
@@ -626,6 +773,19 @@ async function deliverWorkspaceController(req, res) {
         if (fileId) {
             await delivery.populate('fileId', 'fileName fileType fileSize fileUrl');
         }
+
+        // Notify creator / workspace members of final cut delivery
+        const recipients = await getWorkspaceRecipients(workspace, editorId);
+        recipients.forEach(recipientId => {
+            createNotification({
+                recipient: recipientId,
+                type: 'FINAL_SUBMISSION',
+                title: 'Final Video Delivered',
+                message: `${req.user?.name || 'Editor'} submitted ${delivery.title} for review.`,
+                project: workspace.projectId,
+                relatedUser: editorId
+            }).catch(err => console.error("[Notification] Error:", err.message));
+        });
 
         return res.status(201).json({
             message: "Final video delivered successfully",
@@ -778,6 +938,19 @@ async function approveDeliveryController(req, res) {
             await delivery.populate('fileId', 'fileName fileType fileSize fileUrl');
         }
 
+        // Notify all relevant workspace members/editors that work has been approved
+        const recipients = await getWorkspaceRecipients(workspace, userId);
+        recipients.forEach(recipientId => {
+            createNotification({
+                recipient: recipientId,
+                type: 'PROJECT_APPROVED',
+                title: 'Project Approved',
+                message: `Creator approved the final delivery (${delivery.title}). Workspace completed!`,
+                project: workspace.projectId,
+                relatedUser: userId
+            }).catch(err => console.error("[Notification] Error:", err.message));
+        });
+
         return res.status(200).json({
             message: "Delivery approved successfully",
             delivery,
@@ -792,6 +965,221 @@ async function approveDeliveryController(req, res) {
     }
 }
 
+/**
+ * @name uploadWorkspaceFileController
+ * @description Upload or add a file to the workspace and notify collaborator
+ * @route POST /api/workspace/:workspaceId/files
+ * @access Private (Workspace Creator or Editor)
+ */
+async function uploadWorkspaceFileController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const { workspaceId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace ID" });
+        }
+
+        const workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Workspace not found" });
+        }
+
+        const isMember = isWorkspaceMember(workspace, userId);
+
+        if (!isMember) {
+            return res.status(403).json({
+                message: "Forbidden: You are not a participant in this workspace"
+            });
+        }
+
+        const incomingFiles = Array.isArray(req.body.files) && req.body.files.length > 0 
+            ? req.body.files 
+            : (req.body.fileName && req.body.fileUrl ? [req.body] : null);
+
+        if (!incomingFiles || incomingFiles.length === 0) {
+            return res.status(400).json({ message: "File information is required (fileName and fileUrl, or files array)" });
+        }
+
+        const filesToCreate = incomingFiles.map(f => ({
+            workspaceId,
+            uploadedBy: userId,
+            fileName: (f.fileName || 'Untitled File').trim(),
+            fileType: f.fileType || 'unknown',
+            fileSize: Number(f.fileSize) || 0,
+            fileUrl: (f.fileUrl || '').trim(),
+            category: f.category || 'raw-footage',
+            version: Number(f.version) || 1
+        }));
+
+        for (const f of filesToCreate) {
+            if (!f.fileName || !f.fileUrl) {
+                return res.status(400).json({ message: "Each file must have a fileName and fileUrl" });
+            }
+        }
+
+        const createdFiles = await fileModel.insertMany(filesToCreate);
+
+        // Notify only active workspace members (only 1 notification for the entire upload batch)
+        const recipients = getActiveWorkspaceRecipients(workspace, userId);
+        const fileSummaryText = createdFiles.length === 1 
+            ? `file (${createdFiles[0].fileName})` 
+            : `${createdFiles.length} files`;
+
+        recipients.forEach(recipientId => {
+            createNotification({
+                recipient: recipientId,
+                type: 'FILES_UPLOADED',
+                title: 'Files Uploaded',
+                message: `${req.user?.name || 'Collaborator'} uploaded ${fileSummaryText} to the workspace.`,
+                project: workspace.projectId,
+                relatedUser: userId
+            }).catch(err => console.error("[Notification] Error:", err.message));
+        });
+
+        return res.status(201).json({
+            message: createdFiles.length === 1 ? "File uploaded successfully" : "Files uploaded successfully",
+            count: createdFiles.length,
+            file: createdFiles.length === 1 ? createdFiles[0] : undefined,
+            files: createdFiles
+        });
+    } catch (err) {
+        console.error("Error in uploadWorkspaceFileController:", err);
+        return res.status(500).json({
+            message: "Internal server error while uploading workspace file",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name getWorkspaceFilesController
+ * @description Get all files for a workspace
+ * @route GET /api/workspace/:workspaceId/files
+ * @access Private (Workspace Creator or Editor)
+ */
+async function getWorkspaceFilesController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const { workspaceId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace ID" });
+        }
+
+        const workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Workspace not found" });
+        }
+
+        const isCreator = workspace.creatorId.toString() === userId.toString();
+        const isEditor = workspace.editorId.toString() === userId.toString();
+
+        if (!isCreator && !isEditor) {
+            return res.status(403).json({
+                message: "Forbidden: You are not a participant in this workspace"
+            });
+        }
+
+        const files = await fileModel.find({ workspaceId })
+            .populate('uploadedBy', 'name username role profileImage')
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            count: files.length,
+            files
+        });
+    } catch (err) {
+        console.error("Error in getWorkspaceFilesController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching workspace files",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name deleteWorkspaceFileController
+ * @description Delete a file from a workspace
+ * @route DELETE /api/workspace/:workspaceId/files/:fileId
+ * @access Private (Workspace Creator or Uploader)
+ */
+async function deleteWorkspaceFileController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const workspaceId = req.params.workspaceId;
+        const fileId = req.params.fileId || req.params.id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(workspaceId) || !mongoose.Types.ObjectId.isValid(fileId)) {
+            return res.status(400).json({ message: "Invalid workspace or file ID" });
+        }
+
+        const workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            return res.status(404).json({ message: "Workspace not found" });
+        }
+
+        const isCreator = workspace.creatorId.toString() === userId.toString();
+        const isMember = isWorkspaceMember(workspace, userId);
+
+        if (!isMember) {
+            return res.status(403).json({
+                message: "Forbidden: You are not a participant in this workspace"
+            });
+        }
+
+        const file = await fileModel.findOne({ _id: fileId, workspaceId });
+        if (!file) {
+            return res.status(404).json({ message: "File not found in this workspace" });
+        }
+
+        // Only creator or the user who uploaded the file can delete it
+        if (!isCreator && file.uploadedBy.toString() !== userId.toString()) {
+            return res.status(403).json({
+                message: "Forbidden: Only the workspace creator or the file uploader can delete this file"
+            });
+        }
+
+        await fileModel.findByIdAndDelete(fileId);
+
+        // Notify only active workspace members if file is deleted
+        const recipients = getActiveWorkspaceRecipients(workspace, userId);
+        recipients.forEach(recipientId => {
+            createNotification({
+                recipient: recipientId,
+                type: 'FILE_DELETED',
+                title: 'File Deleted',
+                message: `${req.user?.name || 'Collaborator'} deleted file (${file.fileName}) from the workspace.`,
+                project: workspace.projectId,
+                relatedUser: userId
+            }).catch(err => console.error("[Notification] Error:", err.message));
+        });
+
+        return res.status(200).json({
+            message: "File deleted successfully",
+            fileId
+        });
+    } catch (err) {
+        console.error("Error in deleteWorkspaceFileController:", err);
+        return res.status(500).json({
+            message: "Internal server error while deleting workspace file",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     getWorkspaceProgressController,
     updateWorkspaceProgressController,
@@ -801,7 +1189,10 @@ module.exports = {
     updateRevisionController,
     deliverWorkspaceController,
     getWorkspaceDeliveriesController,
-    approveDeliveryController
+    approveDeliveryController,
+    uploadWorkspaceFileController,
+    getWorkspaceFilesController,
+    deleteWorkspaceFileController
 };
 
 

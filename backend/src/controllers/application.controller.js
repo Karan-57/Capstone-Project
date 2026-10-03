@@ -1,6 +1,7 @@
 const applicationModel = require('../model/application.model');
 const projectModel = require('../model/project.model');
 const mongoose = require('mongoose');
+const { createNotification } = require('../services/notification.service');
 
 /**
  * @name applyToProjectController
@@ -82,6 +83,17 @@ async function applyToProjectController(req, res) {
             estimatedDeliveryDays: Number(estimatedDeliveryDays),
             status: 'pending'
         });
+
+        // Notify project creator of new application (single notification with bid details to avoid duplication)
+        const bidNote = bidAmount ? ` with a bid of ₹${bidAmount}` : '';
+        createNotification({
+            recipient: project.creatorId,
+            type: 'NEW_APPLICATION',
+            title: 'New Application Received',
+            message: `${req.user?.name || 'An editor'} applied to your project "${project.title}"${bidNote}.`,
+            project: project._id,
+            relatedUser: editorId
+        }).catch(err => console.error("[Notification] Error:", err.message));
 
         return res.status(201).json({
             message: "Application submitted successfully",
@@ -344,6 +356,20 @@ async function updateApplicationController(req, res) {
 
         await application.save();
 
+        if (bidAmount !== undefined) {
+            const project = await projectModel.findById(application.projectId);
+            if (project) {
+                createNotification({
+                    recipient: project.creatorId,
+                    type: 'NEW_BID',
+                    title: 'Bid Updated',
+                    message: `${req.user?.name || 'An editor'} updated their bid to ₹${application.bidAmount} on "${project.title}".`,
+                    project: project._id,
+                    relatedUser: editorId
+                }).catch(err => console.error("[Notification] Error:", err.message));
+            }
+        }
+
         return res.status(200).json({
             message: "Application updated successfully",
             application
@@ -468,6 +494,16 @@ async function acceptApplicationController(req, res) {
         project.selectedEditorId = application.editorId;
         await project.save();
 
+        // Notify the selected editor
+        createNotification({
+            recipient: application.editorId,
+            type: 'APPLICATION_ACCEPTED',
+            title: 'Application Accepted',
+            message: `Your application for "${project.title}" has been accepted! You are now the assigned editor.`,
+            project: project._id,
+            relatedUser: creatorId
+        }).catch(err => console.error("[Notification] Error:", err.message));
+
         return res.status(200).json({
             message: "Application accepted successfully. Project status updated to 'assigned'.",
             application,
@@ -532,6 +568,16 @@ async function rejectApplicationController(req, res) {
         application.status = 'rejected';
         await application.save();
 
+        // Notify the rejected editor
+        createNotification({
+            recipient: application.editorId,
+            type: 'APPLICATION_REJECTED',
+            title: 'Application Not Selected',
+            message: `Your application for "${project.title}" was not selected.`,
+            project: project._id,
+            relatedUser: creatorId
+        }).catch(err => console.error("[Notification] Error:", err.message));
+
         return res.status(200).json({
             message: "Application rejected successfully",
             application
@@ -593,6 +639,15 @@ async function disbandEditorController(req, res) {
                 { projectId: project._id, editorId: previousEditorId, status: 'accepted' },
                 { status: 'rejected' }
             );
+
+            createNotification({
+                recipient: previousEditorId,
+                type: 'PROJECT_CANCELLED',
+                title: 'Project Assignment Disbanded',
+                message: `Your assignment on project "${project.title}" has been disbanded by the creator.`,
+                project: project._id,
+                relatedUser: creatorId
+            }).catch(err => console.error("[Notification] Error:", err.message));
         }
 
         // Reopen project and remove selected editor

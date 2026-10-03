@@ -77,6 +77,8 @@ This document tracks all modifications, architectural updates, and schema deviat
   - Portfolios: `:editorId` for public lookup; personal endpoints (`GET /my`, `PATCH /`, `DELETE /`) use authenticated `req.user.id` directly without requiring route ID params.
   - Workspaces: `:workspaceId`
   - Revisions: `:revisionId`
+  - Deliveries: `:deliveryId`
+  - Notifications: `:notificationId`
 * **Rationale:** Prevents parameter collision, ambiguous controller handler logic, and improves client readability.
 
 ### 2.6 Workspace Progress Tracking (`/api/workspace`)
@@ -106,6 +108,35 @@ This document tracks all modifications, architectural updates, and schema deviat
 * **Endpoints Added:**
   - `GET /api/users/:userId/get-review`: Returns all reviews received by the user with pagination (`limit: 10`), sorting newest first. Response fields dynamically adapt based on role (editors receive `speed`, `quality`, `behaviour`, `responseTime`; creators receive `behaviour`, `responseTime`, `boundaryRespect`).
   - `GET /api/users/:userId/ratings`: Returns only the user's aggregated averages directly from `userModel` according to their role (`editor`: `rating`, `speed`, `quality`, `behaviour`, `responseTime`; `creator`: `rating`, `behaviour`, `responseTime`, `boundaryRespect`).
+
+### 2.11 System Notification Architecture (`/api/notifications`)
+* **Model Created/Standardized:** [`notification.model.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/model/notification.model.js) with `recipient`, `type` (controlled enum types including `NEW_APPLICATION`, `APPLICATION_ACCEPTED`, `APPLICATION_REJECTED`, `PROJECT_STATUS_UPDATED`, `FILES_UPLOADED`, `FILE_DELETED`, `FINAL_SUBMISSION`, `REVISION_REQUESTED`, `REVISION_SUBMITTED`, `PROJECT_APPROVED`, `PROJECT_CANCELLED`, `DEADLINE_UPDATED`, `REQUIREMENTS_UPDATED`, `NEW_REVIEW`), `title`, `message`, `project`, `relatedUser`, `isRead`. Indexed by `{ recipient: 1, isRead: 1 }` and `{ recipient: 1, createdAt: -1 }`.
+* **Service:** [`notification.service.js`](file:///C:/Users/Karan/Documents/capstone-project/backend/src/services/notification.service.js) providing `createNotification` which saves to MongoDB first and then emits real-time events via Socket.io room-targeting (`system-notification`), strictly decoupled from chat messaging.
+* **Notification Rules Enforced:**
+  1. MongoDB persistence first, Socket.io real-time delivery second.
+  2. Targeted exclusively to affected users (never broadcasts to the entire workspace or to the user triggering the action).
+  3. No duplicate notifications (e.g. unified proposal + bid on application submission).
+  4. Fully populated metadata (`project`, `relatedUser`) for immediate client navigation.
+* **Endpoints:**
+  - `GET /api/notifications`: Retrieves authenticated user's notifications with pagination and optional `?unreadOnly=true`.
+  - `PATCH /api/notifications/:notificationId/read`: Marks an individual notification as read (supports fallback `:id`).
+  - `PATCH /api/notifications/read-all`: Marks all unread notifications for user as read.
+  - `DELETE /api/notifications/:notificationId`: Deletes a user's notification (supports fallback `:id`).
+* **Controller Triggers Integrated:**
+  - `NEW_APPLICATION`: On editor proposal/bid submission (`POST /api/application/:projectId/apply` and `/api/projects/:projectId/applications`).
+  - `APPLICATION_ACCEPTED`: On application acceptance (`POST /api/application/:applicationId/accept`).
+  - `APPLICATION_REJECTED`: On application rejection (`POST /api/application/:applicationId/reject`).
+  - `PROJECT_STATUS_UPDATED`: On milestone / progress updates (`PATCH /api/workspace/:workspaceId/progress`).
+  - `FILES_UPLOADED`: On workspace file upload (`POST /api/workspace/:workspaceId/files`).
+  - `FILE_DELETED`: On workspace file deletion (`DELETE /api/workspace/:workspaceId/files/:fileId`).
+  - `FINAL_SUBMISSION`: On final cut delivery (`POST /api/workspace/:workspaceId/deliver`).
+  - `REVISION_REQUESTED`: On revision request (`POST /api/workspace/:deliveryId/revision`).
+  - `REVISION_SUBMITTED`: On revision resolution (`PATCH /api/workspace/:revisionId/revision`).
+  - `PROJECT_APPROVED`: On delivery approval (`POST /api/workspace/:deliveryId/approve`).
+  - `PROJECT_CANCELLED`: On project cancellation or disbandment (`PATCH /api/creator/projects/:projectId/cancel` and `/api/projects/:projectId/close`).
+  - `DEADLINE_UPDATED`: On project deadline change after editor assignment (`PATCH /api/creator/projects/:projectId` and `/api/projects/:projectId`).
+  - `REQUIREMENTS_UPDATED`: On project requirements change after editor assignment (`PATCH /api/creator/projects/:projectId` and `/api/projects/:projectId`).
+  - `NEW_REVIEW`: On review submission for editor or creator (`POST /api/users/:projectId/reviewEditor`, `POST /api/users/:projectId/reviewCreator`, and `/api/projects/:projectId/reviews`).
 
 ---
 
