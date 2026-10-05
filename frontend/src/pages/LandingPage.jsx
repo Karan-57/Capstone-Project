@@ -5,7 +5,6 @@ import FloatingSoftwareIcons from "../components/landing/FloatingSoftwareIcons";
 import HeroCardsShowcase from "../components/landing/HeroCardsShowcase";
 import ProcessDock from "../components/landing/ProcessDock";
 import Navbar from "../components/landing/Navbar";
-import CustomCursor from "../components/landing/CustomCursor";
 import StartupLoader from "../components/landing/StartupLoader";
 
 export default function LandingPage() {
@@ -52,9 +51,6 @@ export default function LandingPage() {
     <div className="relative min-h-screen bg-[#fafbfc] text-slate-900 overflow-x-hidden font-sans selection:bg-purple-100 selection:text-purple-900">
       {/* ─── APPLE STARTUP LOADER ─── */}
       {showLoader && <StartupLoader onComplete={handleLoaderComplete} />}
-
-      {/* ─── VISION PRO GLASS CURSOR ─── */}
-      <CustomCursor />
 
       {/* ─── FLOATING PILL NAVBAR ─── */}
       <Navbar activeTab="Home" />
