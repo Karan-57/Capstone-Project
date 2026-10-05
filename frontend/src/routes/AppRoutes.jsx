@@ -23,12 +23,14 @@ import EditorSignup from '../pages/auth/EditorSignup';
 // Creator Pages
 import CreatorDashboard from '../pages/creator/Dashboard';
 import CreatorProjects from '../pages/creator/Projects';
+import CreateProject from '../pages/creator/CreateProject';
 import CreatorApplications from '../pages/creator/Applications';
 import CreatorMessages from '../pages/creator/Messages';
 import CreatorAnalytics from '../pages/creator/Analytics';
 import CreatorPayments from '../pages/creator/Payments';
 import CreatorNotifications from '../pages/creator/Notifications';
 import CreatorProfile from '../pages/creator/Profile';
+import CreatorEditProfile from '../pages/creator/EditProfile';
 
 // Editor Pages
 import EditorDashboard from '../pages/editor/Dashboard';
@@ -39,6 +41,7 @@ import EditorMessages from '../pages/editor/Messages';
 import EditorEarnings from '../pages/editor/Earnings';
 import EditorNotifications from '../pages/editor/Notifications';
 import EditorProfile from '../pages/editor/Profile';
+import EditorEditProfile from '../pages/editor/EditProfile';
 
 export const AppRoutes = () => {
   return (
@@ -71,14 +74,15 @@ export const AppRoutes = () => {
         <Route index element={<Navigate to="/creator/dashboard" replace />} />
         <Route path="dashboard" element={<CreatorDashboard />} />
         <Route path="projects" element={<CreatorProjects />} />
-        <Route path="create-project" element={<CreatorProjects />} />
+        <Route path="create-project" element={<CreateProject />} />
         <Route path="applications" element={<CreatorApplications />} />
         <Route path="messages" element={<CreatorMessages />} />
         <Route path="analytics" element={<CreatorAnalytics />} />
         <Route path="payments" element={<CreatorPayments />} />
         <Route path="notifications" element={<CreatorNotifications />} />
         <Route path="profile" element={<CreatorProfile />} />
-        <Route path="settings" element={<CreatorProfile />} />
+        <Route path="edit-profile" element={<CreatorEditProfile />} />
+        <Route path="settings" element={<CreatorEditProfile />} />
       </Route>
 
       {/* Editor Protected Routes */}
@@ -99,7 +103,9 @@ export const AppRoutes = () => {
         <Route path="earnings" element={<EditorEarnings />} />
         <Route path="notifications" element={<EditorNotifications />} />
         <Route path="profile" element={<EditorProfile />} />
-        <Route path="settings" element={<EditorProfile />} />
+        <Route path="edit-profile" element={<EditorEditProfile />} />
+        <Route path="create-showreel" element={<EditorEditProfile />} />
+        <Route path="settings" element={<EditorEditProfile />} />
       </Route>
 
       {/* Catch-all fallback */}

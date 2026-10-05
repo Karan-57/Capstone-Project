@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Check, X, Search } from 'lucide-react';
+import { Star, Check, X, User, DollarSign, Clock, MessageSquare, Search } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { initialApplicationsData } from '../../services/applicationService';
 

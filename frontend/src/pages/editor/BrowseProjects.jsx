@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, CheckCircle, Send } from 'lucide-react';
+import { Search, Filter, Sparkles, Clock, CheckCircle, DollarSign, Send } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { editorRecommendedProjectsData } from '../../services/projectService';
 
@@ -9,8 +9,6 @@ export const BrowseProjects = () => {
   const [proposalModal, setProposalModal] = useState(null);
   const [bidAmount, setBidAmount] = useState('');
   const [bidCover, setBidCover] = useState('');
-  const [appliedProjectIds, setAppliedProjectIds] = useState([]);
-  const [proposalSuccess, setProposalSuccess] = useState(false);
 
   const allProjects = [
     ...editorRecommendedProjectsData,
@@ -50,17 +48,10 @@ export const BrowseProjects = () => {
 
   const handleSendProposal = (e) => {
     e.preventDefault();
-    if (!proposalModal) return;
-
-    setProposalSuccess(true);
-    setAppliedProjectIds(prev => [...prev, proposalModal.id]);
-
-    setTimeout(() => {
-      setProposalModal(null);
-      setProposalSuccess(false);
-      setBidAmount('');
-      setBidCover('');
-    }, 1200);
+    alert(`Proposal submitted to ${proposalModal.creator} for ${proposalModal.title}!`);
+    setProposalModal(null);
+    setBidAmount('');
+    setBidCover('');
   };
 
   return (
@@ -148,24 +139,18 @@ export const BrowseProjects = () => {
 
             <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between">
               <span className="text-xs text-slate-400">
-                {gig.proposalsCount + (appliedProjectIds.includes(gig.id) ? 1 : 0)} editor proposals submitted
+                {gig.proposalsCount} editor proposals submitted
               </span>
-              {appliedProjectIds.includes(gig.id) ? (
-                <span className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Applied
-                </span>
-              ) : (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    setProposalModal(gig);
-                    setBidAmount(gig.budget);
-                  }}
-                >
-                  Send Proposal
-                </Button>
-              )}
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  setProposalModal(gig);
+                  setBidAmount(gig.budget);
+                }}
+              >
+                Send Proposal
+              </Button>
             </div>
           </div>
         ))}
@@ -180,49 +165,39 @@ export const BrowseProjects = () => {
               Send your offer and video portfolio samples to <strong>{proposalModal.creator}</strong>
             </p>
 
-            {proposalSuccess ? (
-              <div className="py-6 text-center space-y-2">
-                <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
-                <h4 className="text-base font-bold text-white">Proposal Sent!</h4>
-                <p className="text-xs text-slate-400">
-                  {proposalModal.creator} will review your bid of {bidAmount}. Check status in My Applications.
-                </p>
+            <form onSubmit={handleSendProposal} className="space-y-4">
+              <div>
+                <label className="text-xs text-slate-300 block mb-1">Your Proposed Budget</label>
+                <input
+                  type="text"
+                  required
+                  value={bidAmount}
+                  onChange={e => setBidAmount(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
+                />
               </div>
-            ) : (
-              <form onSubmit={handleSendProposal} className="space-y-4">
-                <div>
-                  <label className="text-xs text-slate-300 block mb-1">Your Proposed Budget</label>
-                  <input
-                    type="text"
-                    required
-                    value={bidAmount}
-                    onChange={e => setBidAmount(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
-                  />
-                </div>
 
-                <div>
-                  <label className="text-xs text-slate-300 block mb-1">Cover Note & Relevant Showreel Link</label>
-                  <textarea
-                    rows={4}
-                    required
-                    placeholder="Hey, I specialize in high-retention pacing and dynamic sound design. Check my previous similar cut: vimeo.com/..."
-                    value={bidCover}
-                    onChange={e => setBidCover(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500 resize-none"
-                  />
-                </div>
+              <div>
+                <label className="text-xs text-slate-300 block mb-1">Cover Note & Relevant Showreel Link</label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Hey, I specialize in high-retention pacing and dynamic sound design. Check my previous similar cut: vimeo.com/..."
+                  value={bidCover}
+                  onChange={e => setBidCover(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500 resize-none"
+                />
+              </div>
 
-                <div className="flex items-center justify-end gap-2.5 pt-2">
-                  <Button variant="ghost" onClick={() => setProposalModal(null)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary" icon={Send}>
-                    Submit Bid
-                  </Button>
-                </div>
-              </form>
-            )}
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <Button variant="ghost" onClick={() => setProposalModal(null)}>
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary" icon={Send}>
+                  Submit Bid
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}
