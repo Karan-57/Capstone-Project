@@ -6,6 +6,8 @@ import { DaVinciIcon, PremiereProIcon, BlueFolder3DIcon } from "../components/la
 import { useAuth } from "../context/AuthContext";
 import { login as loginApi, register as registerApi, socialLogin as socialLoginApi } from "../services/auth.api";
 import OtpVerificationModal from "./auth/OtpVerificationModal";
+import api from "../services/api";
+import GoogleSignInButton from "../components/common/GoogleSignInButton";
 
 export default function AuthModal({
   isOpen = true,
@@ -492,6 +494,45 @@ export default function AuthModal({
             </div>
           ) : (
             /* Signup Fields */
+        {/* ─── GOOGLE ONE-CLICK SIGN IN ─── */}
+        <div className="mb-4">
+          <div className="flex justify-center">
+            <GoogleSignInButton
+              role={role}
+              onSuccess={({ accessToken, user }) => {
+                login(user.role || role, user, accessToken);
+                setIsSuccess(true);
+                setTimeout(() => {
+                  if (onLoginSuccess) {
+                    onLoginSuccess(user.role || role);
+                  } else {
+                    const targetPath =
+                      location.state?.from?.pathname ||
+                      ((user.role || role) === "editor" ? "/editor/dashboard" : "/creator/dashboard");
+                    navigate(targetPath, { replace: true });
+                  }
+                }, 500);
+              }}
+              onError={(msg) => setErrorMsg(msg)}
+            />
+          </div>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white px-3 text-slate-400 font-medium">
+                Or continue with email
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── FORM ─── */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === "signup" && (
+
             <>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
