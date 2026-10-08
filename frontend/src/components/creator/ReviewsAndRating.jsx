@@ -1,10 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Star } from 'lucide-react';
 
 export const ReviewsAndRating = () => {
-  const navigate = useNavigate();
-
   const ratingData = [
     { stars: 5, count: 78, percentage: 78 },
     { stars: 4, count: 32, percentage: 32 },
@@ -14,16 +11,13 @@ export const ReviewsAndRating = () => {
   ];
 
   return (
-    <div className="glass-card p-6 flex flex-col justify-between h-full">
+    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between mb-3.5">
           <h3 className="text-base font-semibold text-white tracking-tight">
             Reviews & Rating
           </h3>
-          <button
-            onClick={() => navigate('/creator/profile')}
-            className="text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors"
-          >
+          <button className="text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors">
             View all
           </button>
         </div>

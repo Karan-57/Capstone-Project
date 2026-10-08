@@ -20,16 +20,11 @@ import CollaboLogo from '../../assets/logos/CollaboLogo';
 import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar = ({ role: propRole }) => {
-  const { role: contextRole, setRole, logout } = useAuth();
+  const { role: contextRole, setRole, toggleRole, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const role = propRole || (location.pathname.startsWith('/editor') ? 'editor' : (location.pathname.startsWith('/creator') ? 'creator' : contextRole));
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const creatorNavItems = [
     { label: 'Dashboard', path: '/creator/dashboard', icon: LayoutDashboard },
@@ -58,53 +53,58 @@ export const Sidebar = ({ role: propRole }) => {
 
   const handleRoleSwitch = () => {
     if (role === 'creator') {
-      setRole('editor');
+      if (setRole) setRole('editor');
+      else if (toggleRole) toggleRole();
       navigate('/editor/dashboard');
     } else {
-      setRole('creator');
+      if (setRole) setRole('creator');
+      else if (toggleRole) toggleRole();
       navigate('/creator/dashboard');
     }
   };
 
+  const handleLogout = () => {
+    if (logout) {
+      logout();
+    }
+    navigate('/login');
+  };
+
   return (
-    <aside className="w-64 min-h-screen bg-[#0A0D15] border-r border-white/[0.07] flex flex-col justify-between p-5 select-none shrink-0 sticky top-0 h-screen overflow-y-auto">
+    <aside className="w-64 min-h-screen bg-[#07090F]/80 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col justify-between p-4.5 select-none shrink-0 sticky top-0 h-screen overflow-y-auto z-40">
       <div>
         {/* Brand Header */}
-        <div className="flex items-center justify-between pb-6 pt-1 px-1">
-          <CollaboLogo className="w-8 h-8" textClassName="text-xl font-bold tracking-tight text-white" />
+        <div className="flex items-center justify-between pb-5 pt-1 px-1">
+          <CollaboLogo className="w-8 h-8" textClassName="text-xl font-bold tracking-tight text-white font-mono" />
         </div>
 
-        {/* Role Mode Chip Banner */}
-        <div className={`mb-5 p-2.5 rounded-xl border flex items-center justify-between transition-colors ${
-          role === 'creator'
-            ? 'bg-purple-950/30 border-purple-800/30'
-            : 'bg-blue-950/30 border-blue-800/30'
-        }`}>
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full animate-pulse ${
-              role === 'creator' ? 'bg-purple-400' : 'bg-blue-400'
-            }`}></span>
-            <span className={`text-xs font-semibold uppercase tracking-wider ${
+        {/* Pierre Sù Inspired Frosted Capsule Mode Switcher */}
+        <div className="mb-4 p-2 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] flex items-center justify-between shadow-inner">
+          <div className="flex items-center gap-2 pl-1">
+            <span className={`w-2 h-2 rounded-full shadow-[0_0_8px] animate-pulse ${
+              role === 'creator' ? 'bg-purple-400 shadow-[#C084FC]' : 'bg-blue-400 shadow-[#60A5FA]'
+            }`} />
+            <span className={`text-[11px] font-bold uppercase tracking-wider font-mono ${
               role === 'creator' ? 'text-purple-200' : 'text-blue-200'
             }`}>
-              {role === 'creator' ? 'Creator Space' : 'Editor Pro'}
+              {role === 'creator' ? 'Creator Hub' : 'Editor Pro'}
             </span>
           </div>
           <button
             onClick={handleRoleSwitch}
             title={`Switch to ${role === 'creator' ? 'Editor' : 'Creator'} View`}
-            className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg transition-colors border ${
+            className={`flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-xl transition-all border active:scale-95 ${
               role === 'creator'
-                ? 'text-purple-300 hover:text-white bg-purple-800/40 hover:bg-purple-700/60 border-purple-500/20'
-                : 'text-blue-300 hover:text-white bg-blue-800/40 hover:bg-blue-700/60 border-blue-500/20'
+                ? 'text-purple-300 hover:text-white bg-purple-900/40 hover:bg-purple-800/60 border-purple-500/20'
+                : 'text-blue-300 hover:text-white bg-blue-900/40 hover:bg-blue-800/60 border-blue-500/20'
             }`}
           >
-            <RefreshCw className="w-3 h-3" />
+            <RefreshCw className="w-2.5 h-2.5" />
             Switch
           </button>
         </div>
 
-        {/* Navigation links */}
+        {/* Navigation links with Pierre Sù / Apple Capsule Hover */}
         <nav className="space-y-1">
           {currentNavItems.map((item) => {
             const Icon = item.icon;
@@ -113,24 +113,24 @@ export const Sidebar = ({ role: propRole }) => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  `flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold tracking-tight transition-all duration-200 ${
                     isActive
                       ? role === 'creator'
-                        ? 'bg-purple-700 text-white shadow-lg shadow-purple-900/30 font-semibold'
-                        : 'bg-blue-600 text-white shadow-lg shadow-blue-900/30 font-semibold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-900/40 border border-purple-400/30'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/40 border border-blue-400/30'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.04]'
                   }`
                 }
               >
                 <div className="flex items-center gap-3">
-                  <Icon className="w-[18px] h-[18px] shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" />
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
-                  <span className={`px-1.5 py-0.5 text-[11px] font-semibold rounded-md border ${
+                  <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md border ${
                     role === 'creator'
-                      ? 'bg-purple-500/30 text-purple-300 border-purple-400/20'
-                      : 'bg-blue-500/30 text-blue-300 border-blue-400/20'
+                      ? 'bg-purple-500/30 text-purple-200 border-purple-400/20'
+                      : 'bg-blue-500/30 text-blue-200 border-blue-400/20'
                   }`}>
                     {item.badge}
                   </span>
@@ -142,12 +142,12 @@ export const Sidebar = ({ role: propRole }) => {
       </div>
 
       {/* Footer Navigation */}
-      <div className="pt-4 border-t border-white/[0.06] space-y-2">
+      <div className="pt-3 border-t border-white/[0.05] space-y-1">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+          className="w-full flex items-center gap-3 px-3.5 py-2 rounded-2xl text-xs font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
         >
-          <LogOut className="w-[18px] h-[18px]" />
+          <LogOut className="w-4 h-4" />
           <span>Logout</span>
         </button>
       </div>

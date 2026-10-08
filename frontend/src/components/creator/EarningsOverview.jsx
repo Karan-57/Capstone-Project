@@ -13,7 +13,7 @@ export const EarningsOverview = ({ total = '₹45,000', subtitle = 'Total Earnin
   const areaPath = `${linePath} L 350 135 L 10 135 Z`;
 
   return (
-    <div className="glass-card p-6 flex flex-col justify-between h-full">
+    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
       {/* Header with Title and Dropdown */}
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-base font-semibold text-white tracking-tight">
@@ -22,7 +22,6 @@ export const EarningsOverview = ({ total = '₹45,000', subtitle = 'Total Earnin
         <div className="relative">
           <button
             type="button"
-            onClick={() => setTimeframe(prev => (prev === 'This Month' ? 'Last Month' : 'This Month'))}
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-300 bg-[#161D2D] hover:bg-[#1E2638] rounded-lg border border-white/[0.08] transition-colors"
           >
             <span>{timeframe}</span>

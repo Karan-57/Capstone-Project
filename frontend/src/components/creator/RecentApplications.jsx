@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import { Star, Check, X } from 'lucide-react';
 import Button from '../common/Button';
 
 export const RecentApplications = ({ applications = [], onStatusChange }) => {
@@ -20,7 +20,7 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
   });
 
   return (
-    <div className="glass-card p-6 flex flex-col justify-between h-full">
+    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
       <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-3.5">

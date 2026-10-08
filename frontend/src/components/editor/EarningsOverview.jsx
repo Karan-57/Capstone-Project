@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, ShieldCheck } from 'lucide-react';
+import { Wallet, ArrowUpRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Button from '../common/Button';
 
 export const EarningsOverview = ({ earnings }) => {
@@ -18,7 +18,7 @@ export const EarningsOverview = ({ earnings }) => {
   };
 
   return (
-    <div className="glass-card p-6 flex flex-col justify-between h-full">
+    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export const EarningsOverview = ({ earnings }) => {
               <Button
                 variant="primary"
                 size="xs"
-                onClick={() => navigate('/editor/earnings?withdraw=true')}
+                onClick={() => alert('Withdraw initiated to linked Bank Account')}
                 className="w-full text-xs py-1"
               >
                 Withdraw Funds

@@ -16,13 +16,18 @@ export default function CustomCursor() {
 
       // Check if hovering over clickable/interactive elements
       const target = e.target;
+      if (!target) return;
       const isInteractive =
         target.closest("button") ||
         target.closest("a") ||
         target.closest("input") ||
         target.closest("select") ||
+        target.closest("textarea") ||
         target.closest(".interactive-card") ||
-        target.closest("[role='button']");
+        target.closest(".glass-panel-interactive") ||
+        target.closest(".cursor-pointer") ||
+        target.closest("[role='button']") ||
+        target.closest("[data-cursor='action']");
 
       setIsHovered(!!isInteractive);
     };

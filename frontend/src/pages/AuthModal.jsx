@@ -31,6 +31,9 @@ export default function AuthModal({
   const [fullName, setFullName] = useState(() =>
     (validParamRole || initialRole) === "creator" ? "Jason Vance" : "Alex Rivera"
   );
+  const [username, setUsername] = useState(() =>
+    (validParamRole || initialRole) === "creator" ? "jason_vance" : "alex_rivera"
+  );
   const [portfolioUrl, setPortfolioUrl] = useState(() =>
     (validParamRole || initialRole) === "creator"
       ? "https://youtube.com/@jasonvance"
@@ -58,10 +61,12 @@ export default function AuthModal({
     if (newRole === "creator") {
       setEmail("creator@collabo.io");
       setFullName("Jason Vance");
+      setUsername("jason_vance");
       setPortfolioUrl("https://youtube.com/@jasonvance");
     } else {
       setEmail("editor@collabo.io");
       setFullName("Alex Rivera");
+      setUsername("alex_rivera");
       setPortfolioUrl("https://vimeo.com/alexrivera/showreel");
     }
   };
@@ -106,29 +111,81 @@ export default function AuthModal({
     try {
       if (mode === "login") {
         try {
-          const response = await api.post("/api/auth/login", { email, password });
-          if (response?.data?.accessToken) {
-            login(role, { email, role }, response.data.accessToken);
+          const response = await api.post("/api/auth/login", {
+            email: email.trim(),
+            password,
+          });
+          const accessToken = response?.data?.accessToken;
+          const userPayload = response?.data?.user || { email, role };
+          if (accessToken) {
+            login(role, userPayload, accessToken);
           } else {
-            login(role, { email, role });
+            login(role, userPayload);
           }
         } catch (err) {
-          console.warn("Backend login fallback to client session:", err?.response?.data?.message || err.message);
+          const errRes = err?.response?.data?.message || err.message;
+          console.warn("Backend login error / fallback:", errRes);
+          if (err?.response?.status === 403 || errRes.toLowerCase().includes("not verified")) {
+            setErrorMsg(errRes || "Account not verified. Please check your email.");
+            setIsSubmitting(false);
+            return;
+          }
+          if (err?.response?.status === 401 || errRes.toLowerCase().includes("invalid credentials")) {
+            setErrorMsg(errRes || "Invalid email or password.");
+            setIsSubmitting(false);
+            return;
+          }
+          // Offline fallback
           login(role, { email, role });
         }
       } else {
+        // Validation for username matching user.model.js
+        const cleanUsername = username.trim().toLowerCase();
+        const usernameRegex = /^(?!_)(?!.*\.\.)[a-z0-9_](?:[a-z0-9_.]*[a-z0-9_])?$/;
+        if (!usernameRegex.test(cleanUsername)) {
+          setErrorMsg("Username must be 3-30 characters with lowercase letters, numbers, or underscores (cannot start with _).");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (password.length < 6) {
+          setErrorMsg("Password must be at least 6 characters long.");
+          setIsSubmitting(false);
+          return;
+        }
+
         try {
-          await api.post("/api/auth/register", {
-            username: fullName,
-            email,
+          const response = await api.post("/api/auth/register", {
+            name: fullName.trim(),
+            username: cleanUsername,
+            email: email.trim().toLowerCase(),
             password,
             role,
-            portfolioUrl,
           });
+          const accessToken = response?.data?.accessToken;
+          const userPayload = response?.data?.user || {
+            name: fullName,
+            username: cleanUsername,
+            email,
+            role,
+            portfolioUrl,
+          };
+          if (accessToken) {
+            login(role, userPayload, accessToken);
+          } else {
+            login(role, userPayload);
+          }
         } catch (err) {
-          console.warn("Backend register fallback to client session:", err?.response?.data?.message || err.message);
+          const errRes = err?.response?.data?.message || err.message;
+          console.warn("Backend register error / fallback:", errRes);
+          if (err?.response?.status === 409 || err?.response?.status === 400) {
+            setErrorMsg(errRes || "Registration failed. Username or email may already be in use.");
+            setIsSubmitting(false);
+            return;
+          }
+          // Offline fallback
+          login(role, { name: fullName, username: cleanUsername, email, role, portfolioUrl });
         }
-        login(role, { name: fullName, email, role, portfolioUrl });
       }
 
       setIsSubmitting(false);
@@ -327,19 +384,35 @@ export default function AuthModal({
         {/* ─── FORM ─── */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === "signup" && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Full Name
-              </label>
-              <input
-                type="text"
-                required
-                placeholder={isCreator ? "e.g. Jason Vance" : "e.g. Alex Rivera"}
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={isCreator ? "e.g. Jason Vance" : "e.g. Alex Rivera"}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={isCreator ? "e.g. JasonV_123" : "e.g. AlexR_123"}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
+                />
+              </div>
+            </>
           )}
 
           <div>

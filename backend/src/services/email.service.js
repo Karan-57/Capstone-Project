@@ -1,27 +1,36 @@
 const nodemailer = require("nodemailer");
 const config = require("../config/config");
 
-// Create Nodemailer transporter using Gmail OAuth2.
-// Nodemailer uses the refresh token to obtain access tokens automatically.
-const transporter = nodemailer.createTransport({
-    service: "gmail",
+// Create Nodemailer transporter
+// Uses Google App Password if provided, otherwise falls back to OAuth2
+const transporter = nodemailer.createTransport(
+    config.GOOGLE_APP_PASSWORD
+        ? {
+              service: "gmail",
+              auth: {
+                  user: config.GOOGLE_USER,
+                  pass: config.GOOGLE_APP_PASSWORD,
+              },
+          }
+        : {
+              service: "gmail",
+              auth: {
+                  type: "OAuth2",
+                  user: config.GOOGLE_USER,
+                  clientId: config.GOOGLE_CLIENT_ID,
+                  clientSecret: config.GOOGLE_CLIENT_SECRET,
+                  refreshToken: config.GOOGLE_REFRESH_TOKEN,
+              },
+          }
+);
 
-    auth: {
-        type: "OAuth2",
-        user: config.GOOGLE_USER,
-        clientId: config.GOOGLE_CLIENT_ID,
-        clientSecret: config.GOOGLE_CLIENT_SECRET,
-        refreshToken: config.GOOGLE_REFRESH_TOKEN,
-    },
-});
-
-// Optional: verify the Gmail connection when the application starts
+// Verify the Gmail connection when the application starts
 transporter.verify((error, success) => {
     if (error) {
         console.error("[EMAIL SERVICE] Gmail transporter verification failed:");
         console.error(error.message);
     } else {
-        console.log("[EMAIL SERVICE] Gmail OAuth2 transporter is ready.");
+        console.log("[EMAIL SERVICE] Gmail transporter is ready.");
     }
 });
 

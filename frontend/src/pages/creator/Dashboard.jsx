@@ -4,7 +4,9 @@ import {
   FolderKanban,
   DollarSign,
   Users,
-  Star
+  Star,
+  MessageSquare,
+  ArrowRight
 } from 'lucide-react';
 import StatsCard from '../../components/common/StatsCard';
 import ActiveProjects from '../../components/creator/ActiveProjects';
@@ -20,6 +22,7 @@ import { useDashboardData } from '../../hooks/useDashboardData';
 export const CreatorDashboard = () => {
   const navigate = useNavigate();
   const {
+    loading,
     creatorProjects,
     applications,
     messages,
@@ -29,7 +32,7 @@ export const CreatorDashboard = () => {
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
       {/* SECTION 1: Top Quick Stats (4 cards matching the reference image) */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
         <StatsCard
           icon={FolderKanban}
           iconBg="bg-blue-600/20 text-blue-400 border border-blue-500/25"
@@ -68,7 +71,7 @@ export const CreatorDashboard = () => {
       <QuickActions />
 
       {/* SECTION 2 & 4: Middle Grid (Recent Projects + My Applications) */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5.5">
         {/* Left: Recent Projects (Col 5) */}
         <div className="lg:col-span-5">
           <ActiveProjects projects={creatorProjects} />
@@ -84,14 +87,14 @@ export const CreatorDashboard = () => {
       </section>
 
       {/* SECTION 8, 5, 6: Bottom Grid (Reviews & Rating + Messages + Earnings Overview) */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-5.5">
         {/* Left: Reviews & Rating */}
         <div className="h-full">
           <ReviewsAndRating />
         </div>
 
         {/* Center: Messages Preview */}
-        <div className="glass-card p-6 flex flex-col justify-between h-full">
+        <div className="glass-card p-5.5 flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-3.5">
               <h3 className="text-base font-semibold text-white tracking-tight">
@@ -134,9 +137,72 @@ export const CreatorDashboard = () => {
         </div>
       </section>
 
-      {/* SECTION 3: Upcoming Deadlines section */}
-      <section className="mt-6">
-        <UpcomingDeadlines />
+      {/* SECTION 3: Upcoming Deadlines & Project Pipeline */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5.5 mt-6">
+        <div className="lg:col-span-5">
+          <UpcomingDeadlines />
+        </div>
+
+        {/* Project Pipeline & Hiring Funnel Card */}
+        <div className="lg:col-span-7 glass-panel p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-white tracking-tight">
+                Production Pipeline & Hiring Funnel
+              </h3>
+              <span className="text-xs text-purple-400 font-semibold">12 Active Tracks</span>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 text-center mb-5">
+              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                <span className="text-xs text-slate-400 block font-medium">Briefed</span>
+                <span className="text-xl font-extrabold text-white mt-1 block">4</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-purple-950/20 border border-purple-800/30">
+                <span className="text-xs text-purple-300 block font-medium">Bidding</span>
+                <span className="text-xl font-extrabold text-purple-200 mt-1 block">8</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-amber-950/20 border border-amber-800/30">
+                <span className="text-xs text-amber-300 block font-medium">In Editing</span>
+                <span className="text-xl font-extrabold text-amber-200 mt-1 block">3</span>
+              </div>
+              <div className="p-3 rounded-2xl bg-emerald-950/20 border border-emerald-800/30">
+                <span className="text-xs text-emerald-300 block font-medium">Cleared</span>
+                <span className="text-xl font-extrabold text-emerald-200 mt-1 block">1</span>
+              </div>
+            </div>
+
+            {/* Top Editor Leaderboard */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                Top Rated Editors Available Now
+              </span>
+              {[
+                { name: 'Rahul Verma', specialty: 'Full-Stack Cuts', rating: 4.9, completed: 32, avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&auto=format&fit=crop&q=80' },
+                { name: 'Priya Mehta', specialty: 'Documentaries & Color', rating: 4.9, completed: 28, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&auto=format&fit=crop&q=80' },
+              ].map((ed, i) => (
+                <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                  <div className="flex items-center gap-2.5">
+                    <img src={ed.avatar} alt={ed.name} className="w-8 h-8 rounded-full object-cover border border-purple-500/30" />
+                    <div>
+                      <h4 className="text-xs font-bold text-white">{ed.name}</h4>
+                      <span className="text-[10px] text-slate-400">{ed.specialty} • {ed.completed} cuts</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-amber-400">★ {ed.rating}</span>
+                    <button
+                      onClick={() => navigate('/creator/applications')}
+                      className="px-2.5 py-1 text-[11px] font-semibold bg-purple-900/30 hover:bg-purple-800/50 text-purple-300 rounded-lg transition-colors"
+                    >
+                      Invite
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   );

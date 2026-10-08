@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/landing/Navbar";
-import CustomCursor from "../components/landing/CustomCursor";
 import SectionHeading from "../components/landing/SectionHeading";
 import Workflow from "../components/landing/Workflow";
 import MatchPreview from "../components/landing/MatchPreview";
@@ -99,9 +98,6 @@ export default function About() {
 
   return (
     <div className="relative min-h-screen bg-[#fafbfc] text-slate-900 overflow-x-hidden font-sans selection:bg-purple-100 selection:text-purple-900">
-      {/* ─── VISION PRO GLASS CURSOR ─── */}
-      <CustomCursor />
-
       {/* ─── FLOATING PILL NAVBAR ─── */}
       <Navbar activeTab="About" />
 

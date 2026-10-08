@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, CheckCircle2, DollarSign, RefreshCw } from 'lucide-react';
+import { Bell, CheckCircle2, DollarSign, MessageSquare, AlertCircle, RefreshCw } from 'lucide-react';
 import Button from '../../components/common/Button';
 
 export const Notifications = () => {

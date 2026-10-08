@@ -1,13 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, Clock, FileVideo } from 'lucide-react';
+import { UploadCloud, Clock, CheckCircle2, FileVideo } from 'lucide-react';
 import Button from '../common/Button';
 
 export const ActiveProjects = ({ projects = [] }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="glass-card p-6 flex flex-col justify-between h-full">
+    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -76,7 +76,7 @@ export const ActiveProjects = ({ projects = [] }) => {
                   variant="subtle"
                   size="xs"
                   icon={UploadCloud}
-                  onClick={() => navigate(`/editor/active-projects?deliver=${project.id}`)}
+                  onClick={() => alert(`Open deliverable upload for: ${project.title}`)}
                   className="bg-[#1C2333] hover:bg-purple-900/30 hover:border-purple-500/40 text-purple-200"
                 >
                   Upload Cut
