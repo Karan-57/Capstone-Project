@@ -40,7 +40,32 @@ async function authMiddleware(req, res, next) {
     }
 }
 
+async function optionalAuthMiddleware(req, res, next) {
+    try {
+        const accessToken = req.cookies?.accessToken || req.cookies?.token || req.headers.authorization?.split(" ")[1];
+
+        if (!accessToken) {
+            return next();
+        }
+
+        const isBlacklisted = await tokenBlacklistModel.findOne({ token: accessToken });
+        if (isBlacklisted) {
+            return next();
+        }
+
+        const decoded = jwt.verify(accessToken, config.JWT_SECRET);
+        const user = await userModel.findById(decoded.id).select("-password");
+        if (user) {
+            req.user = user;
+        }
+        return next();
+    } catch {
+        return next();
+    }
+}
+
 module.exports = {
     authMiddleware,
-    authUser: authMiddleware
-};
+    authUser: authMiddleware,
+    optionalAuthMiddleware
+};
