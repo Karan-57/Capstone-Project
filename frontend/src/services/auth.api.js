@@ -7,8 +7,12 @@ import api from './api';
 export async function register(userData) {
   try {
     const response = await api.post('/api/auth/register', userData);
+    if (response.data?.accessToken) {
+      localStorage.setItem('collabo_token', response.data.accessToken);
+    }
     return response.data;
   } catch (error) {
+
     const message = error.response?.data?.message || error.message || 'Registration failed';
     throw new Error(message);
   }
@@ -24,8 +28,12 @@ export async function login({ identifier, password }) {
       identifier: identifier.trim(),
       password,
     });
+    if (response.data?.accessToken) {
+      localStorage.setItem('collabo_token', response.data.accessToken);
+    }
     return response.data;
   } catch (error) {
+
     const message = error.response?.data?.message || error.message || 'Login failed';
     const err = new Error(message);
     err.status = error.response?.status;

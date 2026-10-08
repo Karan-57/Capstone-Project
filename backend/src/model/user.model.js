@@ -47,11 +47,11 @@ const userSchema = new mongoose.Schema(
       minlength: [6, "Password must be at least 6 characters long"],
     },
 
-    // Google OAuth fields — null for local users, populated for Google sign-in users
+    // Google OAuth fields — omitted for local users, populated for Google sign-in users
     googleId: {
       type: String,
-      default: null,
     },
+
 
     // Tracks how the user originally signed up. 'local' = email+password, 'google' = Google OAuth
     authProvider: {
@@ -168,11 +168,10 @@ const userSchema = new mongoose.Schema(
 
 // Indexes
 userSchema.index({ role: 1 });
-// Sparse so that null (local-auth users) doesn't trigger uniqueness collision
 userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
 
-
 // Create Model
+
 const userModel = mongoose.model("user", userSchema);
 
 module.exports = userModel;

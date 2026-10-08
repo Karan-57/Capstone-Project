@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import CollaboLogo from "../components/landing/CollaboLogo";
 import { DaVinciIcon, PremiereProIcon, BlueFolder3DIcon } from "../components/landing/SoftwareIcons";
 import { useAuth } from "../context/AuthContext";
-import { login as loginApi, register as registerApi, socialLogin as socialLoginApi } from "../services/auth.api";
+import { login as loginApi, register as registerApi } from "../services/auth.api";
 import OtpVerificationModal from "./auth/OtpVerificationModal";
-import api from "../services/api";
 import GoogleSignInButton from "../components/common/GoogleSignInButton";
 
 export default function AuthModal({
@@ -27,10 +26,10 @@ export default function AuthModal({
   const validParamRole = paramRole === "editor" || paramRole === "creator" ? paramRole : null;
 
   const [mode, setMode] = useState(initialMode);
-  const [role, setRole] = useState(validParamRole || initialRole); // "creator" (purple) | "editor" (blue)
+  const [role, setRole] = useState(validParamRole || initialRole); // "creator" | "editor"
 
-  // Empty default inputs as requested (no auto-populated dummy accounts)
-  const [identifier, setIdentifier] = useState(""); // single input for email or username on login
+  // Inputs
+  const [identifier, setIdentifier] = useState(""); // email or username for login
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -156,16 +155,18 @@ export default function AuthModal({
             setIsSubmitting(false);
             return;
           }
-          // Offline fallback
-          console.warn("Backend login offline fallback:", errRes);
-          finishAuthentication(role, { email: identifier, role });
+          // Server returned specific error message (e.g. Google-only account)
+          setErrorMsg(errRes || "Login failed. Please check your credentials.");
+          setIsSubmitting(false);
         }
       } else {
         // Signup Mode
         const cleanUsername = username.trim().toLowerCase();
         const usernameRegex = /^(?!_)(?!.*\.\.)[a-z0-9_](?:[a-z0-9_.]*[a-z0-9_])?$/;
         if (!usernameRegex.test(cleanUsername)) {
-          setErrorMsg("Username must be 3-30 characters with lowercase letters, numbers, or underscores (cannot start with _).");
+          setErrorMsg(
+            "Username must be 3-30 characters with lowercase letters, numbers, or underscores (cannot start with _)."
+          );
           setIsSubmitting(false);
           return;
         }
@@ -185,7 +186,12 @@ export default function AuthModal({
             role,
           });
 
-          // Redirect to OTP verification modal
+          // Store temporary access token returned on register so verify-email authenticated call succeeds
+          if (res?.accessToken) {
+            localStorage.setItem("collabo_token", res.accessToken);
+          }
+
+          // Open aesthetic OTP verification modal
           setOtpTargetEmail(email.trim().toLowerCase());
           setShowOtpModal(true);
           setIsSubmitting(false);
@@ -196,79 +202,13 @@ export default function AuthModal({
             setIsSubmitting(false);
             return;
           }
-          // If server fails or offline, provide OTP screen for verification
-          setOtpTargetEmail(email.trim().toLowerCase());
-          setShowOtpModal(true);
+          setErrorMsg(errRes || "Registration failed. Please try again.");
           setIsSubmitting(false);
         }
       }
     } catch (err) {
       setIsSubmitting(false);
       setErrorMsg(err?.message || "Authentication failed. Please check your credentials.");
-    }
-  };
-
-  // Google OAuth Handler
-  const handleGoogleAuth = async () => {
-    setErrorMsg("");
-    setIsSubmitting(true);
-    // In production, Google Identity Services popup / redirect occurs:
-    // Here we provide instant OAuth popup simulation / social endpoint bridge
-    const popupEmail = prompt(
-      "Enter your Google Account email to continue with Google:",
-      email || `${role}@gmail.com`
-    );
-    if (!popupEmail) {
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const res = await socialLoginApi({
-        provider: "Google",
-        email: popupEmail.trim().toLowerCase(),
-        name: fullName || popupEmail.split("@")[0],
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-        role,
-      });
-
-      const accessToken = res?.accessToken;
-      const userPayload = res?.user || { email: popupEmail, role };
-      finishAuthentication(userPayload.role || role, userPayload, accessToken);
-    } catch (err) {
-      console.warn("Social login fallback:", err.message);
-      finishAuthentication(role, { email: popupEmail, role, name: popupEmail.split("@")[0] });
-    }
-  };
-
-  // Facebook / Meta OAuth Handler
-  const handleFacebookAuth = async () => {
-    setErrorMsg("");
-    setIsSubmitting(true);
-    const popupEmail = prompt(
-      "Enter your Facebook Account email to continue with Meta:",
-      email || `${role}@meta.com`
-    );
-    if (!popupEmail) {
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const res = await socialLoginApi({
-        provider: "Facebook",
-        email: popupEmail.trim().toLowerCase(),
-        name: fullName || popupEmail.split("@")[0],
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-        role,
-      });
-
-      const accessToken = res?.accessToken;
-      const userPayload = res?.user || { email: popupEmail, role };
-      finishAuthentication(userPayload.role || role, userPayload, accessToken);
-    } catch (err) {
-      console.warn("Social login fallback:", err.message);
-      finishAuthentication(role, { email: popupEmail, role, name: popupEmail.split("@")[0] });
     }
   };
 
@@ -427,75 +367,8 @@ export default function AuthModal({
           </div>
         )}
 
-        {/* ─── SOCIAL SIGN IN / SIGN UP (Google & Facebook / Meta) ─── */}
-        <div className="space-y-2.5 mb-5">
-          <button
-            type="button"
-            onClick={handleGoogleAuth}
-            className="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition-colors shadow-sm cursor-pointer"
-          >
-            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-              />
-            </svg>
-            <span>{mode === "login" ? "Sign in with Google" : "Sign up with Google"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleFacebookAuth}
-            className="w-full py-2.5 px-4 rounded-xl border border-[#1877F2]/20 hover:border-[#1877F2]/40 bg-[#1877F2]/5 hover:bg-[#1877F2]/10 text-[#1877F2] text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition-colors shadow-sm cursor-pointer"
-          >
-            <svg className="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
-            <span>{mode === "login" ? "Continue with Facebook (Meta)" : "Sign up with Facebook (Meta)"}</span>
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="relative flex items-center justify-center mb-5">
-          <div className="border-t border-slate-200 w-full" />
-          <span className="bg-white px-3 text-[11px] uppercase tracking-wider text-slate-400 font-semibold absolute">
-            or with credentials
-          </span>
-        </div>
-
-        {/* ─── MAIN FORM ─── */}
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          {mode === "login" ? (
-            /* Single input for Email OR Username */
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Email or Username
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="Enter your email or username"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
-              />
-            </div>
-          ) : (
-            /* Signup Fields */
-        {/* ─── GOOGLE ONE-CLICK SIGN IN ─── */}
-        <div className="mb-4">
+        {/* ─── GOOGLE ONE-CLICK SIGN IN / SIGN UP ─── */}
+        <div className="mb-5">
           <div className="flex justify-center">
             <GoogleSignInButton
               role={role}
@@ -523,16 +396,31 @@ export default function AuthModal({
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="bg-white px-3 text-slate-400 font-medium">
-                Or continue with email
+                Or continue with credentials
               </span>
             </div>
           </div>
         </div>
 
-        {/* ─── FORM ─── */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === "signup" && (
-
+        {/* ─── MAIN FORM ─── */}
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {mode === "login" ? (
+            /* Single input for Email OR Username */
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Email or Username
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Enter your email or username"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
+              />
+            </div>
+          ) : (
+            /* Signup Fields */
             <>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -541,7 +429,7 @@ export default function AuthModal({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Alex Rivera"
+                  placeholder={isCreator ? "e.g. Jason Vance" : "e.g. Alex Rivera"}
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
@@ -555,7 +443,7 @@ export default function AuthModal({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. alex_rivera"
+                  placeholder={isCreator ? "e.g. jason_vance" : "e.g. alex_rivera"}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
