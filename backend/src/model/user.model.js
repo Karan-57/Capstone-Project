@@ -39,8 +39,25 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Password is required"],
+      // Required only for local (email/password) auth. Google OAuth users have no password.
+      required: [
+        function () { return !this.googleId; },
+        "Password is required for email/password registration"
+      ],
       minlength: [6, "Password must be at least 6 characters long"],
+    },
+
+    // Google OAuth fields — null for local users, populated for Google sign-in users
+    googleId: {
+      type: String,
+      default: null,
+    },
+
+    // Tracks how the user originally signed up. 'local' = email+password, 'google' = Google OAuth
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
     },
 
     // Email verification status
@@ -151,6 +168,9 @@ const userSchema = new mongoose.Schema(
 
 // Indexes
 userSchema.index({ role: 1 });
+// Sparse so that null (local-auth users) doesn't trigger uniqueness collision
+userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+
 
 // Create Model
 const userModel = mongoose.model("user", userSchema);

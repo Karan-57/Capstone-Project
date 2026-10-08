@@ -159,6 +159,13 @@ async function loginUserController(req, res) {
             });
         }
 
+        // Guard: Google-only accounts have no local password
+        if (!user.password) {
+            return res.status(400).json({
+                message: "This account was created with Google. Please use 'Sign in with Google' instead."
+            });
+        }
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
@@ -608,8 +615,15 @@ async function resetPasswordController(req, res) {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        user.password = hashedPassword;
-        await user.save();
+
+        // Use findByIdAndUpdate to bypass full-document Mongoose validation on unrelated fields
+        // (e.g. Google OAuth users who have no password field set)
+        await userModel.findByIdAndUpdate(
+            user._id,
+            { $set: { password: hashedPassword } },
+            { runValidators: false }
+        );
+
 
         // Revoke all existing sessions so old logins are terminated
         await sessionModel.updateMany(
@@ -629,6 +643,142 @@ async function resetPasswordController(req, res) {
     }
 }
 
+/**
+ * @name googleAuthController
+ * @description Sign in or register via Google OAuth credential token.
+ *   - Verifies Google's credential JWT using google-auth-library.
+ *   - Finds existing user by email or creates a new one (verified: true, no OTP needed).
+ *   - If user signed up via email/password earlier with same email, links their googleId.
+ *   - Issues the exact same accessToken + refreshToken cookie as normal login/register.
+ * @access Public
+ */
+const { OAuth2Client } = require('google-auth-library');
+
+async function googleAuthController(req, res) {
+    try {
+        const { credential, role = 'creator' } = req.body;
+
+        if (!credential) {
+            return res.status(400).json({ message: "Google credential token is required" });
+        }
+
+        // Verify the Google ID token cryptographically using google-auth-library
+        // This ensures the token was genuinely issued by Google for our Client ID
+        const googleClient = new OAuth2Client(config.GOOGLE_CLIENT_ID);
+        let payload;
+        try {
+            const ticket = await googleClient.verifyIdToken({
+                idToken: credential,
+                audience: config.GOOGLE_CLIENT_ID,
+            });
+            payload = ticket.getPayload();
+        } catch (err) {
+            return res.status(401).json({ message: "Invalid Google credential token" });
+        }
+
+        const { sub: googleId, email, name, picture } = payload;
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // Find existing user by email (covers: already registered via email/password)
+        let user = await userModel.findOne({ email: normalizedEmail });
+
+        if (user) {
+            // Account already exists — link Google ID if not already linked
+            if (!user.googleId) {
+                user.googleId = googleId;
+                user.authProvider = 'google'; // note: they now have both, but we track original
+                user.verified = true;          // if they hadn't verified their email, Google proves it now
+                await user.save();
+            }
+        } else {
+            // New user — create account. Google already verified the email so verified: true
+            // Generate clean username format: [namePrefix][separator][4-digit-number] (e.g. john_4821 or alex.7391)
+            const rawPrefix = (name || normalizedEmail.split('@')[0])
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+                .slice(0, 20) || 'user';
+
+            // Separator chosen from '_' or '.'
+            const separators = ['_', '.'];
+            const sep = separators[Math.floor(Math.random() * separators.length)];
+
+            // Ensure 4-digit number (1000 - 9999)
+            let uniqueSuffix = Math.floor(1000 + Math.random() * 9000);
+            let usernameCandidate = `${rawPrefix}${sep}${uniqueSuffix}`;
+
+            // Handle rare collision check
+            let collisionCheck = await userModel.findOne({ username: usernameCandidate });
+            while (collisionCheck) {
+                uniqueSuffix = Math.floor(1000 + Math.random() * 9000);
+                usernameCandidate = `${rawPrefix}${sep}${uniqueSuffix}`;
+                collisionCheck = await userModel.findOne({ username: usernameCandidate });
+            }
+
+            user = await userModel.create({
+                name: name || rawPrefix,
+                username: usernameCandidate,
+                email: normalizedEmail,
+                googleId,
+                authProvider: 'google',
+                role,
+                verified: true,
+                profileImage: picture || '',
+            });
+        }
+
+
+        // From here — identical session + token logic as loginUserController & registerUserController
+        const refreshToken = jwt.sign(
+            { id: user._id },
+            config.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        const refreshTokenHash = hashToken(refreshToken);
+
+        const session = await sessionModel.create({
+            user: user._id,
+            refreshTokenHash,
+            ip: req.ip || req.connection?.remoteAddress || 'unknown',
+            userAgent: req.headers['user-agent'] || 'unknown'
+        });
+
+        const accessToken = jwt.sign(
+            { id: user._id, session: session._id },
+            config.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({
+            message: "Google sign-in successful",
+            accessToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                verified: user.verified,
+                profileImage: user.profileImage,
+                authProvider: user.authProvider
+            }
+        });
+    } catch (err) {
+        console.error("Error in googleAuthController:", err);
+        return res.status(500).json({
+            message: "Internal server error during Google sign-in",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     registerUserController,
     loginUserController,
@@ -638,5 +788,6 @@ module.exports = {
     resendOtpController,
     refreshToken,
     forgotPasswordController,
-    resetPasswordController
-};
+    resetPasswordController,
+    googleAuthController
+};

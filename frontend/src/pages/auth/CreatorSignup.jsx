@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CollaboLogo from '../../assets/logos/CollaboLogo';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
+import GoogleSignInButton from '../../components/common/GoogleSignInButton';
+
 
 export const CreatorSignup = () => {
-  const { setRole } = useAuth();
+  const [errorMsg, setErrorMsg] = useState('');
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setRole('creator');
+    login('creator', {
+      name: 'Jason Vance',
+      email: 'jason@studio.io',
+      role: 'creator',
+    });
     navigate('/creator/dashboard');
   };
 
@@ -26,6 +33,37 @@ export const CreatorSignup = () => {
           <p className="text-xs text-slate-400 mt-1">
             Build your team of elite video editors and scale your channel
           </p>
+        </div>
+
+        {errorMsg && (
+          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* Google 1-Click Sign-In */}
+        <div className="mb-4">
+          <div className="flex justify-center">
+            <GoogleSignInButton
+              role="creator"
+              onSuccess={({ accessToken, user }) => {
+                login('creator', user, accessToken);
+                navigate('/creator/dashboard');
+              }}
+              onError={(msg) => setErrorMsg(msg)}
+            />
+          </div>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/[0.08]" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-[#0e1320] px-3 text-slate-400 font-medium">
+                Or continue with email
+              </span>
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

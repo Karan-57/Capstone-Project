@@ -1,0 +1,60 @@
+import { GoogleLogin } from '@react-oauth/google';
+import api from '../../services/api';
+
+/**
+ * GoogleSignInButton
+ *
+ * Renders the official Google Sign-In button.
+ * On success: sends the Google credential to our backend POST /api/auth/google,
+ * receives our own accessToken + refreshToken (cookie), and calls onSuccess with
+ * { accessToken, user } so the parent (AuthModal, LoginPage, etc.) can update
+ * AuthContext exactly the same way as a normal login.
+ *
+ * Props:
+ *   role       - 'creator' | 'editor' (passed to backend for new user creation)
+ *   onSuccess  - callback({ accessToken, user }) called after successful auth
+ *   onError    - optional callback(errorMessage) called on failure
+ */
+export default function GoogleSignInButton({ role = 'creator', onSuccess, onError }) {
+
+    async function handleGoogleSuccess(credentialResponse) {
+        try {
+            const res = await api.post('/api/auth/google', {
+                credential: credentialResponse.credential,
+                role,
+            });
+
+            const { accessToken, user } = res.data;
+
+            // Store token so Axios interceptor attaches it to all future requests
+            localStorage.setItem('collabo_token', accessToken);
+
+            if (onSuccess) {
+                onSuccess({ accessToken, user });
+            }
+        } catch (err) {
+            const message =
+                err?.response?.data?.message || 'Google sign-in failed. Please try again.';
+            console.error('[GoogleSignIn]', message);
+            if (onError) onError(message);
+        }
+    }
+
+    function handleGoogleError() {
+        const message = 'Google sign-in was cancelled or failed.';
+        console.error('[GoogleSignIn]', message);
+        if (onError) onError(message);
+    }
+
+    return (
+        <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            theme="filled_black"
+            shape="pill"
+            text="continue_with"
+            size="large"
+            width="100%"
+        />
+    );
+}

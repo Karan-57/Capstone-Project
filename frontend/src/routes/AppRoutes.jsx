@@ -12,13 +12,10 @@ import ProtectedRoute from './ProtectedRoute';
 import LandingPage from '../pages/LandingPage';
 import About from '../pages/About';
 
-// Auth Pages (Unified and role-specific paths)
+// Auth Pages (Unified query-based: /login?role=... and /signup?role=...)
 import Login from '../pages/auth/Login';
 import Signup from '../pages/auth/Signup';
-import CreatorLogin from '../pages/auth/CreatorLogin';
-import CreatorSignup from '../pages/auth/CreatorSignup';
-import EditorLogin from '../pages/auth/EditorLogin';
-import EditorSignup from '../pages/auth/EditorSignup';
+
 
 // Creator Pages
 import CreatorDashboard from '../pages/creator/Dashboard';
@@ -51,16 +48,17 @@ export const AppRoutes = () => {
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/about" element={<About />} />
 
-      {/* Unified Auth Routes */}
+      {/* Unified Auth Routes with ?role=creator | ?role=editor */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/register" element={<Signup />} />
+      <Route path="/register" element={<Navigate to="/signup" replace />} />
 
-      {/* Legacy / Direct Role Auth Routes */}
-      <Route path="/auth/creator-login" element={<CreatorLogin />} />
-      <Route path="/auth/creator-signup" element={<CreatorSignup />} />
-      <Route path="/auth/editor-login" element={<EditorLogin />} />
-      <Route path="/auth/editor-signup" element={<EditorSignup />} />
+      {/* Redirect legacy paths directly to unified query-based routes */}
+      <Route path="/auth/creator-login" element={<Navigate to="/login?role=creator" replace />} />
+      <Route path="/auth/creator-signup" element={<Navigate to="/signup?role=creator" replace />} />
+      <Route path="/auth/editor-login" element={<Navigate to="/login?role=editor" replace />} />
+      <Route path="/auth/editor-signup" element={<Navigate to="/signup?role=editor" replace />} />
+
 
       {/* Creator Protected Routes */}
       <Route

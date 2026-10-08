@@ -69,4 +69,12 @@ authRouter.post('/forgot-password', authController.forgotPasswordController);
  */
 authRouter.post('/reset-password', authController.resetPasswordController);
 
-module.exports = authRouter;
+/**
+ * @route POST api/auth/google
+ * @description Sign in or register via Google OAuth (credential from @react-oauth/google)
+ * @body { credential: string, role?: 'creator' | 'editor' }
+ * @access Public — Google credential IS the authentication, no Bearer token needed
+ */
+authRouter.post('/google', authController.googleAuthController);
+
+module.exports = authRouter;
