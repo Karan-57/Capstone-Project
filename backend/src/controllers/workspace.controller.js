@@ -6,6 +6,8 @@ const projectModel = require('../model/project.model');
 const fileModel = require('../model/file.model');
 const mongoose = require('mongoose');
 const { createNotification } = require('../services/notification.service');
+const { parseMediaLink } = require('../utils/linkParser.util');
+const { deleteImageKitFile } = require('../services/imagekit.service');
 
 /**
  * Helper to get only ACTIVE members of the workspace, strictly excluding the actor.
@@ -1005,20 +1007,52 @@ async function uploadWorkspaceFileController(req, res) {
             return res.status(400).json({ message: "File information is required (fileName and fileUrl, or files array)" });
         }
 
-        const filesToCreate = incomingFiles.map(f => ({
-            workspaceId,
-            uploadedBy: userId,
-            fileName: (f.fileName || 'Untitled File').trim(),
-            fileType: f.fileType || 'unknown',
-            fileSize: Number(f.fileSize) || 0,
-            fileUrl: (f.fileUrl || '').trim(),
-            category: f.category || 'raw-footage',
-            version: Number(f.version) || 1
-        }));
+        const MAX_DIRECT_FILE_SIZE = 25 * 1024 * 1024; // 25 MB limit for direct in-app uploads
+
+        // Validate file size limit on direct in-app uploads
+        for (const f of incomingFiles) {
+            const isExternal = Boolean(f.externalUrl || (f.fileUrl && parseMediaLink(f.fileUrl).isExternal));
+            const size = Number(f.fileSize) || 0;
+            if (!isExternal && size > MAX_DIRECT_FILE_SIZE) {
+                return res.status(400).json({
+                    message: `File "${f.fileName || 'Asset'}" exceeds the 25 MB direct upload limit. Please link large files using Google Drive or Dropbox.`,
+                    code: 'FILE_TOO_LARGE',
+                    maxAllowedBytes: MAX_DIRECT_FILE_SIZE
+                });
+            }
+        }
+
+        const filesToCreate = incomingFiles.map(f => {
+            const rawUrl = (f.fileUrl || f.externalUrl || '').trim();
+            const linkInfo = parseMediaLink(rawUrl);
+            const isExternal = Boolean(f.externalUrl || linkInfo.isExternal || f.storageType === 'external-link');
+
+            // Determine thumbnail: use user-provided thumbnail, or auto-extracted thumbnail from YouTube/Drive
+            const finalThumbnailUrl = f.thumbnailUrl || linkInfo.thumbnailUrl || null;
+            const finalTitle = (f.title || f.fileName || (isExternal ? `${linkInfo.provider.toUpperCase()} Asset` : 'Untitled Asset')).trim();
+            const finalFileName = (f.fileName || f.title || 'asset').trim();
+
+            return {
+                workspaceId,
+                uploadedBy: userId,
+                title: finalTitle,
+                fileName: finalFileName,
+                fileType: f.fileType || (isExternal ? 'video/external' : 'unknown'),
+                fileSize: Number(f.fileSize) || 0,
+                fileUrl: rawUrl,
+                storageType: isExternal ? 'external-link' : 'in-app',
+                externalUrl: isExternal ? rawUrl : null,
+                provider: f.provider || linkInfo.provider || (isExternal ? 'other' : 'imagekit'),
+                imagekitFileId: f.imagekitFileId || null,
+                thumbnailUrl: finalThumbnailUrl,
+                category: f.category || 'asset',
+                version: Number(f.version) || 1
+            };
+        });
 
         for (const f of filesToCreate) {
-            if (!f.fileName || !f.fileUrl) {
-                return res.status(400).json({ message: "Each file must have a fileName and fileUrl" });
+            if (!f.fileUrl) {
+                return res.status(400).json({ message: "Each file must have a fileUrl or external link" });
             }
         }
 
@@ -1027,7 +1061,7 @@ async function uploadWorkspaceFileController(req, res) {
         // Notify only active workspace members (only 1 notification for the entire upload batch)
         const recipients = getActiveWorkspaceRecipients(workspace, userId);
         const fileSummaryText = createdFiles.length === 1 
-            ? `file (${createdFiles[0].fileName})` 
+            ? `file (${createdFiles[0].title || createdFiles[0].fileName})` 
             : `${createdFiles.length} files`;
 
         recipients.forEach(recipientId => {
@@ -1080,10 +1114,9 @@ async function getWorkspaceFilesController(req, res) {
             return res.status(404).json({ message: "Workspace not found" });
         }
 
-        const isCreator = workspace.creatorId.toString() === userId.toString();
-        const isEditor = workspace.editorId.toString() === userId.toString();
+        const isMember = isWorkspaceMember(workspace, userId);
 
-        if (!isCreator && !isEditor) {
+        if (!isMember) {
             return res.status(403).json({
                 message: "Forbidden: You are not a participant in this workspace"
             });
@@ -1153,6 +1186,13 @@ async function deleteWorkspaceFileController(req, res) {
         }
 
         await fileModel.findByIdAndDelete(fileId);
+
+        // Reclaim storage on ImageKit if file was an in-app upload with an imagekitFileId
+        if (file.imagekitFileId) {
+            deleteImageKitFile(file.imagekitFileId).catch(err => {
+                console.error("[Workspace File Delete] Failed to delete from ImageKit:", err.message);
+            });
+        }
 
         // Notify only active workspace members if file is deleted
         const recipients = getActiveWorkspaceRecipients(workspace, userId);
