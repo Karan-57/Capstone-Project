@@ -5,8 +5,10 @@ import CollaboLogo from "../components/landing/CollaboLogo";
 import { DaVinciIcon, PremiereProIcon, BlueFolder3DIcon } from "../components/landing/SoftwareIcons";
 import { useAuth } from "../context/AuthContext";
 import { login as loginApi, register as registerApi } from "../services/auth.api";
+import { setAccessToken } from "../services/api";
 import OtpVerificationModal from "./auth/OtpVerificationModal";
 import GoogleSignInButton from "../components/common/GoogleSignInButton";
+
 
 export default function AuthModal({
   isOpen = true,
@@ -188,8 +190,9 @@ export default function AuthModal({
 
           // Store temporary access token returned on register so verify-email authenticated call succeeds
           if (res?.accessToken) {
-            localStorage.setItem("collabo_token", res.accessToken);
+            setAccessToken(res.accessToken);
           }
+
 
           // Open aesthetic OTP verification modal
           setOtpTargetEmail(email.trim().toLowerCase());

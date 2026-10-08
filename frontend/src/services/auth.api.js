@@ -1,4 +1,4 @@
-import api from './api';
+import api, { setAccessToken } from './api';
 
 /**
  * Register a new user
@@ -8,7 +8,7 @@ export async function register(userData) {
   try {
     const response = await api.post('/api/auth/register', userData);
     if (response.data?.accessToken) {
-      localStorage.setItem('collabo_token', response.data.accessToken);
+      setAccessToken(response.data.accessToken);
     }
     return response.data;
   } catch (error) {
@@ -29,10 +29,11 @@ export async function login({ identifier, password }) {
       password,
     });
     if (response.data?.accessToken) {
-      localStorage.setItem('collabo_token', response.data.accessToken);
+      setAccessToken(response.data.accessToken);
     }
     return response.data;
   } catch (error) {
+
 
     const message = error.response?.data?.message || error.message || 'Login failed';
     const err = new Error(message);
@@ -93,8 +94,9 @@ export async function logout() {
   } catch (error) {
     console.warn('Logout error:', error);
   } finally {
-    localStorage.removeItem('collabo_token');
+    setAccessToken(null);
     localStorage.removeItem('collabo_user');
     localStorage.setItem('collabo_auth', 'false');
   }
 }
+

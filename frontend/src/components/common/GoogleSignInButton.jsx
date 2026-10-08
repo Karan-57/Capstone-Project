@@ -1,5 +1,5 @@
 import { GoogleLogin } from '@react-oauth/google';
-import api from '../../services/api';
+import api, { setAccessToken } from '../../services/api';
 
 /**
  * GoogleSignInButton
@@ -26,12 +26,15 @@ export default function GoogleSignInButton({ role = 'creator', onSuccess, onErro
 
             const { accessToken, user } = res.data;
 
-            // Store token so Axios interceptor attaches it to all future requests
-            localStorage.setItem('collabo_token', accessToken);
+            // Store in volatile memory only
+            if (accessToken) {
+                setAccessToken(accessToken);
+            }
 
             if (onSuccess) {
                 onSuccess({ accessToken, user });
             }
+
         } catch (err) {
             const message =
                 err?.response?.data?.message || 'Google sign-in failed. Please try again.';

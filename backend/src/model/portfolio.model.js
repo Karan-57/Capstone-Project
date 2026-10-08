@@ -124,9 +124,9 @@ const portfolioSchema = new mongoose.Schema({
     timestamps: true
 });
 
-portfolioSchema.index({ editor: 1 });
 portfolioSchema.index({ skills: 1 });
 portfolioSchema.index({ software: 1 });
 
 const portfolioModel = mongoose.model("portfolio", portfolioSchema);
+
 module.exports = portfolioModel;
