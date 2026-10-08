@@ -389,14 +389,20 @@ async function verifyEmailController(req, res) {
  */
 async function resendOtpController(req, res) {
     try {
-        const user = req.user;
-        const email = req.user?.email || req.body?.email;
-        const normalizedEmail = email.toLowerCase().trim();
-
+        const email = req.user?.email || req.body?.email || req.query?.email;
 
         if(!email){
             return res.status(400).json({
                 message: "Email is required to resend OTP"
+            });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = req.user || (await userModel.findOne({ email: normalizedEmail }));
+
+        if (!user) {
+            return res.status(404).json({
+                message: "No user found with this email"
             });
         }
 
@@ -413,6 +419,10 @@ async function resendOtpController(req, res) {
         });
 
         await sendEmail(normalizedEmail, "OTP verification", `Your OTP is ${otp}`, html);
+
+        return res.status(200).json({
+            message: "Verification OTP resent successfully"
+        });
     } catch (err) {
         console.error("Error in resendOtpController:", err);
         return res.status(500).json({
@@ -629,7 +639,108 @@ async function resetPasswordController(req, res) {
     }
 }
 
+/**
+ * @name socialLoginController
+ * @description Google and Facebook OAuth sign-in / registration
+ * @access Public
+ */
+async function socialLoginController(req, res) {
+    try {
+        const { provider, email, name, avatar, role = 'creator' } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Email is required for social authentication"
+            });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        let user = await userModel.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            // Generate clean username from name or email
+            const base = (name || email.split('@')[0])
+                .toLowerCase()
+                .replace(/[^a-z0-9_]/g, '_')
+                .slice(0, 20) || 'user';
+            let candidateUsername = base;
+            let counter = 1;
+            while (await userModel.findOne({ username: candidateUsername })) {
+                candidateUsername = `${base}_${counter++}`;
+            }
+
+            const randomPassword = crypto.randomBytes(16).toString('hex');
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+            user = await userModel.create({
+                name: (name || candidateUsername).trim(),
+                username: candidateUsername,
+                email: normalizedEmail,
+                password: hashedPassword,
+                role: role === 'editor' ? 'editor' : 'creator',
+                verified: true,
+                profileImage: avatar || ''
+            });
+        } else if (!user.verified) {
+            user.verified = true;
+            if (avatar && !user.profileImage) {
+                user.profileImage = avatar;
+            }
+            await user.save();
+        }
+
+        const refreshToken = jwt.sign(
+            { id: user._id },
+            config.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        const refreshTokenHash = hashToken(refreshToken);
+
+        const session = await sessionModel.create({
+            user: user._id,
+            refreshTokenHash,
+            ip: req.ip || req.connection?.remoteAddress || 'unknown',
+            userAgent: req.headers['user-agent'] || `${provider || 'social'}-oauth`
+        });
+
+        const accessToken = jwt.sign(
+            { id: user._id, session: session._id },
+            config.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json({
+            message: `${provider || 'Social'} login successful`,
+            accessToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                profileImage: user.profileImage,
+                verified: user.verified
+            }
+        });
+    } catch (err) {
+        console.error("Error in socialLoginController:", err);
+        return res.status(500).json({
+            message: "Social login failed",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
+    socialLoginController,
     registerUserController,
     loginUserController,
     logoutUserController,

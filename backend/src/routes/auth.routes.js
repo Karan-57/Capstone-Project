@@ -37,16 +37,17 @@ authRouter.get('/logout-all', authController.logoutAllController);
 /**
  * @route POST api/auth/verify-email
  * @description to verify user email
- * @access Private
+ * @access Public / Private (supports Bearer token or email in body)
  */
-authRouter.post('/verify-email', authMiddleware.authUser, authController.verifyEmailController);
+authRouter.post('/verify-email', authMiddleware.optionalAuthMiddleware, authController.verifyEmailController);
 
 /**
- * @route GET api/auth/resend-otp
+ * @route POST / GET api/auth/resend-otp
  * @description resend OTP for email verification
- * @access Private
+ * @access Public / Private (supports Bearer token or email in body)
  */
-authRouter.get('/resend-otp', authMiddleware.authUser, authController.resendOtpController);
+authRouter.all('/resend-otp', authMiddleware.optionalAuthMiddleware, authController.resendOtpController);
+
 
 /**
  * @route GET api/auth/refresh-token
@@ -68,5 +69,12 @@ authRouter.post('/forgot-password', authController.forgotPasswordController);
  * @access Public
  */
 authRouter.post('/reset-password', authController.resetPasswordController);
+
+/**
+ * @route POST api/auth/social-login
+ * @description Google and Facebook OAuth sign-in / registration
+ * @access Public
+ */
+authRouter.post('/social-login', authController.socialLoginController);
 
 module.exports = authRouter;
