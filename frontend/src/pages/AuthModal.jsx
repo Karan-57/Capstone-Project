@@ -257,8 +257,8 @@ export default function AuthModal({
         <BlueFolder3DIcon className="w-16 h-16" />
       </div>
 
-      {/* Modal / Card Container */}
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 sm:p-8 overflow-hidden z-10 my-auto">
+      {/* Modal / Card Container with 500ms smooth height/layout transition (Normal distribution / ease-in-out S-curve) */}
+      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 sm:p-8 overflow-hidden z-10 my-auto transition-all duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)]">
         {/* Close Button (Modal mode only) */}
         {!isFullPage && (
           <button
@@ -276,7 +276,7 @@ export default function AuthModal({
           <div className="inline-flex justify-center mb-3">
             <CollaboLogo className="h-8" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight transition-all duration-300">
             {mode === "login"
               ? isCreator
                 ? "Creator Studio Sign In"
@@ -285,7 +285,7 @@ export default function AuthModal({
               ? "Join as Creator"
               : "Join as Video Editor"}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 transition-all duration-300">
             {mode === "login"
               ? isCreator
                 ? "Sign in to manage your creator productions & edits"
@@ -297,9 +297,9 @@ export default function AuthModal({
         </div>
 
         {/* ─── ROLE SWITCHER TOGGLE (Creator ↔ Editor) ─── */}
-        <div className="relative mb-5 p-1 bg-slate-100/90 rounded-2xl flex items-center border border-slate-200">
+        <div className="relative mb-4 p-1 bg-slate-100/90 rounded-2xl flex items-center border border-slate-200">
           <div
-            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl transition-all duration-500 ease-out shadow-sm ${
+            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl transition-all duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] shadow-sm ${
               isCreator
                 ? "left-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-purple-500/25"
                 : "left-[calc(50%+2px)] bg-gradient-to-r from-blue-600 to-sky-600 text-white shadow-blue-500/25"
@@ -327,41 +327,49 @@ export default function AuthModal({
           </button>
         </div>
 
-        {/* ─── TAB TOGGLE: Login ↔ Sign Up ─── */}
-        <div className="flex border-b border-slate-200 mb-5">
+        {/* ─── TAB TOGGLE: Login ↔ Sign Up (Sliding Pill Toggle Animation) ─── */}
+        <div className="relative mb-5 p-1 bg-slate-100/70 rounded-xl flex items-center border border-slate-200/80">
+          <div
+            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-white shadow-sm transition-all duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] ${
+              mode === "login" ? "left-1" : "left-[calc(50%+2px)]"
+            }`}
+          />
+
           <button
             type="button"
             onClick={() => {
               setMode("login");
               setErrorMsg("");
             }}
-            className={`pb-2.5 px-4 text-sm font-semibold transition-all relative cursor-pointer ${
+            className={`relative z-10 w-1/2 py-2 text-xs sm:text-sm font-semibold text-center transition-colors duration-300 rounded-lg flex items-center justify-center cursor-pointer ${
               mode === "login"
                 ? isCreator
-                  ? "text-purple-600 border-b-2 border-purple-600"
-                  : "text-blue-600 border-b-2 border-blue-600"
-                : "text-slate-400 hover:text-slate-700"
+                  ? "text-purple-700 font-bold"
+                  : "text-blue-700 font-bold"
+                : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {isCreator ? "Creator Login" : "Editor Login"}
+            {isCreator ? "Creator Sign In" : "Editor Sign In"}
           </button>
+
           <button
             type="button"
             onClick={() => {
               setMode("signup");
               setErrorMsg("");
             }}
-            className={`pb-2.5 px-4 text-sm font-semibold transition-all relative cursor-pointer ${
+            className={`relative z-10 w-1/2 py-2 text-xs sm:text-sm font-semibold text-center transition-colors duration-300 rounded-lg flex items-center justify-center cursor-pointer ${
               mode === "signup"
                 ? isCreator
-                  ? "text-purple-600 border-b-2 border-purple-600"
-                  : "text-blue-600 border-b-2 border-blue-600"
-                : "text-slate-400 hover:text-slate-700"
+                  ? "text-purple-700 font-bold"
+                  : "text-blue-700 font-bold"
+                : "text-slate-500 hover:text-slate-800"
             }`}
           >
             {isCreator ? "Creator Sign Up" : "Editor Sign Up"}
           </button>
         </div>
+
 
         {/* ─── ERROR BANNER ─── */}
         {errorMsg && (
@@ -407,9 +415,9 @@ export default function AuthModal({
 
         {/* ─── MAIN FORM ─── */}
         <form onSubmit={handleSubmit} className="space-y-3.5">
-          {mode === "login" ? (
-            /* Single input for Email OR Username */
-            <div>
+          {/* Email or Username input (shown in Login mode) */}
+          {mode === "login" && (
+            <div className="animate-fadeIn">
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Email or Username
               </label>
@@ -422,52 +430,59 @@ export default function AuthModal({
                 className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
               />
             </div>
-          ) : (
-            /* Signup Fields */
-            <>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={isCreator ? "e.g. Jason Vance" : "e.g. Alex Rivera"}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder={isCreator ? "e.g. jason_vance" : "e.g. alex_rivera"}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
-                />
-              </div>
-            </>
           )}
+
+          {/* Additional Signup Fields (Smooth 500ms Accordion Expansion - S-curve) */}
+          <div
+            className={`overflow-hidden transition-all duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] ${
+              mode === "signup"
+                ? "max-h-[360px] opacity-100 space-y-3.5"
+                : "max-h-0 opacity-0 pointer-events-none"
+            }`}
+          >
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Full Name
+              </label>
+              <input
+                type="text"
+                required={mode === "signup"}
+                placeholder={isCreator ? "e.g. Jason Vance" : "e.g. Alex Rivera"}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Username
+              </label>
+              <input
+                type="text"
+                required={mode === "signup"}
+                placeholder={isCreator ? "e.g. jason_vance" : "e.g. alex_rivera"}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Email Address
+              </label>
+              <input
+                type="email"
+                required={mode === "signup"}
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
+              />
+            </div>
+          </div>
+
 
           {/* Password Field with Press-and-Hold Reveal Eye */}
           <div>
@@ -544,7 +559,14 @@ export default function AuthModal({
             </div>
           )}
 
-          {mode === "signup" && (
+          {/* Portfolio link (smoothly animated in signup mode) */}
+          <div
+            className={`overflow-hidden transition-all duration-500 ease-in-out ${
+              mode === "signup"
+                ? "max-h-[100px] opacity-100"
+                : "max-h-0 opacity-0 pointer-events-none"
+            }`}
+          >
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 {isCreator ? "YouTube / Channel Link (Optional)" : "Portfolio / Showreel Link (Optional)"}
@@ -557,7 +579,8 @@ export default function AuthModal({
                 className={`w-full px-3.5 py-2.5 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 outline-none transition-all duration-200 ${accentBorder}`}
               />
             </div>
-          )}
+          </div>
+
 
           {/* Submit Button */}
           <button

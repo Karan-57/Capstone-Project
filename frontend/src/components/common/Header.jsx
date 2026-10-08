@@ -16,20 +16,7 @@ export const Header = ({ onSearchChange }) => {
   };
 
   return (
-    <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-6 px-8 bg-[#07090E] border-b border-white/[0.06]">
-      {/* Welcome Title */}
-      <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-          Welcome back, <span className="text-purple-400">{role === 'creator' ? 'Creator!' : 'Editor!'}</span>
-          <span className="inline-block animate-wave origin-bottom-right">👋</span>
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          {role === 'creator'
-            ? 'Turn your ideas into amazing projects.'
-            : 'Deliver exceptional video edits and grow your creative career.'}
-        </p>
-      </div>
-
+    <header className="flex flex-row items-center justify-end gap-4 py-6 px-8 bg-[#07090E] border-b border-white/[0.06]">
       {/* Right Controls */}
       <div className="flex items-center gap-3.5 flex-wrap">
         {/* Search input */}

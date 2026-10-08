@@ -40,6 +40,9 @@ import EditorNotifications from '../pages/editor/Notifications';
 import EditorProfile from '../pages/editor/Profile';
 import EditorEditProfile from '../pages/editor/EditProfile';
 
+// Workspace Page
+import Workspace from '../pages/workspace/Workspace';
+
 export const AppRoutes = () => {
   return (
     <Routes>
@@ -74,7 +77,8 @@ export const AppRoutes = () => {
         <Route path="projects" element={<CreatorProjects />} />
         <Route path="create-project" element={<CreateProject />} />
         <Route path="applications" element={<CreatorApplications />} />
-        <Route path="messages" element={<CreatorMessages />} />
+        <Route path="workspace" element={<Workspace role="creator" />} />
+        <Route path="messages" element={<Workspace role="creator" />} />
         <Route path="analytics" element={<CreatorAnalytics />} />
         <Route path="payments" element={<CreatorPayments />} />
         <Route path="notifications" element={<CreatorNotifications />} />
@@ -97,7 +101,8 @@ export const AppRoutes = () => {
         <Route path="browse" element={<BrowseProjects />} />
         <Route path="applications" element={<MyApplications />} />
         <Route path="active-projects" element={<EditorActiveProjects />} />
-        <Route path="messages" element={<EditorMessages />} />
+        <Route path="workspace" element={<Workspace role="editor" />} />
+        <Route path="messages" element={<Workspace role="editor" />} />
         <Route path="earnings" element={<EditorEarnings />} />
         <Route path="notifications" element={<EditorNotifications />} />
         <Route path="profile" element={<EditorProfile />} />

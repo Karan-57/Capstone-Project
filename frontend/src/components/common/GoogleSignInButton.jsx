@@ -50,14 +50,18 @@ export default function GoogleSignInButton({ role = 'creator', onSuccess, onErro
     }
 
     return (
-        <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            theme="filled_black"
-            shape="pill"
-            text="continue_with"
-            size="large"
-            width="100%"
-        />
+        <div className="w-full flex justify-center min-h-[44px]">
+            <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                shape="rectangular"
+                text="signin_with"
+                size="large"
+                width="360"
+                logo_alignment="center"
+            />
+        </div>
     );
 }
+
