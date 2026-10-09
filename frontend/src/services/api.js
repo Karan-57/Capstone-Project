@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+    baseURL: import.meta.env.VITE_API_URL || '',
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
@@ -28,20 +28,29 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+// Singleton in-flight refresh promise to prevent duplicate concurrent refresh requests
+let refreshPromise = null;
 
-// Track refresh state to prevent multiple simultaneous refresh calls
-let isRefreshing = false;
-let failedQueue = [];
+export const refreshAccessToken = async () => {
+    if (refreshPromise) {
+        return refreshPromise;
+    }
 
-const processQueue = (error, token = null) => {
-    failedQueue.forEach((prom) => {
-        if (error) {
-            prom.reject(error);
-        } else {
-            prom.resolve(token);
+    refreshPromise = (async () => {
+        try {
+            const { data } = await api.get('/api/auth/refresh-token');
+            const newAccessToken = data?.accessToken;
+            if (!newAccessToken) {
+                throw new Error('No access token returned from refresh');
+            }
+            setAccessToken(newAccessToken);
+            return data;
+        } finally {
+            refreshPromise = null;
         }
-    });
-    failedQueue = [];
+    })();
+
+    return refreshPromise;
 };
 
 // Response interceptor: Transparently refresh expired access token on 401
@@ -62,60 +71,24 @@ api.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        if (isRefreshing) {
-            // Queue any subsequent concurrent requests while refresh is in-flight
-            return new Promise((resolve, reject) => {
-                failedQueue.push({ resolve, reject });
-            })
-                .then((token) => {
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return api(originalRequest);
-                })
-                .catch((err) => Promise.reject(err));
-        }
-
         originalRequest._retry = true;
-        isRefreshing = true;
 
         try {
-            // Backend endpoint GET /api/auth/refresh-token reads the HTTP-only refreshToken cookie
-            const { data } = await api.get('/api/auth/refresh-token');
+            const data = await refreshAccessToken();
             const newAccessToken = data?.accessToken;
-
-            if (!newAccessToken) {
-                throw new Error('No access token returned from refresh');
-            }
-
-            // Save new token in memory only
-            setAccessToken(newAccessToken);
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-            processQueue(null, newAccessToken);
             return api(originalRequest);
         } catch (refreshError) {
-            processQueue(refreshError, null);
             setAccessToken(null);
 
-            // Refresh token has also expired or been revoked — full logout required
-            localStorage.setItem('collabo_auth', 'false');
+            // Refresh token has expired or been revoked — full logout required
+            localStorage.removeItem('collabo_auth');
             localStorage.removeItem('collabo_user');
 
-            if (
-                typeof window !== 'undefined' &&
-                window.location.pathname !== '/login' &&
-                !window.location.pathname.startsWith('/auth/')
-            ) {
-                window.location.href = '/login';
-            }
-
             return Promise.reject(refreshError);
-        } finally {
-            isRefreshing = false;
         }
     }
 );
-
-
 
 export const getApiStatus = async() => {
     try {
