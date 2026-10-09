@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, CheckCircle, Send } from 'lucide-react';
+import { Search, Clock, CheckCircle, Send, X } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { projectService } from '../../services/projectService';
 import api from '../../services/api';
@@ -66,12 +66,12 @@ export const BrowseProjects = () => {
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 p-1 bg-[#0A0D15]/80 rounded-xl border border-white/[0.05] overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1 bg-[#0A0D15]/80 rounded-xl border border-white/[0.05] overflow-x-auto max-w-full">
           {tagsList.map(tag => (
             <button
               key={tag}
               onClick={() => setSelectedTag(tag)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-all cursor-pointer ${
                 selectedTag === tag
                   ? 'bg-purple-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
@@ -82,14 +82,14 @@ export const BrowseProjects = () => {
           ))}
         </div>
 
-        <div className="relative">
+        <div className="relative w-full sm:w-64">
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search gigs by title, creator, or keyword..."
+            placeholder="Search gigs by title or creator..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 pr-3 py-1.5 text-xs rounded-xl bg-[#0F1420] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-purple-500 w-64"
+            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-[#0F1420] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-purple-500 transition-colors"
           />
         </div>
       </div>
@@ -99,38 +99,38 @@ export const BrowseProjects = () => {
         <div className="py-16 text-center text-xs text-slate-400">Loading open gigs...</div>
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center text-xs text-slate-500">
-          No open gigs found
+          No open gigs found matching your filters
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filtered.map((gig) => (
             <div
               key={gig.id}
-              className="glass-card p-5.5 border border-white/[0.06] hover:border-purple-500/30 transition-all flex flex-col justify-between"
+              className="glass-card p-4 sm:p-5.5 border border-white/[0.06] hover:border-purple-500/30 transition-all flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                  <div className="flex items-start gap-3 min-w-0">
                     <img
                       src={gig.creatorAvatar || DEFAULT_PFP}
                       alt={gig.creator}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                      className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0"
+                      className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0 mt-0.5"
                     />
-                    <div>
-                      <h3 className="text-sm font-bold text-white leading-snug">{gig.title || 'unknown'}</h3>
-                      <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-                        <span>{gig.creator || 'unknown'}</span>
-                        <CheckCircle className="w-3 h-3 text-purple-400" />
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-bold text-white leading-snug truncate">{gig.title || 'unknown'}</h3>
+                      <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className="truncate">{gig.creator || 'unknown'}</span>
+                        <CheckCircle className="w-3 h-3 text-purple-400 shrink-0" />
                         <span>•</span>
                         <span className="flex items-center gap-1 text-slate-400">
-                          <Clock className="w-3 h-3" /> Due {gig.deadline || 'unknown'}
+                          <Clock className="w-3 h-3 shrink-0" /> Due {gig.deadline || 'unknown'}
                         </span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="text-right shrink-0">
+                  <div className="text-left sm:text-right shrink-0">
                     <div className="text-base font-bold text-white">{gig.budget || '999'}</div>
                     <div className="text-[11px] text-slate-400 font-mono">
                       {gig.proposalsCount === 999 ? 'Open' : `${gig.proposalsCount} proposals`}
@@ -150,7 +150,7 @@ export const BrowseProjects = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between">
+              <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-[11px] text-slate-400 font-medium">
                   Difficulty: <strong className="text-slate-300">{gig.difficulty || 'unknown'}</strong>
                 </span>
@@ -171,12 +171,22 @@ export const BrowseProjects = () => {
       {/* Apply / Proposal Modal */}
       {proposalModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg glass-card p-6 border border-white/[0.1] shadow-2xl animate-fade-in">
-            <h3 className="text-lg font-bold text-white mb-1">Submit Application</h3>
-            <p className="text-xs text-purple-300 mb-4">{proposalModal.title}</p>
+          <div className="w-full max-w-lg glass-card p-5 sm:p-6 border border-white/[0.1] shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <h3 className="text-lg font-bold text-white">Submit Application</h3>
+                <p className="text-xs text-purple-300 mt-0.5">{proposalModal.title}</p>
+              </div>
+              <button
+                onClick={() => setProposalModal(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 hover:bg-white/10"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-            <form onSubmit={handleSendProposal} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSendProposal} className="space-y-4 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-slate-300 block mb-1">Bid Amount (INR)</label>
                   <input
@@ -212,11 +222,20 @@ export const BrowseProjects = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2">
-                <Button variant="ghost" onClick={() => setProposalModal(null)}>
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => setProposalModal(null)}
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" icon={Send}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  icon={Send}
+                  className="w-full sm:w-auto"
+                >
                   Submit Application
                 </Button>
               </div>

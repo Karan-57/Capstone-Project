@@ -2,6 +2,7 @@ const projectModel = require('../model/project.model');
 const workspaceModel = require('../model/workspace.model');
 const mongoose = require('mongoose');
 const { createNotification } = require('../services/notification.service');
+const { uploadToImageKit } = require('../services/imagekit.service');
 
 /**
  * Helper to get all relevant recipients for a project excluding the actor
@@ -73,6 +74,7 @@ async function createProjectController(req, res) {
             budget,
             deadline,
             referenceLinks,
+            referenceImages,
             sampleFiles,
             additionalInstructions
         } = req.body;
@@ -82,6 +84,22 @@ async function createProjectController(req, res) {
                 message: "Title, description, and category are required"
             });
         }
+
+        let finalRefImages = Array.isArray(referenceImages) ? [...referenceImages] : [];
+        if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+            for (let i = 0; i < Math.min(req.files.length, 3); i++) {
+                const file = req.files[i];
+                const fileExtension = file.originalname.split('.').pop() || 'png';
+                const fileName = `ref_${creatorId}_${Date.now()}_${i}.${fileExtension}`;
+                const uploadResult = await uploadToImageKit(
+                    file.buffer,
+                    fileName,
+                    '/Capstone-storage/reference-images'
+                );
+                finalRefImages.push(uploadResult.url);
+            }
+        }
+        finalRefImages = finalRefImages.slice(0, 3);
 
         const project = await projectModel.create({
             creatorId,
@@ -96,6 +114,7 @@ async function createProjectController(req, res) {
             budget: budget || {},
             deadline: deadline ? new Date(deadline) : undefined,
             referenceLinks: Array.isArray(referenceLinks) ? referenceLinks : [],
+            referenceImages: finalRefImages,
             sampleFiles: Array.isArray(sampleFiles) ? sampleFiles : [],
             additionalInstructions: additionalInstructions ? additionalInstructions.trim() : ''
         });
@@ -108,6 +127,57 @@ async function createProjectController(req, res) {
         console.error("Error in createProjectController:", err);
         return res.status(500).json({
             message: "Internal server error during project creation",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name uploadReferenceImagesController
+ * @description Upload reference images/moodboard to ImageKit (max 3 images)
+ * @access Private (Creator)
+ */
+async function uploadReferenceImagesController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        if (!creatorId) {
+            return res.status(401).json({ message: "Unauthorized, creator ID not found" });
+        }
+
+        if (req.user?.role !== 'creator') {
+            return res.status(403).json({ message: "Forbidden: Only creators can upload reference images" });
+        }
+
+        const files = req.files || (req.file ? [req.file] : []);
+        if (!files || files.length === 0) {
+            return res.status(400).json({ message: "No image files provided" });
+        }
+
+        if (files.length > 3) {
+            return res.status(400).json({ message: "Maximum 3 reference images allowed" });
+        }
+
+        const uploadedUrls = [];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileExtension = file.originalname.split('.').pop() || 'png';
+            const fileName = `ref_${creatorId}_${Date.now()}_${i}.${fileExtension}`;
+            const uploadResult = await uploadToImageKit(
+                file.buffer,
+                fileName,
+                '/Capstone-storage/reference-images'
+            );
+            uploadedUrls.push(uploadResult.url);
+        }
+
+        return res.status(200).json({
+            message: "Reference images uploaded successfully",
+            urls: uploadedUrls
+        });
+    } catch (err) {
+        console.error("Error in uploadReferenceImagesController:", err);
+        return res.status(500).json({
+            message: "Internal server error during reference images upload",
             error: err.message
         });
     }
@@ -370,6 +440,7 @@ async function cancelProjectController(req, res) {
 
 module.exports = {
     createProjectController,
+    uploadReferenceImagesController,
     getMyProjectsController,
     updateProjectController,
     deleteProjectController,

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   FolderGit2,
   UploadCloud,
@@ -17,100 +17,130 @@ import {
   ArrowLeft,
   X,
   Grid3X3,
+  Trash2,
+  Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import { DEFAULT_PFP } from '../../constants/assets';
+import { useAuth } from '../../context/AuthContext';
+import { useAlert } from '../../context/AlertContext';
+import api from '../../services/api';
 
 /* ─────────────────────────────────────────────────────
-   MOCK DATA
+   HELPERS & FORMATTERS
+   (Real data formatters for bytes, dates & file types)
 ───────────────────────────────────────────────────── */
-const mockWorkspaceProjects = [
-  {
-    id: 'proj-1',
-    title: 'E-Commerce Brand Launch (4K Reel)',
-    category: 'Commercial Video',
-    badge: 'In Progress',
-    badgeColor: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-    deadline: 'Oct 15, 2026',
-    members: [
-      { id: 'u1', name: 'Karan Sharma',  role: 'Creator / Director',  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80', online: true },
-      { id: 'u2', name: 'Alex Rivera',   role: 'Lead Video Editor',   avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&auto=format&fit=crop&q=80', online: true },
-      { id: 'u3', name: 'Elena Rostova', role: 'Colorist & VFX',      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80', online: false },
-    ],
-    spaceFiles: [
-      { id: 'f1', name: 'A-Roll_Interview_4K_ProRes.mov', size: '1.4 GB', type: 'video', date: '2h ago',      uploader: 'Karan' },
-      { id: 'f2', name: 'Product_Macro_Shots.mp4',        size: '420 MB', type: 'video', date: '5h ago',      uploader: 'Alex'  },
-      { id: 'f3', name: 'Master_Soundtrack_96kHz.wav',    size: '84 MB',  type: 'audio', date: 'Yesterday',   uploader: 'Elena' },
-      { id: 'f4', name: 'Color_Grade_LUT_v2.cube',        size: '12 MB',  type: 'doc',   date: '2 days ago',  uploader: 'Elena' },
-      { id: 'f5', name: 'Storyboard_Keyframes.png',       size: '18 MB',  type: 'image', date: '3 days ago',  uploader: 'Karan' },
-    ],
-    groupChat: [
-      { id: 'gc-1', sender: 'Karan Sharma',  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80', text: 'Hey team! Just uploaded the raw A-roll into Space.', time: '10:15 AM', attachment: null },
-      { id: 'gc-2', sender: 'Alex Rivera',   avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&auto=format&fit=crop&q=80', text: 'Got them! Footage looks crisp. Starting the assembly cut now.', time: '10:20 AM', attachment: null },
-      { id: 'gc-3', sender: 'Alex Rivera',   avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100&auto=format&fit=crop&q=80', text: 'Here is the draft audio sync:', time: '10:45 AM', attachment: { name: 'Rough_Sync_Sample.mp3', size: '4.2 MB' } },
-      { id: 'gc-4', sender: 'Elena Rostova', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80', text: 'Balanced the contrast on LUT v2. Dropped in Space!', time: '11:02 AM', attachment: null },
-    ],
-    directChats: {
-      u2: [
-        { id: 'dc-1', sender: 'them', text: 'Hey, 9:16 or 16:9 for the main campaign cut?', time: '09:30 AM' },
-        { id: 'dc-2', sender: 'me',   text: "16:9 master first, then 9:16 reels from best hooks!", time: '09:40 AM' },
-      ],
-      u3: [
-        { id: 'dc-3', sender: 'them', text: 'Sent updated color palette notes. Let me know!', time: 'Yesterday' },
-        { id: 'dc-4', sender: 'me',   text: 'Looks vibrant — matches our brand tone perfectly!', time: 'Yesterday' },
-      ],
-    },
-  },
-  {
-    id: 'proj-2',
-    title: 'YouTube 4K Documentary Cut',
-    category: 'YouTube Production',
-    badge: 'Review Stage',
-    badgeColor: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
-    deadline: 'Oct 22, 2026',
-    members: [
-      { id: 'u1', name: 'Karan Sharma',    role: 'Producer',             avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80', online: true },
-      { id: 'u4', name: 'Sophia Martinez', role: 'Documentary Editor',   avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80', online: true },
-    ],
-    spaceFiles: [
-      { id: 'f21', name: 'Rough_Cut_v2_Watermarked.mp4', size: '2.1 GB', type: 'video', date: '1d ago', uploader: 'Sophia' },
-      { id: 'f22', name: 'Archival_Footage_Pack.zip',    size: '850 MB', type: 'doc',   date: '3d ago', uploader: 'Karan'  },
-    ],
-    groupChat: [
-      { id: 'gc-21', sender: 'Sophia Martinez', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80', text: 'Uploaded Rough Cut v2 with ambient audio!', time: '2:15 PM', attachment: null },
-    ],
-    directChats: {
-      u4: [
-        { id: 'dc-21', sender: 'them', text: 'Pushed timestamped markers at 03:40 for chapter 2.', time: '2:30 PM' },
-      ],
-    },
-  },
-  {
-    id: 'proj-3',
-    title: 'SaaS Walkthrough & Kinetic Motion Graphics',
-    category: 'Motion Design',
-    badge: 'Asset Ingestion',
-    badgeColor: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-    deadline: 'Nov 02, 2026',
-    members: [
-      { id: 'u1', name: 'Karan Sharma', role: 'Client',                 avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80', online: true },
-      { id: 'u5', name: 'Devon Vance',  role: 'Motion Graphic Artist',  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80', online: false },
-    ],
-    spaceFiles: [
-      { id: 'f31', name: 'Figma_SVG_Assets.zip', size: '45 MB', type: 'doc', date: 'Just now', uploader: 'Karan' },
-    ],
-    groupChat: [
-      { id: 'gc-31', sender: 'Devon Vance', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80', text: 'Reviewing Figma SVGs now. Starting After Effects comp.', time: '1:00 PM', attachment: null },
-    ],
-    directChats: {
-      u5: [
-        { id: 'dc-31', sender: 'them', text: 'Got all vector assets. Will share a 10s preview by tomorrow.', time: '1:10 PM' },
-      ],
-    },
-  },
-];
+function formatTime(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function formatFileSize(bytes) {
+  if (!bytes || bytes <= 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
+function getFileType(file) {
+  const mime = (file?.fileType || '').toLowerCase();
+  const name = (file?.fileName || file?.title || '').toLowerCase();
+  if (mime.startsWith('video') || /\.(mp4|mov|avi|mkv|webm|m4v)$/i.test(name)) return 'video';
+  if (mime.startsWith('audio') || /\.(mp3|wav|aac|ogg|flac|m4a)$/i.test(name)) return 'audio';
+  if (mime.startsWith('image') || /\.(png|jpe?g|webp|gif|svg)$/i.test(name)) return 'image';
+  return 'doc';
+}
+
+function getStatusBadge(status) {
+  switch (status?.toLowerCase()) {
+    case 'completed':
+      return {
+        label: 'Completed',
+        className: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+      };
+    case 'in_progress':
+    case 'active':
+    case 'assigned':
+      return {
+        label: 'In Progress',
+        className: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+      };
+    case 'review':
+    case 'revision':
+      return {
+        label: 'Review Stage',
+        className: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20',
+      };
+    default:
+      return {
+        label: status || 'Active',
+        className: 'bg-purple-500/10 text-purple-300 border border-purple-500/20',
+      };
+  }
+}
+
+function getWorkspaceMembers(ws) {
+  const map = new Map();
+  if (ws.creatorId && (ws.creatorId._id || ws.creatorId)) {
+    const cid = (ws.creatorId._id || ws.creatorId).toString();
+    map.set(cid, {
+      _id: cid,
+      name: ws.creatorId.name || 'Project Creator',
+      role: 'Project Creator',
+      avatar: ws.creatorId.profileImage || DEFAULT_PFP,
+    });
+  }
+  if (ws.editorId && (ws.editorId._id || ws.editorId)) {
+    const eid = (ws.editorId._id || ws.editorId).toString();
+    if (!map.has(eid)) {
+      map.set(eid, {
+        _id: eid,
+        name: ws.editorId.name || 'Lead Video Editor',
+        role: 'Lead Video Editor',
+        avatar: ws.editorId.profileImage || DEFAULT_PFP,
+      });
+    }
+  }
+  if (Array.isArray(ws.members)) {
+    ws.members.forEach((m) => {
+      const u = m.user;
+      if (u && (u._id || u)) {
+        const uid = (u._id || u).toString();
+        const roleLabel =
+          m.projectRole === 'creator'
+            ? 'Project Creator'
+            : m.projectRole === 'lead_editor'
+            ? 'Lead Video Editor'
+            : m.projectRole || 'Team Member';
+        if (!map.has(uid)) {
+          map.set(uid, {
+            _id: uid,
+            name: u.name || 'Team Member',
+            role: roleLabel,
+            avatar: u.profileImage || DEFAULT_PFP,
+          });
+        }
+      }
+    });
+  }
+  return Array.from(map.values());
+}
 
 /* ─────────────────────────────────────────────────────
-   HELPERS
+   FILE ICON & ROW
 ───────────────────────────────────────────────────── */
 function FileIcon({ type }) {
   if (type === 'video') return <FileVideo className="w-4 h-4 text-rose-400" />;
@@ -119,72 +149,191 @@ function FileIcon({ type }) {
   return <FileText className="w-4 h-4 text-amber-400" />;
 }
 
-function FileRow({ file }) {
+function FileRow({ file, onDelete, canDelete }) {
+  const fileType = getFileType(file);
+  const fileName = file.fileName || file.title || 'Asset';
+  const fileSize = formatFileSize(file.fileSize);
+  const uploaderName = file.uploadedBy?.name || 'Collaborator';
+  const fileDate = formatTime(file.createdAt);
+
   return (
     <div className="p-3 rounded-xl bg-[#111625] border border-white/[0.06] hover:border-purple-500/30 transition-all flex items-center justify-between gap-3 group">
       <div className="flex items-center gap-3 min-w-0">
         <div className="w-9 h-9 rounded-lg bg-[#182033] border border-white/5 flex items-center justify-center shrink-0">
-          <FileIcon type={file.type} />
+          <FileIcon type={fileType} />
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-white truncate group-hover:text-purple-300 transition-colors">{file.name}</p>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-mono">{file.size} · {file.uploader} · {file.date}</p>
+          <p className="text-xs font-semibold text-white truncate group-hover:text-purple-300 transition-colors">
+            {fileName}
+          </p>
+          <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+            {fileSize} · {uploaderName} · {fileDate}
+          </p>
         </div>
       </div>
-      <button title="Download" className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white opacity-60 group-hover:opacity-100 transition-all">
-        <Download className="w-3.5 h-3.5" />
-      </button>
+      <div className="flex items-center gap-1.5 shrink-0">
+        {file.fileUrl && (
+          <a
+            href={file.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Download / View"
+            className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+          </a>
+        )}
+        {canDelete && onDelete && (
+          <button
+            onClick={() => onDelete(file._id)}
+            title="Delete file"
+            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-400 transition-all cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────
-   CHAT PANEL (shared by Group & DM)
+   CHAT PANEL (Real backend conversation & messaging)
 ───────────────────────────────────────────────────── */
-function ChatPanel({ title, subtitle, avatar, messages, onSend, onBack, attachFile }) {
+function ChatPanel({
+  title,
+  subtitle,
+  avatar,
+  conversationId,
+  workspaceId,
+  currentUserId,
+  onBack,
+}) {
+  const { showAlert } = useAlert();
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const [input, setInput] = useState('');
-  const [localMsgs, setLocalMsgs] = useState(messages);
+  const [isAttaching, setIsAttaching] = useState(false);
   const bottomRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  const send = (e) => {
+  const fetchMessages = useCallback(async () => {
+    if (!conversationId) {
+      setMessages([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      const res = await api.get(`/api/conversations/${conversationId}/messages`);
+      const msgs = res.data?.messages || [];
+      setMessages(msgs);
+    } catch (err) {
+      console.warn('[ChatPanel] Failed to load messages:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [conversationId]);
+
+  useEffect(() => {
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 6000);
+    return () => clearInterval(interval);
+  }, [fetchMessages]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const send = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    const msg = { id: Date.now(), sender: 'me', text: input.trim(), time: 'Just now', attachment: null };
-    setLocalMsgs((p) => [...p, msg]);
-    onSend?.(msg);
+    if (!input.trim() || sending || !conversationId) return;
+
+    const textToSend = input.trim();
     setInput('');
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+    setSending(true);
+
+    try {
+      const res = await api.post(`/api/conversations/${conversationId}/messages`, {
+        text: textToSend,
+      });
+      const newMsg = res.data?.data;
+      if (newMsg) {
+        setMessages((prev) => [...prev, newMsg]);
+      } else {
+        await fetchMessages();
+      }
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to send message', 'error');
+    } finally {
+      setSending(false);
+    }
   };
 
-  const handleAttach = (e) => {
+  const handleAttachFile = async (e) => {
     const f = e.target.files?.[0];
-    if (!f) return;
-    const msg = {
-      id: Date.now(),
-      sender: 'me',
-      text: '',
-      time: 'Just now',
-      attachment: { name: f.name, size: `${(f.size / (1024 * 1024)).toFixed(1)} MB` },
-    };
-    setLocalMsgs((p) => [...p, msg]);
+    if (!f || !workspaceId || !conversationId) return;
+
+    setIsAttaching(true);
+    try {
+      const formData = new FormData();
+      formData.append('files', f);
+
+      const uploadRes = await api.post(`/api/workspace/${workspaceId}/files`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const uploadedFiles = uploadRes.data?.files || (uploadRes.data?.file ? [uploadRes.data.file] : []);
+      const fileRecord = uploadedFiles[0];
+
+      if (fileRecord) {
+        await api.post(`/api/conversations/${conversationId}/messages`, {
+          text: `Uploaded "${fileRecord.fileName || f.name}" to Space`,
+          messageType: 'file',
+          attachments: [
+            {
+              name: fileRecord.fileName || f.name,
+              url: fileRecord.fileUrl,
+              size: fileRecord.fileSize,
+              type: fileRecord.fileType,
+            },
+          ],
+        });
+        showAlert(`File "${f.name}" uploaded and shared to chat! ✓`, 'success');
+        await fetchMessages();
+      }
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to attach file', 'error');
+    } finally {
+      setIsAttaching(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
     <div className="flex flex-col h-full bg-[#090C16]">
       {/* Header */}
       <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0E1322] flex items-center gap-3 shrink-0">
-        <button onClick={onBack} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+        <button
+          onClick={onBack}
+          className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+        >
           <ArrowLeft className="w-4 h-4" />
         </button>
-        {avatar
-          ? <img
-              src={avatar || DEFAULT_PFP}
-              alt={title}
-              onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-              className="w-8 h-8 rounded-full object-cover border border-white/10"
-            />
-          : <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400"><Users className="w-4 h-4" /></div>
-        }
+        {avatar ? (
+          <img
+            src={avatar || DEFAULT_PFP}
+            alt={title}
+            onError={(e) => {
+              e.currentTarget.src = DEFAULT_PFP;
+            }}
+            className="w-8 h-8 rounded-full object-cover border border-white/10"
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <Users className="w-4 h-4" />
+          </div>
+        )}
         <div className="min-w-0">
           <p className="text-sm font-bold text-white truncate">{title}</p>
           {subtitle && <p className="text-[11px] text-slate-400 truncate">{subtitle}</p>}
@@ -193,39 +342,82 @@ function ChatPanel({ title, subtitle, avatar, messages, onSend, onBack, attachFi
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {localMsgs.length === 0 && (
-          <div className="py-12 text-center text-xs text-slate-500">No messages yet. Say hello! 👋</div>
+        {loading && (
+          <div className="flex items-center justify-center py-12 text-xs text-slate-500 gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+            Loading messages...
+          </div>
         )}
-        {localMsgs.map((msg) => {
-          const isMe = msg.sender === 'me' || msg.sender === 'Karan Sharma' || msg.sender === 'You';
+
+        {!loading && messages.length === 0 && (
+          <div className="py-12 text-center text-xs text-slate-500">
+            No messages yet. Say hello to kick off collaboration! 👋
+          </div>
+        )}
+
+        {messages.map((msg) => {
+          const senderId = (msg.sender?._id || msg.sender)?.toString();
+          const isMe = currentUserId && senderId === currentUserId.toString();
+          const senderName = msg.sender?.name || (isMe ? 'You' : 'Collaborator');
+          const senderAvatar = msg.sender?.profileImage || DEFAULT_PFP;
+          const msgTime = formatTime(msg.createdAt);
+
           return (
-            <div key={msg.id} className={`flex items-start gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
+            <div key={msg._id || msg.id} className={`flex items-start gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
               {!isMe && (
                 <img
-                  src={msg.avatar || avatar || DEFAULT_PFP}
-                  alt={msg.sender}
-                  onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
+                  src={senderAvatar}
+                  alt={senderName}
+                  onError={(e) => {
+                    e.currentTarget.src = DEFAULT_PFP;
+                  }}
                   className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0 mt-0.5"
                 />
               )}
               <div className={`max-w-[72%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
-                {!isMe && <span className="text-[11px] font-semibold text-slate-400 px-1">{msg.sender}</span>}
+                {!isMe && (
+                  <span className="text-[11px] font-semibold text-slate-400 px-1">{senderName}</span>
+                )}
                 {msg.text && (
-                  <div className={`px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed shadow-md ${isMe ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-sm' : 'bg-[#151C2C] text-slate-200 border border-white/[0.06] rounded-tl-sm'}`}>
+                  <div
+                    className={`px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed shadow-md ${
+                      isMe
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-sm'
+                        : 'bg-[#151C2C] text-slate-200 border border-white/[0.06] rounded-tl-sm'
+                    }`}
+                  >
                     {msg.text}
                   </div>
                 )}
-                {msg.attachment && (
-                  <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs ${isMe ? 'bg-indigo-700/40 border-indigo-500/30 text-white' : 'bg-[#151C2C] border-white/[0.06] text-slate-200'}`}>
-                    <Paperclip className="w-3.5 h-3.5 shrink-0 text-purple-300" />
-                    <div className="min-w-0">
-                      <p className="font-semibold truncate">{msg.attachment.name}</p>
-                      <p className="text-[10px] opacity-70">{msg.attachment.size}</p>
+                {Array.isArray(msg.attachments) &&
+                  msg.attachments.map((att, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs ${
+                        isMe
+                          ? 'bg-indigo-700/40 border-indigo-500/30 text-white'
+                          : 'bg-[#151C2C] border-white/[0.06] text-slate-200'
+                      }`}
+                    >
+                      <Paperclip className="w-3.5 h-3.5 shrink-0 text-purple-300" />
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{att.name || 'Attachment'}</p>
+                        {att.size && <p className="text-[10px] opacity-70">{formatFileSize(att.size)}</p>}
+                      </div>
+                      {att.url && (
+                        <a
+                          href={att.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Open file"
+                          className="shrink-0 opacity-80 hover:opacity-100"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
                     </div>
-                    <Download className="w-3 h-3 shrink-0 opacity-70 cursor-pointer hover:opacity-100" />
-                  </div>
-                )}
-                <span className="text-[10px] text-slate-500 font-mono px-1">{msg.time}</span>
+                  ))}
+                <span className="text-[10px] text-slate-500 font-mono px-1">{msgTime}</span>
               </div>
             </div>
           );
@@ -234,24 +426,40 @@ function ChatPanel({ title, subtitle, avatar, messages, onSend, onBack, attachFi
       </div>
 
       {/* Input Bar */}
-      <form onSubmit={send} className="p-3 border-t border-white/[0.06] bg-[#0E1322] flex items-center gap-2 shrink-0">
-        <label className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer transition-colors" title="Attach file">
-          <Paperclip className="w-4 h-4" />
-          <input type="file" className="hidden" onChange={handleAttach} />
+      <form
+        onSubmit={send}
+        className="p-3 border-t border-white/[0.06] bg-[#0E1322] flex items-center gap-2 shrink-0"
+      >
+        <label
+          className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer transition-colors"
+          title="Attach file to Space & Chat"
+        >
+          {isAttaching ? (
+            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+          ) : (
+            <Paperclip className="w-4 h-4" />
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            disabled={isAttaching}
+            onChange={handleAttachFile}
+          />
         </label>
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Message..."
+          placeholder="Message team..."
           className="flex-1 px-4 py-2 text-xs rounded-xl bg-[#151C2C] text-slate-100 border border-white/[0.07] focus:outline-none focus:border-purple-500 placeholder:text-slate-500"
         />
         <button
           type="submit"
-          disabled={!input.trim()}
+          disabled={!input.trim() || sending}
           className="p-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition-all cursor-pointer"
         >
-          <Send className="w-4 h-4" />
+          {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </button>
       </form>
     </div>
@@ -259,14 +467,15 @@ function ChatPanel({ title, subtitle, avatar, messages, onSend, onBack, attachFi
 }
 
 /* ─────────────────────────────────────────────────────
-   ALL FILES MEDIA GALLERY (WhatsApp-style grid)
+   ALL FILES MEDIA GALLERY (Real workspace files)
 ───────────────────────────────────────────────────── */
-function MediaGallery({ files, onClose }) {
-  const typeLabel = { video: 'Videos', audio: 'Audio', image: 'Images', doc: 'Docs' };
+function MediaGallery({ files, onClose, onDelete, currentUserId, isCreator }) {
+  const typeLabel = { video: 'Videos', audio: 'Audio', image: 'Images', doc: 'Documents & Assets' };
 
-  const grouped = files.reduce((acc, f) => {
-    acc[f.type] = acc[f.type] || [];
-    acc[f.type].push(f);
+  const grouped = (files || []).reduce((acc, f) => {
+    const t = getFileType(f);
+    acc[t] = acc[t] || [];
+    acc[t].push(f);
     return acc;
   }, {});
 
@@ -274,49 +483,57 @@ function MediaGallery({ files, onClose }) {
     <div className="flex flex-col h-full bg-[#090C16]">
       <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0E1322] flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+          >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
             <Grid3X3 className="w-3.5 h-3.5" />
           </div>
           <div>
-            <p className="text-sm font-bold text-white">Project Media</p>
+            <p className="text-sm font-bold text-white">Project Media & Space Files</p>
             <p className="text-[11px] text-slate-400">{files.length} total files</p>
           </div>
         </div>
-        <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+        <button
+          onClick={onClose}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+        >
           <X className="w-4 h-4" />
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {Object.entries(grouped).map(([type, group]) => (
-          <div key={type}>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{typeLabel[type] || type}</p>
-            <div className="grid grid-cols-1 gap-2">
-              {group.map((file) => (
-                <div
-                  key={file.id}
-                  className="p-3 rounded-xl bg-[#111625] border border-white/[0.06] hover:border-purple-500/30 transition-all flex items-center justify-between gap-3 group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-[#182033] border border-white/5 flex items-center justify-center shrink-0">
-                      <FileIcon type={file.type} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-white truncate group-hover:text-purple-300 transition-colors">{file.name}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5 font-mono">{file.size} · {file.uploader} · {file.date}</p>
-                    </div>
-                  </div>
-                  <button className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white opacity-60 group-hover:opacity-100 transition-all">
-                    <Download className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
+        {files.length === 0 ? (
+          <div className="py-16 text-center text-xs text-slate-500">
+            No files uploaded to Space yet.
           </div>
-        ))}
+        ) : (
+          Object.entries(grouped).map(([type, group]) => (
+            <div key={type}>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+                {typeLabel[type] || type} ({group.length})
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                {group.map((file) => {
+                  const uploaderId = (file.uploadedBy?._id || file.uploadedBy)?.toString();
+                  const canDelete =
+                    isCreator || (currentUserId && uploaderId === currentUserId.toString());
+                  return (
+                    <FileRow
+                      key={file._id}
+                      file={file}
+                      canDelete={canDelete}
+                      onDelete={onDelete}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -325,70 +542,178 @@ function MediaGallery({ files, onClose }) {
 /* ─────────────────────────────────────────────────────
    PROJECT WORKSPACE (Right Panel)
 ───────────────────────────────────────────────────── */
-function ProjectWorkspace({ project, onBack }) {
-  const [projects, setProjects] = useState([project]);
-  const currentProject = projects.find((p) => p.id === project.id) || project;
-
-  // Space drag-drop
-  const [isDraggingOverSpace, setIsDraggingOverSpace] = useState(false);
+function ProjectWorkspace({ workspace, onBack, currentUserId }) {
+  const { showAlert } = useAlert();
   const fileInputRef = useRef(null);
 
-  // Media gallery / recent files
+  const [files, setFiles] = useState([]);
+  const [loadingFiles, setLoadingFiles] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDraggingOverSpace, setIsDraggingOverSpace] = useState(false);
+
+  // Group chat conversation
+  const [groupConvId, setGroupConvId] = useState(workspace.conversationId || null);
+  const [groupLastMsg, setGroupLastMsg] = useState(null);
+
+  // Direct DM state
+  const [activeDmMember, setActiveDmMember] = useState(null);
+  const [activeDmConvId, setActiveDmConvId] = useState(null);
+  const [loadingDm, setLoadingDm] = useState(false);
+
+  // Views: null | 'group' | 'dm'
+  const [activeView, setActiveView] = useState(null);
   const [showAllMedia, setShowAllMedia] = useState(false);
 
-  // Chat views: null | 'group' | memberId
-  const [chatView, setChatView] = useState(null);
+  const isCreator =
+    (workspace.creatorId?._id || workspace.creatorId)?.toString() ===
+    currentUserId?.toString();
 
-  /* File upload handler */
-  const handleUploadFiles = (fileList) => {
+  // Load workspace files
+  const fetchFiles = useCallback(async () => {
+    try {
+      const res = await api.get(`/api/workspace/${workspace._id}/files`);
+      setFiles(res.data?.files || []);
+    } catch (err) {
+      console.warn('[Workspace] Failed to fetch files:', err.message);
+    } finally {
+      setLoadingFiles(false);
+    }
+  }, [workspace._id]);
+
+  // Load or ensure project group conversation
+  const fetchGroupConv = useCallback(async () => {
+    try {
+      const res = await api.get(`/api/conversations/project/${workspace._id}`);
+      const conv = res.data?.conversation;
+      if (conv) {
+        setGroupConvId(conv._id);
+        setGroupLastMsg(conv.lastMessage || null);
+      }
+    } catch (err) {
+      console.warn('[Workspace] Failed to fetch project conversation:', err.message);
+    }
+  }, [workspace._id]);
+
+  useEffect(() => {
+    fetchFiles();
+    fetchGroupConv();
+  }, [fetchFiles, fetchGroupConv]);
+
+  // Handle uploading files directly to ImageKit via backend
+  const handleUploadFiles = async (fileList) => {
     if (!fileList || fileList.length === 0) return;
-    Array.from(fileList).forEach((file, idx) => {
-      const newFile = {
-        id: `f-${Date.now()}-${idx}`,
-        name: file.name,
-        size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-        type: file.type.startsWith('video') ? 'video' : file.type.startsWith('audio') ? 'audio' : file.type.startsWith('image') ? 'image' : 'doc',
-        date: 'Just now',
-        uploader: 'You',
-      };
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.id === currentProject.id ? { ...p, spaceFiles: [newFile, ...p.spaceFiles] } : p
-        )
-      );
-    });
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      Array.from(fileList).forEach((file) => {
+        formData.append('files', file);
+      });
+
+      const res = await api.post(`/api/workspace/${workspace._id}/files`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      showAlert(res.data?.message || 'Files uploaded to Space successfully! ✓', 'success');
+      await fetchFiles();
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to upload files', 'error');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
-  const recentFiles = currentProject.spaceFiles.slice(0, 3);
+  // Handle delete file
+  const handleDeleteFile = async (fileId) => {
+    try {
+      await api.delete(`/api/workspace/${workspace._id}/files/${fileId}`);
+      showAlert('File removed from Space', 'info');
+      setFiles((prev) => prev.filter((f) => f._id !== fileId));
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to delete file', 'error');
+    }
+  };
+
+  // Open 1-on-1 DM with a team member
+  const handleOpenDm = async (member) => {
+    setActiveDmMember(member);
+    setLoadingDm(true);
+    setActiveView('dm');
+
+    try {
+      const res = await api.post('/api/conversations', { recipientId: member._id });
+      const conv = res.data?.conversation;
+      if (conv) {
+        setActiveDmConvId(conv._id);
+      }
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to start chat with member', 'error');
+    } finally {
+      setLoadingDm(false);
+    }
+  };
+
+  const projectTitle = workspace.projectId?.title || 'Creative Production Workspace';
+  const projectCategory = workspace.projectId?.category || 'Video Editing';
+  const projectDeadline = workspace.projectId?.deadline
+    ? new Date(workspace.projectId.deadline).toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : 'Ongoing';
+  const badgeInfo = getStatusBadge(workspace.status || workspace.projectId?.status);
+  const members = getWorkspaceMembers(workspace);
+  const otherMembers = members.filter(
+    (m) => currentUserId && m._id.toString() !== currentUserId.toString()
+  );
+  const recentFiles = files.slice(0, 3);
 
   // CHAT VIEW — Group
-  if (chatView === 'group') {
+  if (activeView === 'group') {
     return (
       <div className="flex-1 flex flex-col min-w-0 h-full">
         <ChatPanel
-          title={`${currentProject.title} — Team Group`}
-          subtitle={`${currentProject.members.length} members`}
+          title={`${projectTitle} — Team Group`}
+          subtitle={`${members.length} member${members.length > 1 ? 's' : ''}`}
           avatar={null}
-          messages={currentProject.groupChat}
-          onBack={() => setChatView(null)}
+          conversationId={groupConvId}
+          workspaceId={workspace._id}
+          currentUserId={currentUserId}
+          onBack={() => {
+            setActiveView(null);
+            fetchGroupConv();
+          }}
         />
       </div>
     );
   }
 
-  // CHAT VIEW — DM with a member
-  if (chatView && chatView !== 'group') {
-    const member = currentProject.members.find((m) => m.id === chatView);
-    const dms = currentProject.directChats?.[chatView] || [];
+  // CHAT VIEW — DM with a team member
+  if (activeView === 'dm' && activeDmMember) {
     return (
       <div className="flex-1 flex flex-col min-w-0 h-full">
-        <ChatPanel
-          title={member?.name || 'Team Member'}
-          subtitle={member?.role}
-          avatar={member?.avatar}
-          messages={dms}
-          onBack={() => setChatView(null)}
-        />
+        {loadingDm ? (
+          <div className="flex-1 flex items-center justify-center text-xs text-slate-500 gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+            Connecting chat with {activeDmMember.name}...
+          </div>
+        ) : (
+          <ChatPanel
+            title={activeDmMember.name}
+            subtitle={activeDmMember.role}
+            avatar={activeDmMember.avatar}
+            conversationId={activeDmConvId}
+            workspaceId={workspace._id}
+            currentUserId={currentUserId}
+            onBack={() => {
+              setActiveView(null);
+              setActiveDmMember(null);
+              setActiveDmConvId(null);
+            }}
+          />
+        )}
       </div>
     );
   }
@@ -397,12 +722,18 @@ function ProjectWorkspace({ project, onBack }) {
   if (showAllMedia) {
     return (
       <div className="flex-1 flex flex-col min-w-0 h-full">
-        <MediaGallery files={currentProject.spaceFiles} onClose={() => setShowAllMedia(false)} />
+        <MediaGallery
+          files={files}
+          currentUserId={currentUserId}
+          isCreator={isCreator}
+          onDelete={handleDeleteFile}
+          onClose={() => setShowAllMedia(false)}
+        />
       </div>
     );
   }
 
-  // ── DEFAULT PROJECT VIEW ──
+  // ── DEFAULT PROJECT WORKSPACE VIEW ──
   return (
     <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#09090E]">
       {/* Header */}
@@ -418,24 +749,25 @@ function ProjectWorkspace({ project, onBack }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-sm font-bold text-white truncate">{currentProject.title}</h1>
-            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${currentProject.badgeColor}`}>
-              {currentProject.badge}
+            <h1 className="text-sm font-bold text-white truncate">{projectTitle}</h1>
+            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${badgeInfo.className}`}>
+              {badgeInfo.label}
             </span>
           </div>
           <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
-            <span>{currentProject.category}</span>
+            <span>{projectCategory}</span>
             <span>·</span>
-            <span>Due {currentProject.deadline}</span>
+            <span>Due {projectDeadline}</span>
             <span>·</span>
-            <span className="text-purple-300">{currentProject.members.map((m) => m.name.split(' ')[0]).join(', ')}</span>
+            <span className="text-purple-300">
+              {members.map((m) => m.name.split(' ')[0]).join(', ')}
+            </span>
           </p>
         </div>
       </header>
 
       <div className="p-5 space-y-7">
-
-        {/* ── SECTION 1: SPACE (Drop Zone) ── */}
+        {/* ── SECTION 1: SPACE (Drop Zone & Files) ── */}
         <section>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
@@ -455,7 +787,10 @@ function ProjectWorkspace({ project, onBack }) {
 
           {/* Drop Zone */}
           <div
-            onDragOver={(e) => { e.preventDefault(); setIsDraggingOverSpace(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDraggingOverSpace(true);
+            }}
             onDragLeave={() => setIsDraggingOverSpace(false)}
             onDrop={(e) => {
               e.preventDefault();
@@ -474,42 +809,74 @@ function ProjectWorkspace({ project, onBack }) {
           >
             <div className="flex flex-col items-center max-w-xs mx-auto">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600/25 to-indigo-600/25 border border-purple-500/30 flex items-center justify-center text-purple-300 mb-3.5 shadow-lg shadow-purple-900/20">
-                <UploadCloud className="w-7 h-7" />
+                {isUploading ? (
+                  <Loader2 className="w-7 h-7 animate-spin text-purple-400" />
+                ) : (
+                  <UploadCloud className="w-7 h-7" />
+                )}
               </div>
               <h4 className="text-sm font-bold text-white mb-1">
-                {isDraggingOverSpace ? 'Drop to upload into Space' : 'Drop files here to add to Space'}
+                {isUploading
+                  ? 'Uploading assets to Space...'
+                  : isDraggingOverSpace
+                  ? 'Drop to upload into Space'
+                  : 'Drop files here to add to Space'}
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Supports MP4, ProRes, WAV, LUTs, PNGs and more. Files are instantly shared with the whole team.
+                Directly uploads to ImageKit storage. Supports MP4, MOV, WAV, LUTs, PNGs and more.
               </p>
               <div className="flex items-center gap-2 mt-3 text-[11px] text-purple-400 font-medium flex-wrap justify-center">
                 <button
                   type="button"
+                  disabled={isUploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Browse Files
                 </button>
-                <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20">⌘V / Ctrl+V</span>
+                <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                  ⌘V / Ctrl+V
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Recent 3 Files */}
-          {currentProject.spaceFiles.length > 0 && (
+          {/* Recent Files List */}
+          {loadingFiles ? (
+            <div className="mt-4 flex items-center justify-center py-6 text-xs text-slate-500 gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+              Loading Space assets...
+            </div>
+          ) : files.length > 0 ? (
             <div className="mt-4 space-y-2">
-              {recentFiles.map((file) => <FileRow key={file.id} file={file} />)}
+              {recentFiles.map((file) => {
+                const uploaderId = (file.uploadedBy?._id || file.uploadedBy)?.toString();
+                const canDelete =
+                  isCreator || (currentUserId && uploaderId === currentUserId.toString());
+                return (
+                  <FileRow
+                    key={file._id}
+                    file={file}
+                    canDelete={canDelete}
+                    onDelete={handleDeleteFile}
+                  />
+                );
+              })}
 
-              {currentProject.spaceFiles.length > 3 && (
+              {files.length > 3 && (
                 <button
                   onClick={() => setShowAllMedia(true)}
                   className="w-full py-2.5 text-xs font-semibold text-purple-400 hover:text-purple-300 border border-white/[0.06] hover:border-purple-500/30 rounded-xl bg-[#0E1322] hover:bg-[#11182A] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Grid3X3 className="w-3.5 h-3.5" />
-                  View all {currentProject.spaceFiles.length} files
+                  View all {files.length} files in Media Gallery
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               )}
+            </div>
+          ) : (
+            <div className="mt-4 p-4 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] text-center text-xs text-slate-500">
+              No files uploaded to Space yet. Drop raw video assets, music, or notes above.
             </div>
           )}
         </section>
@@ -522,7 +889,7 @@ function ProjectWorkspace({ project, onBack }) {
           </h3>
 
           <div
-            onClick={() => setChatView('group')}
+            onClick={() => setActiveView('group')}
             className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/30 cursor-pointer transition-all group"
           >
             {/* Group avatar */}
@@ -536,16 +903,18 @@ function ProjectWorkspace({ project, onBack }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
                 <p className="text-sm font-bold text-white truncate group-hover:text-purple-300 transition-colors">
-                  {currentProject.title} — Team
+                  {projectTitle} — Team
                 </p>
-                <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-2">
-                  {currentProject.groupChat[currentProject.groupChat.length - 1]?.time || ''}
-                </span>
+                {groupLastMsg?.createdAt && (
+                  <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-2">
+                    {formatTime(groupLastMsg.createdAt)}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-400 truncate">
-                {currentProject.groupChat[currentProject.groupChat.length - 1]?.text || 'No messages yet'}
+                {groupLastMsg?.text || 'Tap to open project team chat'}
               </p>
-              <p className="text-[11px] text-purple-400 mt-0.5">{currentProject.members.length} members</p>
+              <p className="text-[11px] text-purple-400 mt-0.5">{members.length} members</p>
             </div>
 
             <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 shrink-0 transition-colors" />
@@ -560,24 +929,29 @@ function ProjectWorkspace({ project, onBack }) {
           </h3>
 
           <div className="space-y-2">
-            {currentProject.members.map((member) => {
-              const lastMsg = (currentProject.directChats?.[member.id] || []).slice(-1)[0];
-              return (
+            {otherMembers.length === 0 ? (
+              <div className="p-4 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] text-center text-xs text-slate-500">
+                {isCreator
+                  ? 'Waiting for editor assignment. Once an editor is accepted for this gig, their 1-on-1 chat will appear here.'
+                  : 'No other collaborators in this workspace yet.'}
+              </div>
+            ) : (
+              otherMembers.map((member) => (
                 <div
-                  key={member.id}
-                  onClick={() => setChatView(member.id)}
+                  key={member._id}
+                  onClick={() => handleOpenDm(member)}
                   className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-indigo-500/30 cursor-pointer transition-all group"
                 >
                   <div className="relative w-11 h-11 shrink-0">
                     <img
                       src={member.avatar || DEFAULT_PFP}
                       alt={member.name}
-                      onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_PFP;
+                      }}
                       className="w-full h-full rounded-full object-cover border border-white/10"
                     />
-                    {member.online && (
-                      <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0E1322] absolute bottom-0 right-0 shadow-[0_0_6px_#34D399]" />
-                    )}
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0E1322] absolute bottom-0 right-0 shadow-[0_0_6px_#34D399]" />
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -585,55 +959,74 @@ function ProjectWorkspace({ project, onBack }) {
                       <p className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
                         {member.name}
                       </p>
-                      {lastMsg && (
-                        <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-2">{lastMsg.time}</span>
-                      )}
                     </div>
                     <p className="text-[11px] text-purple-400 font-medium">{member.role}</p>
-                    {lastMsg && (
-                      <p className="text-xs text-slate-400 truncate mt-0.5">
-                        {lastMsg.sender === 'me' ? 'You: ' : ''}{lastMsg.text}
-                      </p>
-                    )}
-                    {!lastMsg && (
-                      <p className="text-xs text-slate-500 mt-0.5">Tap to start a private chat</p>
-                    )}
+                    <p className="text-xs text-slate-500 mt-0.5">Tap to start a private chat</p>
                   </div>
 
                   <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 shrink-0 transition-colors" />
                 </div>
-              );
-            })}
+              ))
+            )}
           </div>
         </section>
-
       </div>
     </main>
   );
 }
 
 /* ─────────────────────────────────────────────────────
-   MAIN WORKSPACE PAGE
+   MAIN WORKSPACE PAGE (Connects all views to backend)
 ───────────────────────────────────────────────────── */
-export const Workspace = ({ role = 'creator' }) => {
-  const [projects] = useState(mockWorkspaceProjects);
-  const [selectedProjectId, setSelectedProjectId] = useState(null); // 1. No project open by default
+export const Workspace = () => {
+  const { currentUser } = useAuth();
+  const currentUserId = currentUser?._id;
+
+  const [workspaces, setWorkspaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
+  // Fetch all accessible workspaces from backend
+  const fetchWorkspaces = useCallback(async () => {
+    try {
+      const res = await api.get('/api/workspace');
+      const list = res.data?.workspaces || [];
+      setWorkspaces(list);
 
-  const filtered = projects.filter(
-    (p) =>
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      // If user had a selected workspace that is still valid, keep it;
+      // otherwise, if user has workspaces and is on desktop, can preserve selection
+      setSelectedWorkspaceId((prev) => {
+        if (prev && list.some((w) => w._id === prev)) return prev;
+        return null;
+      });
+    } catch (err) {
+      console.warn('[Workspace] Failed to fetch workspaces:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWorkspaces();
+  }, [fetchWorkspaces]);
+
+  const selectedWorkspace = workspaces.find((w) => w._id === selectedWorkspaceId) || null;
+
+  const filtered = workspaces.filter((w) => {
+    const title = w.projectId?.title || '';
+    const category = w.projectId?.category || '';
+    const query = searchQuery.toLowerCase();
+    return title.toLowerCase().includes(query) || category.toLowerCase().includes(query);
+  });
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-[#07090E]">
-
-      {/* ── LEFT: PROJECTS LIST ── */}
+      {/* ── LEFT: WORKSPACES LIST ── */}
       <aside
-        className={`${selectedProjectId ? 'hidden lg:flex' : 'flex'} w-full lg:w-80 xl:w-96 border-r border-white/[0.07] bg-[#07090F] flex-col shrink-0`}
+        className={`${
+          selectedWorkspaceId ? 'hidden lg:flex' : 'flex'
+        } w-full lg:w-80 xl:w-96 border-r border-white/[0.07] bg-[#07090F] flex-col shrink-0`}
       >
         {/* Header */}
         <div className="p-4 border-b border-white/[0.06] bg-[#0B0E18]/80 backdrop-blur-md">
@@ -648,7 +1041,7 @@ export const Workspace = ({ role = 'creator' }) => {
               </div>
             </div>
             <span className="px-2 py-0.5 text-[11px] font-semibold font-mono rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">
-              {projects.length} Active
+              {workspaces.length} Active
             </span>
           </div>
           <div className="relative">
@@ -663,77 +1056,105 @@ export const Workspace = ({ role = 'creator' }) => {
           </div>
         </div>
 
-        {/* Project rows */}
+        {/* Workspace rows */}
         <div className="flex-1 overflow-y-auto divide-y divide-white/[0.03]">
-          {filtered.map((p) => {
-            const isSelected = p.id === selectedProjectId;
-            const lastGroupMsg = p.groupChat[p.groupChat.length - 1];
-            return (
-              <div
-                key={p.id}
-                onClick={() => setSelectedProjectId(p.id)}
-                className={`flex items-center gap-3.5 px-4 py-3.5 cursor-pointer transition-all ${
-                  isSelected ? 'bg-purple-950/30 border-l-4 border-purple-500' : 'hover:bg-white/[0.025] border-l-4 border-transparent'
-                }`}
-              >
-                {/* Icon */}
-                <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-                  <FolderGit2 className="w-5 h-5" />
-                </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-xs text-slate-500 gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+              Loading workspaces...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-slate-500 gap-2">
+              <FolderGit2 className="w-8 h-8 text-slate-600 mb-1" />
+              <p className="font-semibold text-slate-400">No workspaces found</p>
+              <p className="text-[11px] text-slate-600">
+                Workspaces are automatically set up when a project is created or an application is accepted.
+              </p>
+            </div>
+          ) : (
+            filtered.map((ws) => {
+              const isSelected = ws._id === selectedWorkspaceId;
+              const title = ws.projectId?.title || 'Creative Production Workspace';
+              const badgeInfo = getStatusBadge(ws.status || ws.projectId?.status);
+              const members = getWorkspaceMembers(ws);
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-1 mb-0.5">
-                    <p className="text-xs font-bold text-white truncate leading-snug">{p.title}</p>
-                    {lastGroupMsg && (
-                      <span className="text-[10px] text-slate-500 font-mono shrink-0 mt-0.5">{lastGroupMsg.time}</span>
-                    )}
+              return (
+                <div
+                  key={ws._id}
+                  onClick={() => setSelectedWorkspaceId(ws._id)}
+                  className={`flex items-center gap-3.5 px-4 py-3.5 cursor-pointer transition-all ${
+                    isSelected
+                      ? 'bg-purple-950/30 border-l-4 border-purple-500'
+                      : 'hover:bg-white/[0.025] border-l-4 border-transparent'
+                  }`}
+                >
+                  {/* Icon */}
+                  <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                    <FolderGit2 className="w-5 h-5" />
                   </div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium inline-block ${p.badgeColor}`}>
-                    {p.badge}
-                  </span>
-                  {lastGroupMsg && (
-                    <p className="text-[11px] text-slate-400 truncate mt-1">{lastGroupMsg.text}</p>
-                  )}
-                  {/* Avatars */}
-                  <div className="flex items-center gap-1 mt-1.5">
-                    {p.members.slice(0, 3).map((m) => (
-                      <img
-                        key={m.id}
-                        src={m.avatar || DEFAULT_PFP}
-                        alt={m.name}
-                        title={m.name}
-                        onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                        className="w-4 h-4 rounded-full border border-[#07090F] object-cover ring-1 ring-white/10"
-                      />
-                    ))}
-                    <span className="text-[10px] text-slate-500 ml-1">{p.members.length} members</span>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-1 mb-0.5">
+                      <p className="text-xs font-bold text-white truncate leading-snug">{title}</p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium inline-block ${badgeInfo.className}`}>
+                        {badgeInfo.label}
+                      </span>
+                      {ws.fileCount > 0 && (
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {ws.fileCount} file{ws.fileCount > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Members avatars */}
+                    <div className="flex items-center gap-1 mt-2">
+                      {members.slice(0, 3).map((m) => (
+                        <img
+                          key={m._id}
+                          src={m.avatar || DEFAULT_PFP}
+                          alt={m.name}
+                          title={m.name}
+                          onError={(e) => {
+                            e.currentTarget.src = DEFAULT_PFP;
+                          }}
+                          className="w-4 h-4 rounded-full border border-[#07090F] object-cover ring-1 ring-white/10"
+                        />
+                      ))}
+                      <span className="text-[10px] text-slate-500 ml-1">
+                        {members.length} member{members.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </aside>
 
       {/* ── RIGHT: PROJECT WORKSPACE or EMPTY STATE ── */}
-      {selectedProject ? (
+      {selectedWorkspace ? (
         <ProjectWorkspace
-          key={selectedProject.id}
-          project={selectedProject}
-          onBack={() => setSelectedProjectId(null)}
+          key={selectedWorkspace._id}
+          workspace={selectedWorkspace}
+          currentUserId={currentUserId}
+          onBack={() => setSelectedWorkspaceId(null)}
         />
       ) : (
-        <div className="flex-1 hidden lg:flex flex-col items-center justify-center text-center bg-[#0A0D15]/80 gap-4">
+        <div className="flex-1 hidden lg:flex flex-col items-center justify-center text-center bg-[#0A0D15]/80 gap-4 p-8">
           <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
             <FolderGit2 className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Select a Project</h3>
-            <p className="text-sm text-slate-400 mt-1">Click any ongoing project from the left to open its workspace.</p>
+            <h3 className="text-base font-bold text-white">Select a Workspace</h3>
+            <p className="text-sm text-slate-400 mt-1 max-w-sm">
+              Click any active project workspace from the left sidebar to access Space assets, team group chat, and private collaborator DMs.
+            </p>
           </div>
         </div>
       )}
-
     </div>
   );
 };

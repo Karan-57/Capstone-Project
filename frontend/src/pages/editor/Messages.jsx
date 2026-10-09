@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Paperclip, Phone, Video, Search } from 'lucide-react';
+import { Send, Paperclip, Phone, Video, Search, ArrowLeft } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { messageService } from '../../services/messageService';
 import { DEFAULT_PFP } from '../../constants/assets';
@@ -14,7 +14,7 @@ export const Messages = () => {
     const loadConversations = async () => {
       const data = await messageService.getMessages();
       setConversations(data || []);
-      if (data && data.length > 0) {
+      if (data && data.length > 0 && window.innerWidth >= 768) {
         setActiveChat(data[0]);
       }
     };
@@ -29,9 +29,13 @@ export const Messages = () => {
   };
 
   return (
-    <div className="glass-card h-[calc(100vh-160px)] flex border border-white/[0.08] overflow-hidden">
-      {/* Conversations */}
-      <div className="w-80 border-r border-white/[0.07] bg-[#0A0D15]/90 flex flex-col">
+    <div className="glass-card h-[calc(100vh-140px)] flex border border-white/[0.08] overflow-hidden">
+      {/* Conversations List */}
+      <div
+        className={`${
+          activeChat ? 'hidden md:flex' : 'flex'
+        } w-full md:w-80 border-r border-white/[0.07] bg-[#0A0D15]/90 flex-col shrink-0`}
+      >
         <div className="p-4 border-b border-white/[0.06]">
           <h3 className="text-sm font-bold text-white mb-2">Client Messages</h3>
           <div className="relative">
@@ -84,21 +88,31 @@ export const Messages = () => {
 
       {/* Chat Thread */}
       {activeChat ? (
-        <div className="flex-1 flex flex-col bg-[#0F1422]/60">
-          <div className="p-4 border-b border-white/[0.06] flex items-center justify-between bg-[#0F1420]">
-            <div className="flex items-center gap-3">
+        <div
+          className={`${
+            activeChat ? 'flex' : 'hidden md:flex'
+          } flex-1 flex flex-col bg-[#0F1422]/60 min-w-0`}
+        >
+          <div className="p-3.5 sm:p-4 border-b border-white/[0.06] flex items-center justify-between bg-[#0F1420]">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                onClick={() => setActiveChat(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white md:hidden"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
               <img
                 src={activeChat.avatar || DEFAULT_PFP}
                 alt={activeChat.sender}
                 onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0"
               />
-              <div>
-                <h4 className="text-sm font-bold text-white">{activeChat.sender}</h4>
-                <p className="text-xs text-slate-400">Project: {activeChat.project}</p>
+              <div className="min-w-0">
+                <h4 className="text-sm font-bold text-white truncate">{activeChat.sender}</h4>
+                <p className="text-xs text-slate-400 truncate">Project: {activeChat.project}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button className="p-2 rounded-xl bg-white/[0.04] text-slate-300 hover:text-white border border-white/[0.06]">
                 <Phone className="w-4 h-4" />
               </button>
@@ -108,7 +122,7 @@ export const Messages = () => {
             </div>
           </div>
 
-          <div className="flex-1 p-5 overflow-y-auto space-y-3.5">
+          <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-3.5">
             {messages.map((item) => (
               <div key={item.id} className={`flex ${item.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
                 <div
@@ -126,14 +140,14 @@ export const Messages = () => {
               </div>
             ))}
             {messages.length === 0 && (
-              <div className="h-full flex items-center justify-center text-xs text-slate-500">
+              <div className="h-full flex items-center justify-center text-xs text-slate-500 text-center py-12">
                 No messages yet. Send a message to start chatting!
               </div>
             )}
           </div>
 
-          <form onSubmit={handleSend} className="p-3.5 border-t border-white/[0.06] bg-[#0A0D15] flex items-center gap-2">
-            <button type="button" className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.04]">
+          <form onSubmit={handleSend} className="p-3 sm:p-3.5 border-t border-white/[0.06] bg-[#0A0D15] flex items-center gap-2">
+            <button type="button" className="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.04]">
               <Paperclip className="w-4 h-4" />
             </button>
             <input
@@ -141,7 +155,7 @@ export const Messages = () => {
               placeholder="Reply to client..."
               value={inputMsg}
               onChange={(e) => setInputMsg(e.target.value)}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-[#141A28] text-xs text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-[#141A28] text-xs text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
             />
             <Button type="submit" variant="primary" size="sm" icon={Send}>
               Send
@@ -149,7 +163,7 @@ export const Messages = () => {
           </form>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center bg-[#0F1422]/60 text-slate-500 text-sm">
+        <div className="flex-1 hidden md:flex items-center justify-center bg-[#0F1422]/60 text-slate-500 text-sm">
           Select a conversation to start chatting
         </div>
       )}

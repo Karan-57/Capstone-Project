@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, ArrowUpRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Wallet, ShieldCheck } from 'lucide-react';
 import Button from '../common/Button';
 import { useAlert } from '../../context/AlertContext';
 
@@ -20,7 +20,7 @@ export const EarningsOverview = ({ earnings }) => {
   };
 
   return (
-    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
+    <div className="glass-card p-4 sm:p-5.5 flex flex-col justify-between h-full">
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ export const EarningsOverview = ({ earnings }) => {
         </div>
 
         {/* Primary Balances Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <div className="p-3.5 rounded-xl bg-[#141A28]/80 border border-white/[0.04]">
             <span className="text-[11px] font-medium text-slate-400 block">
               Available to Withdraw
@@ -82,7 +82,7 @@ export const EarningsOverview = ({ earnings }) => {
           {data.recentPayouts.map((payout) => (
             <div
               key={payout.id}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.03]"
+              className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.03] gap-1"
             >
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-white truncate">
@@ -92,11 +92,11 @@ export const EarningsOverview = ({ earnings }) => {
                   {payout.client} • {payout.date}
                 </p>
               </div>
-              <div className="text-right shrink-0 pl-2">
+              <div className="text-left sm:text-right shrink-0">
                 <span className="text-xs font-bold text-emerald-400">
                   +{payout.amount}
                 </span>
-                <span className="block text-[10px] text-slate-400">Cleared</span>
+                <span className="inline sm:block text-[10px] text-slate-400 ml-1.5 sm:ml-0">Cleared</span>
               </div>
             </div>
           ))}

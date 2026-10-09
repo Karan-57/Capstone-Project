@@ -1,15 +1,24 @@
 const { Router } = require('express');
 const creatorController = require('../controllers/creator.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const upload = require('../middleware/file.middleware');
 
 const creatorRouter = Router();
 
 /**
  * @route POST api/creator/projects
- * @description create a new project
+ * @description create a new project (supports optional multipart reference images)
  * @access Private (Creator)
  */
-creatorRouter.post('/projects', authMiddleware.authUser, creatorController.createProjectController);
+creatorRouter.post('/projects', authMiddleware.authUser, upload.array('images', 3), creatorController.createProjectController);
+
+/**
+ * @route POST api/creator/projects/reference-images
+ * @route POST api/creator/upload-reference-images
+ * @description upload reference images/moodboard to ImageKit (max 3 images)
+ * @access Private (Creator)
+ */
+creatorRouter.post(['/projects/reference-images', '/upload-reference-images'], authMiddleware.authUser, upload.array('images', 3), creatorController.uploadReferenceImagesController);
 
 /**
  * @route GET api/creator/projects

@@ -44,6 +44,7 @@ const config = {
     IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
     IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
     IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
+    GROQ_API_KEY: process.env.GROQ_API_KEY || process.env.QROQ_API_KEY,
     PORT: process.env.PORT || 3000
 };
 

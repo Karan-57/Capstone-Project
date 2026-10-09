@@ -2,21 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/common/Sidebar';
 import Header from '../components/common/Header';
-import { useAuth } from '../context/AuthContext';
 
 export const EditorLayout = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { role, setRole } = useAuth();
   const location = useLocation();
 
   const isWorkspace = location.pathname.includes('/workspace') || location.pathname.includes('/messages');
-
-  useEffect(() => {
-    if (role !== 'editor') {
-      setRole('editor');
-    }
-  }, [role, setRole]);
 
   // Close mobile drawer on route change
   useEffect(() => {

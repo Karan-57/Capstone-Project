@@ -4,10 +4,12 @@ const revisionModel = require('../model/revision.model');
 const deliveryModel = require('../model/delivery.model');
 const projectModel = require('../model/project.model');
 const fileModel = require('../model/file.model');
+const applicationModel = require('../model/application.model');
 const mongoose = require('mongoose');
 const { createNotification } = require('../services/notification.service');
 const { parseMediaLink } = require('../utils/linkParser.util');
-const { deleteImageKitFile } = require('../services/imagekit.service');
+const { deleteImageKitFile, uploadToImageKit } = require('../services/imagekit.service');
+const { getOrCreateProjectConversation } = require('../services/chat.service');
 
 /**
  * Helper to get only ACTIVE members of the workspace, strictly excluding the actor.
@@ -98,6 +100,170 @@ function isWorkspaceMember(workspace, userId) {
         });
     }
     return false;
+}
+
+/**
+ * @name getMyWorkspacesController
+ * @description Get all workspaces accessible by the current user (as creator, editor, or member)
+ * @route GET /api/workspace
+ * @access Private
+ */
+async function getMyWorkspacesController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+        const userRole = req.user?.role;
+
+        // Auto-ensure workspaces exist for creator's projects and editor's accepted gigs
+        if (userRole === 'creator') {
+            const myProjects = await projectModel.find({ creatorId: userObjectId });
+            for (const p of myProjects) {
+                const existingWs = await workspaceModel.findOne({ projectId: p._id });
+                if (!existingWs) {
+                    const wsMembers = [
+                        { user: userObjectId, projectRole: 'creator', status: 'active' }
+                    ];
+                    if (p.selectedEditorId) {
+                        wsMembers.push({ user: p.selectedEditorId, projectRole: 'lead_editor', status: 'active' });
+                    }
+                    await workspaceModel.create({
+                        projectId: p._id,
+                        creatorId: userObjectId,
+                        editorId: p.selectedEditorId || userObjectId,
+                        status: p.status === 'completed' ? 'completed' : 'active',
+                        members: wsMembers
+                    }).catch(() => {});
+                }
+            }
+        } else if (userRole === 'editor') {
+            const acceptedApps = await applicationModel.find({ editorId: userObjectId, status: 'accepted' });
+            for (const app of acceptedApps) {
+                const p = await projectModel.findById(app.projectId);
+                if (p) {
+                    const existingWs = await workspaceModel.findOne({ projectId: p._id });
+                    if (!existingWs) {
+                        await workspaceModel.create({
+                            projectId: p._id,
+                            creatorId: p.creatorId,
+                            editorId: userObjectId,
+                            status: p.status === 'completed' ? 'completed' : 'active',
+                            members: [
+                                { user: p.creatorId, projectRole: 'creator', status: 'active' },
+                                { user: userObjectId, projectRole: 'lead_editor', status: 'active' }
+                            ]
+                        }).catch(() => {});
+                    }
+                }
+            }
+        }
+
+        // Fetch all workspaces where user is participant
+        const workspaces = await workspaceModel.find({
+            $or: [
+                { creatorId: userObjectId },
+                { editorId: userObjectId },
+                { 'members.user': userObjectId }
+            ]
+        })
+        .populate('projectId', 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks')
+        .populate('creatorId', 'name username email profileImage rating role')
+        .populate('editorId', 'name username email profileImage rating role')
+        .populate('members.user', 'name username email profileImage rating role')
+        .sort({ updatedAt: -1 });
+
+        // Augment each workspace with file count and group conversation ID
+        const enriched = await Promise.all(workspaces.map(async (ws) => {
+            const fileCount = await fileModel.countDocuments({ workspaceId: ws._id });
+            let conversationId = null;
+            try {
+                const conv = await getOrCreateProjectConversation(ws._id);
+                conversationId = conv?._id;
+            } catch (err) {
+                // ignore
+            }
+
+            return {
+                ...ws.toObject(),
+                fileCount,
+                conversationId
+            };
+        }));
+
+        return res.status(200).json({
+            count: enriched.length,
+            workspaces: enriched
+        });
+    } catch (err) {
+        console.error("Error in getMyWorkspacesController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching workspaces",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name getWorkspaceByIdController
+ * @description Get workspace details by workspace ID
+ * @route GET /api/workspace/:workspaceId
+ * @access Private
+ */
+async function getWorkspaceByIdController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const { workspaceId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
+            return res.status(400).json({ message: "Invalid workspace ID" });
+        }
+
+        const workspace = await workspaceModel.findById(workspaceId)
+            .populate('projectId', 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks')
+            .populate('creatorId', 'name username email profileImage rating role')
+            .populate('editorId', 'name username email profileImage rating role')
+            .populate('members.user', 'name username email profileImage rating role');
+
+        if (!workspace) {
+            return res.status(404).json({ message: "Workspace not found" });
+        }
+
+        const isMember = isWorkspaceMember(workspace, userId);
+        if (!isMember) {
+            return res.status(403).json({ message: "Forbidden: You are not a member of this workspace" });
+        }
+
+        const files = await fileModel.find({ workspaceId })
+            .populate('uploadedBy', 'name username role profileImage')
+            .sort({ createdAt: -1 });
+
+        let conversationId = null;
+        try {
+            const conv = await getOrCreateProjectConversation(workspace._id);
+            conversationId = conv?._id;
+        } catch (err) {}
+
+        return res.status(200).json({
+            workspace: {
+                ...workspace.toObject(),
+                files,
+                conversationId
+            }
+        });
+    } catch (err) {
+        console.error("Error in getWorkspaceByIdController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching workspace",
+            error: err.message
+        });
+    }
 }
 
 /**
@@ -986,7 +1152,10 @@ async function uploadWorkspaceFileController(req, res) {
             return res.status(400).json({ message: "Invalid workspace ID" });
         }
 
-        const workspace = await workspaceModel.findById(workspaceId);
+        let workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            workspace = await workspaceModel.findOne({ projectId: workspaceId });
+        }
         if (!workspace) {
             return res.status(404).json({ message: "Workspace not found" });
         }
@@ -999,12 +1168,42 @@ async function uploadWorkspaceFileController(req, res) {
             });
         }
 
-        const incomingFiles = Array.isArray(req.body.files) && req.body.files.length > 0 
+        let incomingFiles = Array.isArray(req.body.files) && req.body.files.length > 0 
             ? req.body.files 
             : (req.body.fileName && req.body.fileUrl ? [req.body] : null);
 
+        // Handle multipart uploaded files via multer
+        if (req.files && req.files.length > 0) {
+            incomingFiles = [];
+            for (const file of req.files) {
+                const ikRes = await uploadToImageKit(file.buffer, file.originalname, '/Capstone-storage/workspace-files');
+                incomingFiles.push({
+                    fileName: file.originalname,
+                    fileUrl: ikRes.url,
+                    imagekitFileId: ikRes.fileId,
+                    fileSize: file.size,
+                    fileType: file.mimetype,
+                    thumbnailUrl: ikRes.thumbnailUrl || ikRes.url,
+                    category: req.body.category || 'asset',
+                    storageType: 'in-app'
+                });
+            }
+        } else if (req.file) {
+            const ikRes = await uploadToImageKit(req.file.buffer, req.file.originalname, '/Capstone-storage/workspace-files');
+            incomingFiles = [{
+                fileName: req.file.originalname,
+                fileUrl: ikRes.url,
+                imagekitFileId: ikRes.fileId,
+                fileSize: req.file.size,
+                fileType: req.file.mimetype,
+                thumbnailUrl: ikRes.thumbnailUrl || ikRes.url,
+                category: req.body.category || 'asset',
+                storageType: 'in-app'
+            }];
+        }
+
         if (!incomingFiles || incomingFiles.length === 0) {
-            return res.status(400).json({ message: "File information is required (fileName and fileUrl, or files array)" });
+            return res.status(400).json({ message: "File information is required (fileName and fileUrl, or files array, or file upload)" });
         }
 
         const MAX_DIRECT_FILE_SIZE = 25 * 1024 * 1024; // 25 MB limit for direct in-app uploads
@@ -1033,7 +1232,7 @@ async function uploadWorkspaceFileController(req, res) {
             const finalFileName = (f.fileName || f.title || 'asset').trim();
 
             return {
-                workspaceId,
+                workspaceId: workspace._id,
                 uploadedBy: userId,
                 title: finalTitle,
                 fileName: finalFileName,
@@ -1109,7 +1308,10 @@ async function getWorkspaceFilesController(req, res) {
             return res.status(400).json({ message: "Invalid workspace ID" });
         }
 
-        const workspace = await workspaceModel.findById(workspaceId);
+        let workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            workspace = await workspaceModel.findOne({ projectId: workspaceId });
+        }
         if (!workspace) {
             return res.status(404).json({ message: "Workspace not found" });
         }
@@ -1122,7 +1324,7 @@ async function getWorkspaceFilesController(req, res) {
             });
         }
 
-        const files = await fileModel.find({ workspaceId })
+        const files = await fileModel.find({ workspaceId: workspace._id })
             .populate('uploadedBy', 'name username role profileImage')
             .sort({ createdAt: -1 });
 
@@ -1159,7 +1361,10 @@ async function deleteWorkspaceFileController(req, res) {
             return res.status(400).json({ message: "Invalid workspace or file ID" });
         }
 
-        const workspace = await workspaceModel.findById(workspaceId);
+        let workspace = await workspaceModel.findById(workspaceId);
+        if (!workspace) {
+            workspace = await workspaceModel.findOne({ projectId: workspaceId });
+        }
         if (!workspace) {
             return res.status(404).json({ message: "Workspace not found" });
         }
@@ -1173,7 +1378,7 @@ async function deleteWorkspaceFileController(req, res) {
             });
         }
 
-        const file = await fileModel.findOne({ _id: fileId, workspaceId });
+        const file = await fileModel.findOne({ _id: fileId, workspaceId: workspace._id });
         if (!file) {
             return res.status(404).json({ message: "File not found in this workspace" });
         }
@@ -1221,6 +1426,8 @@ async function deleteWorkspaceFileController(req, res) {
 }
 
 module.exports = {
+    getMyWorkspacesController,
+    getWorkspaceByIdController,
     getWorkspaceProgressController,
     updateWorkspaceProgressController,
     createRevisionController,

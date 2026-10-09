@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Sparkles, CheckCircle2, DollarSign, MessageSquare, RefreshCw } from 'lucide-react';
+import { Bell, Sparkles, CheckCircle2, DollarSign, MessageSquare } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { notificationService } from '../../services/notificationService';
 import { useAlert } from '../../context/AlertContext';
@@ -53,7 +53,7 @@ export const Notifications = () => {
 
   return (
     <div className="space-y-6 max-w-4xl animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight">Editor Notifications</h2>
           <p className="text-xs text-slate-400 mt-0.5">
@@ -61,7 +61,12 @@ export const Notifications = () => {
           </p>
         </div>
         {notifications.length > 0 && (
-          <Button variant="subtle" size="xs" onClick={markAllRead}>
+          <Button
+            variant="subtle"
+            size="xs"
+            onClick={markAllRead}
+            className="self-start sm:self-auto"
+          >
             Mark all as read
           </Button>
         )}
@@ -75,7 +80,7 @@ export const Notifications = () => {
             <Bell className="w-6 h-6" />
           </div>
           <p className="text-sm font-semibold text-white">No notifications yet</p>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
             You will receive updates here when creators accept your proposals, fund escrow, or review cuts.
           </p>
         </div>
@@ -87,30 +92,22 @@ export const Notifications = () => {
               <div
                 key={n.id}
                 onClick={() => n.unread && markSingleRead(n.id)}
-                className={`p-4 rounded-xl border flex items-start gap-3.5 transition-all cursor-pointer ${
+                className={`p-3.5 sm:p-4 rounded-xl border flex items-start gap-3 sm:gap-3.5 transition-all cursor-pointer ${
                   n.unread
                     ? 'bg-purple-950/20 border-purple-800/30'
                     : 'bg-[#141A28]/50 border-white/[0.04]'
                 }`}
               >
                 <div className={`p-2 rounded-xl shrink-0 ${color}`}>
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-white">{n.title || 'unknown'}</h4>
-                    <span className="text-[11px] text-slate-500 font-mono">{n.time || 'unknown'}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <h4 className="text-sm font-bold text-white truncate">{n.title}</h4>
+                    <span className="text-[10px] text-slate-500 font-mono shrink-0">{n.time}</span>
                   </div>
-                  <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{n.message || 'unknown'}</p>
-                  {n.project !== 'unknown' && (
-                    <span className="text-[10px] text-purple-400 font-semibold block mt-1">
-                      Project: {n.project}
-                    </span>
-                  )}
+                  <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{n.message}</p>
                 </div>
-                {n.unread && (
-                  <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0 mt-2" />
-                )}
               </div>
             );
           })}

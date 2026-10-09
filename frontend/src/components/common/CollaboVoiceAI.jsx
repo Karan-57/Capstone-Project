@@ -205,22 +205,11 @@ export const CollaboVoiceAI = () => {
         return;
       }
 
-      // 9. Switch Mode Intent
-      if (text.includes('editor') && (text.includes('switch') || text.includes('mode') || text.includes('view'))) {
-        setRole('editor');
-        const responseMsg = "Switched to Editor Pro workspace.";
+      // 9. Switch Mode Intent (Disabled for strict role security)
+      if (text.includes('switch') && (text.includes('role') || text.includes('mode') || text.includes('creator') || text.includes('editor'))) {
+        const responseMsg = "Account role switching is disabled for security. Creator and editor roles are separate accounts.";
         setAiResponse(responseMsg);
         speakText(responseMsg);
-        navigate('/editor/dashboard');
-        return;
-      }
-
-      if (text.includes('creator') && (text.includes('switch') || text.includes('mode') || text.includes('view'))) {
-        setRole('creator');
-        const responseMsg = "Switched to Creator Studio workspace.";
-        setAiResponse(responseMsg);
-        speakText(responseMsg);
-        navigate('/creator/dashboard');
         return;
       }
 

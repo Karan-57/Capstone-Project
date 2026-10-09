@@ -64,8 +64,29 @@ async function deleteImageKitFile(fileId) {
   }
 }
 
+/**
+ * Uploads a file buffer or base64 to ImageKit
+ * @param {Buffer|string} fileBuffer
+ * @param {string} fileName
+ * @param {string} folder
+ * @returns {Promise<Object>}
+ */
+async function uploadToImageKit(fileBuffer, fileName, folder = '/Capstone-storage') {
+  const client = getImageKitClient();
+  if (!client) {
+    throw new Error('ImageKit client is not configured');
+  }
+
+  return await client.upload({
+    file: fileBuffer,
+    fileName: fileName,
+    folder: folder,
+  });
+}
+
 module.exports = {
   getImageKitClient,
   getAuthenticationParameters,
   deleteImageKitFile,
+  uploadToImageKit,
 };

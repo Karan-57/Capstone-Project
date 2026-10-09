@@ -1,8 +1,22 @@
 const { Router } = require('express');
+const multer = require('multer');
 const workspaceController = require('../controllers/workspace.controller');
 const { authMiddleware } = require('../middleware/auth.middleware');
 
 const workspaceRouter = Router();
+
+// In-memory multer storage for workspace uploads (up to 25MB per file)
+const workspaceUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 25 * 1024 * 1024 }
+});
+
+/**
+ * @route GET api/workspace
+ * @description Get all workspaces accessible by current user
+ * @access Private
+ */
+workspaceRouter.get('/', authMiddleware, workspaceController.getMyWorkspacesController);
 
 /**
  * @route GET api/workspace/:workspaceId/progress
@@ -72,7 +86,7 @@ workspaceRouter.post(['/:deliveryId/approve', '/delivery/:deliveryId/approve'], 
  * @description Upload or add a file to the workspace
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.post('/:workspaceId/files', authMiddleware, workspaceController.uploadWorkspaceFileController);
+workspaceRouter.post('/:workspaceId/files', authMiddleware, workspaceUpload.any(), workspaceController.uploadWorkspaceFileController);
 
 /**
  * @route GET api/workspace/:workspaceId/files
@@ -87,6 +101,13 @@ workspaceRouter.get('/:workspaceId/files', authMiddleware, workspaceController.g
  * @access Private (Workspace Creator or Uploader)
  */
 workspaceRouter.delete(['/:workspaceId/files/:fileId', '/:workspaceId/files/:id'], authMiddleware, workspaceController.deleteWorkspaceFileController);
+
+/**
+ * @route GET api/workspace/:workspaceId
+ * @description Get workspace details by workspace ID
+ * @access Private
+ */
+workspaceRouter.get('/:workspaceId', authMiddleware, workspaceController.getWorkspaceByIdController);
 
 module.exports = workspaceRouter;
 

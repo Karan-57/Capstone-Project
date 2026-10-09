@@ -13,8 +13,7 @@ import {
   Compass,
   FileCheck2,
   PlaySquare,
-  Wallet,
-  RefreshCw
+  Wallet
 } from 'lucide-react';
 import CollaboLogo from '../../assets/logos/CollaboLogo';
 import { useAuth } from '../../context/AuthContext';
@@ -22,7 +21,7 @@ import { useAuth } from '../../context/AuthContext';
 import { X } from 'lucide-react';
 
 export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
-  const { role: contextRole, setRole, toggleRole, logout } = useAuth();
+  const { role: contextRole, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -52,18 +51,6 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
   ];
 
   const currentNavItems = role === 'creator' ? creatorNavItems : editorNavItems;
-
-  const handleRoleSwitch = () => {
-    if (role === 'creator') {
-      if (setRole) setRole('editor');
-      else if (toggleRole) toggleRole();
-      navigate('/editor/dashboard');
-    } else {
-      if (setRole) setRole('creator');
-      else if (toggleRole) toggleRole();
-      navigate('/creator/dashboard');
-    }
-  };
 
   const handleLogout = () => {
     if (logout) {
@@ -99,31 +86,6 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
             </button>
           </div>
 
-        {/* Pierre Sù Inspired Frosted Capsule Mode Switcher */}
-        <div className="mb-4 p-2 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] flex items-center justify-between shadow-inner">
-          <div className="flex items-center gap-2 pl-1">
-            <span className={`w-2 h-2 rounded-full shadow-[0_0_8px] animate-pulse ${
-              role === 'creator' ? 'bg-purple-400 shadow-[#C084FC]' : 'bg-blue-400 shadow-[#60A5FA]'
-            }`} />
-            <span className={`text-[11px] font-bold uppercase tracking-wider font-mono ${
-              role === 'creator' ? 'text-purple-200' : 'text-blue-200'
-            }`}>
-              {role === 'creator' ? 'Creator Hub' : 'Editor Pro'}
-            </span>
-          </div>
-          <button
-            onClick={handleRoleSwitch}
-            title={`Switch to ${role === 'creator' ? 'Editor' : 'Creator'} View`}
-            className={`flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-xl transition-all border active:scale-95 ${
-              role === 'creator'
-                ? 'text-purple-300 hover:text-white bg-purple-900/40 hover:bg-purple-800/60 border-purple-500/20'
-                : 'text-blue-300 hover:text-white bg-blue-900/40 hover:bg-blue-800/60 border-blue-500/20'
-            }`}
-          >
-            <RefreshCw className="w-2.5 h-2.5" />
-            Switch
-          </button>
-        </div>
 
         {/* Navigation links with Pierre Sù / Apple Capsule Hover */}
         <nav className="space-y-1">

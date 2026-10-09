@@ -52,6 +52,10 @@ const projectSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    referenceImages: {
+      type: [String],
+      default: [],
+    },
     sampleFiles: {
       type: [String],
       default: [],

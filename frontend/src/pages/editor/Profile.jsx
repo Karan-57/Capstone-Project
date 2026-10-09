@@ -5,18 +5,12 @@ import {
   CheckCircle2,
   Film,
   Edit3,
-  Award,
-  ExternalLink,
   Play,
   UploadCloud,
-  Plus,
   X,
-  Clock,
-  Eye,
   Sparkles
 } from 'lucide-react';
 import Button from '../../components/common/Button';
-import FolderUploadDropzone from '../../components/common/FolderUploadDropzone';
 import { useAuth } from '../../context/AuthContext';
 import { DEFAULT_PFP } from '../../constants/assets';
 import api from '../../services/api';
@@ -109,11 +103,11 @@ export const EditorProfile = () => {
   return (
     <div className="space-y-7 max-w-5xl mx-auto pb-16 animate-fade-in">
       {/* Profile Card Header */}
-      <div className="glass-card p-6 md:p-8 border border-white/[0.08] relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-blue-900/20"></div>
+      <div className="glass-card p-5 sm:p-6 md:p-8 border border-white/[0.08] relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-blue-900/20"></div>
 
-        <div className="relative pt-12 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
-          <div className="flex items-end gap-4">
+        <div className="relative pt-10 sm:pt-12 flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
             <img
               src={editorUser?.profileImage || editorUser?.avatar || DEFAULT_PFP}
               alt={editorUser?.name || 'unknown'}
@@ -121,11 +115,11 @@ export const EditorProfile = () => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
               }}
-              className="w-24 h-24 rounded-2xl object-cover border-4 border-[#0F1420] shadow-2xl"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-[#0F1420] shadow-2xl shrink-0"
             />
             <div className="mb-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-2xl font-bold text-white tracking-tight">{editorUser.name}</h2>
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{editorUser.name}</h2>
                 <CheckCircle2 className="w-4 h-4 text-purple-400 fill-purple-400/20" />
               </div>
               <p className="text-xs text-slate-300 mt-1">
@@ -134,12 +128,13 @@ export const EditorProfile = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="w-full sm:w-auto">
             <Button
               variant="primary"
               size="sm"
               icon={Edit3}
               onClick={() => navigate('/editor/edit-profile')}
+              className="w-full sm:w-auto"
             >
               Edit Profile & Showreel
             </Button>
@@ -147,9 +142,9 @@ export const EditorProfile = () => {
         </div>
 
         {/* Quick Stats Grid */}
-        <div className="mt-7 pt-5 border-t border-white/[0.05] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          <div>
-            <div className="text-xl font-bold text-white">
+        <div className="mt-6 sm:mt-7 pt-5 border-t border-white/[0.05] grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+          <div className="p-2 sm:p-0">
+            <div className="text-lg sm:text-xl font-bold text-white">
               {editorUser?.rating != null ? `${editorUser.rating} / 5.0` : '0 / 5.0'}
             </div>
             <div className="text-xs text-slate-400 flex items-center justify-center gap-1 mt-0.5">
@@ -157,39 +152,39 @@ export const EditorProfile = () => {
               <span>({editorUser?.totalReviews != null ? editorUser.totalReviews : 0} reviews)</span>
             </div>
           </div>
-          <div>
-            <div className="text-xl font-bold text-emerald-400">999</div>
+          <div className="p-2 sm:p-0">
+            <div className="text-lg sm:text-xl font-bold text-emerald-400">999</div>
             <div className="text-xs text-slate-400 mt-0.5">Earned on Collabo</div>
           </div>
-          <div>
-            <div className="text-xl font-bold text-purple-400">
+          <div className="p-2 sm:p-0">
+            <div className="text-lg sm:text-xl font-bold text-purple-400">
               {editorUser?.speed != null ? `${editorUser.speed} / 10` : '0 / 10'}
             </div>
             <div className="text-xs text-slate-400 mt-0.5">Speed Rating</div>
           </div>
-          <div>
-            <div className="text-xl font-bold text-white">999</div>
-            <div className="text-xs text-slate-400 mt-0.5">Productions Completed</div>
+          <div className="p-2 sm:p-0">
+            <div className="text-lg sm:text-xl font-bold text-white">999</div>
+            <div className="text-xs text-slate-400 mt-0.5">Productions Done</div>
           </div>
         </div>
       </div>
 
-      {/* TABS SECTION BELOW PROFILE DETAILS (Requested Feature) */}
+      {/* TABS SECTION */}
       <div className="space-y-5">
         {/* Navigation Tabs Bar */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 flex-wrap gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.08] pb-3 gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full pb-1">
             {[
-              { id: 'portfolio', label: `Portfolio & Works (${portfolioItems.length})`, icon: Film },
+              { id: 'portfolio', label: `Portfolio (${portfolioItems.length})`, icon: Film },
               { id: 'showreel', label: 'Featured Showreel', icon: Sparkles },
-              { id: 'reviews', label: `Client Reviews (${editorUser?.totalReviews || realReviews.length || 0})`, icon: Star },
+              { id: 'reviews', label: `Reviews (${editorUser?.totalReviews || realReviews.length || 0})`, icon: Star },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                     activeTab === tab.id
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-900/30'
                       : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
@@ -202,13 +197,12 @@ export const EditorProfile = () => {
             })}
           </div>
 
-          {/* Upload New Cut CTA Button */}
           <Button
             variant="subtle"
             size="sm"
             icon={UploadCloud}
             onClick={() => setShowUploadModal(true)}
-            className="bg-[#182030] hover:bg-purple-900/30 text-purple-200 border-purple-500/30"
+            className="bg-[#182030] hover:bg-purple-900/30 text-purple-200 border-purple-500/30 self-start sm:self-auto"
           >
             Upload Sample Cut
           </Button>
@@ -218,7 +212,6 @@ export const EditorProfile = () => {
         {activeTab === 'portfolio' && (
           <div className="space-y-6">
             {portfolioItems.length === 0 ? (
-              /* Empty State if user is new */
               <div className="glass-card p-12 text-center border border-white/[0.08] rounded-2xl space-y-4">
                 <div className="w-16 h-16 rounded-2xl bg-purple-950/40 border border-purple-800/30 flex items-center justify-center text-purple-400 mx-auto">
                   <Film className="w-8 h-8" />
@@ -237,8 +230,7 @@ export const EditorProfile = () => {
                 </Button>
               </div>
             ) : (
-              /* Grid of Playable Video Samples */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                 {portfolioItems.map((item) => (
                   <div
                     key={item.id}
@@ -260,7 +252,6 @@ export const EditorProfile = () => {
                         </div>
                       </div>
 
-                      {/* Runtime Badge */}
                       <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-sm text-[11px] font-mono font-bold text-white">
                         {item.runtime}
                       </span>
@@ -294,7 +285,7 @@ export const EditorProfile = () => {
                         </div>
                         <button
                           onClick={() => setPlayingVideo(item)}
-                          className="text-xs font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                          className="text-xs font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1 cursor-pointer"
                         >
                           Watch <Play className="w-3 h-3 fill-purple-400" />
                         </button>
@@ -309,23 +300,23 @@ export const EditorProfile = () => {
 
         {/* TAB CONTENT: Featured Showreel */}
         {activeTab === 'showreel' && (
-          <div className="glass-card p-6 md:p-8 rounded-2xl border border-white/[0.08] space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="glass-card p-5 sm:p-6 md:p-8 rounded-2xl border border-white/[0.08] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="text-lg font-bold text-white">2026 Commercial & YouTube Showreel (4K)</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Runtime: 1m 45s • High Retention Fast Cuts</p>
+                <h3 className="text-lg font-bold text-white">Featured Production Showreel</h3>
+                <p className="text-xs text-slate-400 mt-0.5">High-retention editing samples and master visual reels</p>
               </div>
               <Button
                 variant="subtle"
                 size="xs"
                 icon={Edit3}
                 onClick={() => navigate('/editor/edit-profile')}
+                className="self-start sm:self-auto"
               >
                 Update URL
               </Button>
             </div>
 
-            {/* Video Player Display */}
             <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/[0.1] shadow-2xl relative">
               <video
                 controls
@@ -354,7 +345,7 @@ export const EditorProfile = () => {
               </div>
             ) : (
               realReviews.map((rev, idx) => (
-                <div key={rev._id || idx} className="glass-card p-5 rounded-2xl border border-white/[0.06] space-y-2">
+                <div key={rev._id || idx} className="glass-card p-4 sm:p-5 rounded-2xl border border-white/[0.06] space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-bold text-white">
@@ -369,7 +360,7 @@ export const EditorProfile = () => {
                       <span>{rev.rating != null ? rev.rating : 999}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-300 italic">"{rev.comment || 'unknown'}"</p>
+                  <p className="text-xs text-slate-300 italic leading-relaxed">"{rev.comment || 'unknown'}"</p>
                   <span className="text-[10px] text-slate-500 block font-mono">
                     {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : 'unknown'}
                   </span>
@@ -385,13 +376,13 @@ export const EditorProfile = () => {
         <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
           <div className="w-full max-w-3xl glass-card rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl">
             <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-[#0F1422]">
-              <div>
-                <h4 className="text-sm font-bold text-white">{playingVideo.title}</h4>
-                <p className="text-xs text-slate-400">{playingVideo.category} • Client: {playingVideo.client}</p>
+              <div className="min-w-0 pr-3">
+                <h4 className="text-sm font-bold text-white truncate">{playingVideo.title}</h4>
+                <p className="text-xs text-slate-400 truncate">{playingVideo.category} • Client: {playingVideo.client}</p>
               </div>
               <button
                 onClick={() => setPlayingVideo(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white"
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -409,14 +400,14 @@ export const EditorProfile = () => {
         </div>
       )}
 
-      {/* UPLOAD PORTFOLIO CUT MODAL with 3D FOLDER DRAG-AND-DROP */}
+      {/* UPLOAD PORTFOLIO CUT MODAL */}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-lg glass-card p-6 md:p-7 rounded-2xl border border-white/[0.1] shadow-2xl space-y-5">
+          <div className="w-full max-w-lg glass-card p-5 sm:p-7 rounded-2xl border border-white/[0.1] shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
               <div>
-                <h3 className="text-lg font-bold text-white">Upload Sample Cut / Portfolio Item</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Drag files into the folder to add to your showcase</p>
+                <h3 className="text-lg font-bold text-white">Upload Sample Cut</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Add a new video sample to showcase to creators</p>
               </div>
               <button
                 onClick={() => setShowUploadModal(false)}
@@ -448,30 +439,18 @@ export const EditorProfile = () => {
                 >
                   <option>YouTube Longform</option>
                   <option>Short Form (Reels/TikTok)</option>
+                  <option>Travel / Cinematic</option>
                   <option>Commercial / Ad</option>
-                  <option>Documentary & Essay</option>
+                  <option>Gaming / Stream</option>
                 </select>
               </div>
 
-              {/* Interactive Folder Upload Dropzone */}
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Video File & Project Archive
-                </label>
-                <FolderUploadDropzone
-                  label="Drag MP4 / MOV Video Cut into Folder"
-                  description="Aura lights up on drag. File merges automatically into your portfolio library."
-                  acceptedFileTypes="video/*"
-                  badgeText="VIDEO"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3">
-                <Button variant="ghost" onClick={() => setShowUploadModal(false)}>
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-3">
+                <Button variant="ghost" onClick={() => setShowUploadModal(false)} className="w-full sm:w-auto">
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary">
-                  Publish to Portfolio
+                <Button type="submit" variant="primary" icon={UploadCloud} className="w-full sm:w-auto">
+                  Save Sample Cut
                 </Button>
               </div>
             </form>

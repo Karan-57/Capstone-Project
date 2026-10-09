@@ -6,7 +6,7 @@ import { notificationService } from '../../services/notificationService';
 import { DEFAULT_PFP } from '../../constants/assets';
 
 export const Header = ({ onSearchChange, onMenuClick }) => {
-  const { role, currentUser, toggleRole } = useAuth();
+  const { role, currentUser } = useAuth();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
 
