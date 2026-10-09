@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { projectService } from '../services/projectService';
-import { applicationService, initialApplicationsData } from '../services/applicationService';
+import { applicationService } from '../services/applicationService';
 import { paymentService } from '../services/paymentService';
 import { messageService } from '../services/messageService';
 
@@ -9,7 +9,7 @@ export const useDashboardData = () => {
   const [creatorProjects, setCreatorProjects] = useState([]);
   const [editorRecommended, setEditorRecommended] = useState([]);
   const [editorActive, setEditorActive] = useState([]);
-  const [applications, setApplications] = useState(initialApplicationsData);
+  const [applications, setApplications] = useState([]);
   const [earningsData, setEarningsData] = useState(null);
   const [editorEarnings, setEditorEarnings] = useState(null);
   const [messages, setMessages] = useState([]);

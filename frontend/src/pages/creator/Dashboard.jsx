@@ -5,8 +5,7 @@ import {
   DollarSign,
   Users,
   Star,
-  MessageSquare,
-  ArrowRight
+  MessageSquare
 } from 'lucide-react';
 import StatsCard from '../../components/common/StatsCard';
 import ActiveProjects from '../../components/creator/ActiveProjects';
@@ -18,9 +17,11 @@ import QuickActions from '../../components/creator/QuickActions';
 import MessageCard from '../../components/common/MessageCard';
 import Button from '../../components/common/Button';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { useAuth } from '../../context/AuthContext';
 
 export const CreatorDashboard = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const {
     loading,
     creatorProjects,
@@ -32,10 +33,11 @@ export const CreatorDashboard = () => {
   const totalProjectsCount = creatorProjects.length;
   const activeProjectsCount = creatorProjects.filter(p => p.rawStatus === 'in_progress' || p.rawStatus === 'assigned' || p.status === 'In Progress' || p.status === 'Assigned').length;
   const pendingApplicationsCount = applications.filter(a => a.status === 'pending').length || applications.length;
+  const ratingValue = currentUser?.rating != null && currentUser.rating > 0 ? String(currentUser.rating) : '999';
 
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
-      {/* SECTION 1: Top Quick Stats (Calculated from real state) */}
+      {/* SECTION 1: Top Quick Stats (Calculated from real state & user) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
         <StatsCard
           icon={FolderKanban}
@@ -64,9 +66,9 @@ export const CreatorDashboard = () => {
         <StatsCard
           icon={Star}
           iconBg="bg-amber-600/20 text-amber-400 border border-amber-500/25"
-          value="4.9"
+          value={ratingValue}
           title="Avg Rating"
-          trend="Top Creator"
+          trend={ratingValue === '999' ? 'unknown' : 'Top Creator'}
           isPositive={true}
         />
       </section>
@@ -112,15 +114,21 @@ export const CreatorDashboard = () => {
               </button>
             </div>
 
-            <div className="space-y-1.5">
-              {messages.slice(0, 3).map((msg) => (
-                <MessageCard
-                  key={msg.id}
-                  message={msg}
-                  onClick={() => navigate('/creator/messages')}
-                />
-              ))}
-            </div>
+            {messages.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-500">
+                No active conversations
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {messages.slice(0, 3).map((msg) => (
+                  <MessageCard
+                    key={msg.id}
+                    message={msg}
+                    onClick={() => navigate('/creator/messages')}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="mt-4 pt-3 border-t border-white/[0.04]">
@@ -135,78 +143,15 @@ export const CreatorDashboard = () => {
           </div>
         </div>
 
-        {/* Right: Earnings Overview */}
+        {/* Right: Earnings Overview (Payment exception) */}
         <div className="h-full">
           <EarningsOverview />
         </div>
       </section>
 
-      {/* SECTION 3: Upcoming Deadlines & Project Pipeline */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5.5 mt-6">
-        <div className="lg:col-span-5">
-          <UpcomingDeadlines />
-        </div>
-
-        {/* Project Pipeline & Hiring Funnel Card */}
-        <div className="lg:col-span-7 glass-panel p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-white tracking-tight">
-                Production Pipeline & Hiring Funnel
-              </h3>
-              <span className="text-xs text-purple-400 font-semibold">12 Active Tracks</span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2 text-center mb-5">
-              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                <span className="text-xs text-slate-400 block font-medium">Briefed</span>
-                <span className="text-xl font-extrabold text-white mt-1 block">4</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-purple-950/20 border border-purple-800/30">
-                <span className="text-xs text-purple-300 block font-medium">Bidding</span>
-                <span className="text-xl font-extrabold text-purple-200 mt-1 block">8</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-amber-950/20 border border-amber-800/30">
-                <span className="text-xs text-amber-300 block font-medium">In Editing</span>
-                <span className="text-xl font-extrabold text-amber-200 mt-1 block">3</span>
-              </div>
-              <div className="p-3 rounded-2xl bg-emerald-950/20 border border-emerald-800/30">
-                <span className="text-xs text-emerald-300 block font-medium">Cleared</span>
-                <span className="text-xl font-extrabold text-emerald-200 mt-1 block">1</span>
-              </div>
-            </div>
-
-            {/* Top Editor Leaderboard */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                Top Rated Editors Available Now
-              </span>
-              {[
-                { name: 'Rahul Verma', specialty: 'Full-Stack Cuts', rating: 4.9, completed: 32, avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&auto=format&fit=crop&q=80' },
-                { name: 'Priya Mehta', specialty: 'Documentaries & Color', rating: 4.9, completed: 28, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&auto=format&fit=crop&q=80' },
-              ].map((ed, i) => (
-                <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="flex items-center gap-2.5">
-                    <img src={ed.avatar} alt={ed.name} className="w-8 h-8 rounded-full object-cover border border-purple-500/30" />
-                    <div>
-                      <h4 className="text-xs font-bold text-white">{ed.name}</h4>
-                      <span className="text-[10px] text-slate-400">{ed.specialty} • {ed.completed} cuts</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-amber-400">★ {ed.rating}</span>
-                    <button
-                      onClick={() => navigate('/creator/applications')}
-                      className="px-2.5 py-1 text-[11px] font-semibold bg-purple-900/30 hover:bg-purple-800/50 text-purple-300 rounded-lg transition-colors"
-                    >
-                      Invite
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      {/* SECTION 3: Upcoming Deadlines */}
+      <section className="mt-6">
+        <UpcomingDeadlines projects={creatorProjects} />
       </section>
     </div>
   );

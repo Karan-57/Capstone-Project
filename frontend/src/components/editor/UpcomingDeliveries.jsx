@@ -1,34 +1,11 @@
 import React from 'react';
-import { Clock, AlertTriangle, UploadCloud, CheckCircle } from 'lucide-react';
+import { Clock, AlertTriangle, UploadCloud } from 'lucide-react';
 import Button from '../common/Button';
 
-export const UpcomingDeliveries = () => {
-  const deliveries = [
-    {
-      id: 'del-1',
-      project: 'SaaS Product Walkthrough Demo',
-      client: 'CloudFlow Labs',
-      stage: 'Rough Cut v2',
-      dueIn: '18 hours',
-      isUrgent: true,
-    },
-    {
-      id: 'del-2',
-      project: 'Deep Dive: AI Revolution 2026',
-      client: 'Nexus Media Corp',
-      stage: 'Color & Sound Grade',
-      dueIn: '34 hours',
-      isUrgent: false,
-    },
-    {
-      id: 'del-3',
-      project: 'Viral Reel Pack (Weekly Drop)',
-      client: 'Chloe Adams',
-      stage: 'Dynamic Captions Pass',
-      dueIn: '3 days',
-      isUrgent: false,
-    },
-  ];
+export const UpcomingDeliveries = ({ projects = [] }) => {
+  const activeDeliveries = projects
+    .filter((p) => p.status !== 'Delivered' && p.status !== 'completed')
+    .slice(0, 3);
 
   return (
     <div className="glass-card p-5.5 flex flex-col justify-between h-full">
@@ -38,52 +15,49 @@ export const UpcomingDeliveries = () => {
             <Clock className="w-4 h-4 text-purple-400" />
             Upcoming Deliveries
           </h3>
-          <span className="text-xs text-slate-400">Next 72 Hours</span>
+          <span className="text-xs text-slate-400">
+            {activeDeliveries.length ? `${activeDeliveries.length} Active` : '0 Active'}
+          </span>
         </div>
 
-        <div className="space-y-3">
-          {deliveries.map((item) => (
-            <div
-              key={item.id}
-              className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
-                item.isUrgent
-                  ? 'bg-rose-500/10 border-rose-500/30'
-                  : 'bg-[#141A28]/60 border-white/[0.04]'
-              }`}
-            >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
+        {activeDeliveries.length === 0 ? (
+          <div className="py-8 text-center text-xs text-slate-500">
+            No upcoming deliveries scheduled
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {activeDeliveries.map((item) => (
+              <div
+                key={item.id}
+                className="p-3 rounded-xl border flex items-center justify-between gap-3 bg-[#141A28]/60 border-white/[0.04]"
+              >
+                <div className="min-w-0">
                   <h4 className="text-xs font-semibold text-white truncate">
-                    {item.project}
+                    {item.title || 'unknown'}
                   </h4>
-                  {item.isUrgent && (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-rose-400 bg-rose-500/20 px-1.5 py-0.5 rounded">
-                      <AlertTriangle className="w-3 h-3" /> Urgent
-                    </span>
-                  )}
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {item.client || 'unknown'} • <span className="text-purple-300">{item.deliverableType || 'unknown'}</span>
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  {item.client} • <span className="text-purple-300">{item.stage}</span>
-                </p>
-              </div>
 
-              <div className="text-right shrink-0">
-                <div className="text-xs font-semibold text-white mb-1">
-                  Due in {item.dueIn}
+                <div className="text-right shrink-0">
+                  <div className="text-xs font-semibold text-white mb-1">
+                    Due {item.dueDate || 'unknown'}
+                  </div>
+                  <Button
+                    variant="subtle"
+                    size="xs"
+                    icon={UploadCloud}
+                    onClick={() => {}}
+                    className="bg-[#1C2333] hover:bg-[#253047] text-slate-200"
+                  >
+                    Deliver
+                  </Button>
                 </div>
-                <Button
-                  variant="subtle"
-                  size="xs"
-                  icon={UploadCloud}
-                  onClick={() => alert(`Upload delivery for ${item.project}`)}
-                  className="bg-[#1C2333] hover:bg-[#253047] text-slate-200"
-                >
-                  Deliver
-                </Button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

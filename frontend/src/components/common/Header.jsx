@@ -72,7 +72,7 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
         >
           <Bell className="w-4 h-4" />
           <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow">
-            {currentUser.unreadNotifications || 3}
+            {currentUser.unreadNotifications != null ? currentUser.unreadNotifications : 999}
           </span>
         </button>
 

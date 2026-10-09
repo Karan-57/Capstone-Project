@@ -1,24 +1,50 @@
-import React, { useState } from 'react';
-import { Star, Check, X, User, DollarSign, Clock, MessageSquare, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, Check, X, User, DollarSign, Clock, Search } from 'lucide-react';
 import Button from '../../components/common/Button';
-import { initialApplicationsData } from '../../services/applicationService';
+import { applicationService } from '../../services/applicationService';
+import api from '../../services/api';
 
 export const Applications = () => {
-  const [applications, setApplications] = useState(initialApplicationsData);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
-  const handleStatusChange = (id, newStatus) => {
-    setApplications(prev =>
-      prev.map(app => (app.id === id ? { ...app, status: newStatus } : app))
-    );
+  const loadApps = async () => {
+    setLoading(true);
+    const data = await applicationService.getApplications();
+    setApplications(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadApps();
+  }, []);
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      if (newStatus === 'accepted') {
+        await api.post(`/api/application/${id}/accept`);
+      } else if (newStatus === 'rejected') {
+        await api.post(`/api/application/${id}/reject`);
+      }
+      setApplications(prev =>
+        prev.map(app => (app.id === id ? { ...app, status: newStatus } : app))
+      );
+    } catch (err) {
+      console.error('Failed to update application status', err);
+      // Optimistic update fallback
+      setApplications(prev =>
+        prev.map(app => (app.id === id ? { ...app, status: newStatus } : app))
+      );
+    }
   };
 
   const filtered = applications.filter(app => {
     const matchesFilter = filter === 'all' || app.status === filter;
-    const matchesSearch = app.name.toLowerCase().includes(search.toLowerCase()) ||
-                          app.role.toLowerCase().includes(search.toLowerCase()) ||
-                          app.appliedFor.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = (app.name || '').toLowerCase().includes(search.toLowerCase()) ||
+                          (app.role || '').toLowerCase().includes(search.toLowerCase()) ||
+                          (app.appliedFor || '').toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -62,74 +88,84 @@ export const Applications = () => {
       </div>
 
       {/* Applications List */}
-      <div className="space-y-3">
-        {filtered.map((app) => (
-          <div
-            key={app.id}
-            className="glass-card p-4.5 border border-white/[0.06] flex flex-col md:flex-row md:items-center justify-between gap-4"
-          >
-            <div className="flex items-start gap-3.5 min-w-0">
-              <img
-                src={app.avatar}
-                alt={app.name}
-                className="w-12 h-12 rounded-full object-cover border border-white/10 shrink-0"
-              />
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="text-sm font-bold text-white">{app.name}</h4>
-                  <span className="flex items-center gap-0.5 text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                    <Star className="w-3 h-3 fill-amber-400" />
-                    {app.rating}
-                  </span>
-                  <span className="text-xs text-slate-400">• {app.role}</span>
+      {loading ? (
+        <div className="py-16 text-center text-xs text-slate-400">Loading applications...</div>
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center text-xs text-slate-500">
+          No applications found
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((app) => (
+            <div
+              key={app.id}
+              className="glass-card p-5 border border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
+              <div className="flex items-start gap-3.5">
+                <img
+                  src={app.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                  alt={app.name || 'unknown'}
+                  className="w-12 h-12 rounded-xl object-cover border border-white/10 shrink-0"
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-white">{app.name || 'unknown'}</h3>
+                    <span className="text-xs text-amber-400 font-semibold flex items-center gap-0.5">
+                      <Star className="w-3 h-3 fill-amber-400" />
+                      {app.rating != null ? app.rating : 999}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">{app.role || 'unknown'}</p>
+                  <p className="text-[11px] text-purple-300 font-medium mt-1">
+                    Applied for: {app.appliedFor || 'unknown'} • {app.appliedDate || 'unknown'}
+                  </p>
                 </div>
-                <p className="text-xs text-purple-300 mt-1">
-                  Applied for: <strong className="font-semibold">{app.appliedFor}</strong>
-                </p>
-                <div className="flex items-center gap-4 text-xs text-slate-400 mt-2">
-                  <span>Proposed Rate: <strong className="text-emerald-400">{app.price}</strong></span>
-                  <span>Turnaround: <strong className="text-white">{app.duration}</strong></span>
-                  <span>{app.appliedDate}</span>
+              </div>
+
+              <div className="flex items-center gap-4 self-end sm:self-auto">
+                <div className="text-right">
+                  <div className="text-sm font-bold text-emerald-400">{app.price || '999'}</div>
+                  <div className="text-[11px] text-slate-400">{app.duration || '999'}</div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {app.status === 'pending' ? (
+                    <>
+                      <Button
+                        variant="primary"
+                        size="xs"
+                        icon={Check}
+                        onClick={() => handleStatusChange(app.id, 'accepted')}
+                      >
+                        Accept
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        icon={X}
+                        onClick={() => handleStatusChange(app.id, 'rejected')}
+                        className="text-rose-400 hover:text-rose-300 hover:bg-rose-950/20"
+                      >
+                        Decline
+                      </Button>
+                    </>
+                  ) : (
+                    <span
+                      className={`px-3 py-1 text-xs font-semibold rounded-full capitalize ${
+                        app.status === 'accepted'
+                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25'
+                          : 'bg-rose-500/15 text-rose-300 border border-rose-500/25'
+                      }`}
+                    >
+                      {app.status}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
-              {app.status === 'pending' ? (
-                <>
-                  <Button
-                    variant="accept"
-                    size="sm"
-                    icon={Check}
-                    onClick={() => handleStatusChange(app.id, 'accepted')}
-                  >
-                    Accept Application
-                  </Button>
-                  <Button
-                    variant="reject"
-                    size="sm"
-                    icon={X}
-                    onClick={() => handleStatusChange(app.id, 'rejected')}
-                  >
-                    Reject
-                  </Button>
-                </>
-              ) : (
-                <span
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl capitalize ${
-                    app.status === 'accepted'
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                  }`}
-                >
-                  {app.status}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

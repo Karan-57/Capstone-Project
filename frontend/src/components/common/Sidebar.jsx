@@ -34,7 +34,7 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
     { label: 'Create Project', path: '/creator/create-project', icon: FolderPlus },
     { label: 'Applications', path: '/creator/applications', icon: Users },
     { label: 'Workspace', path: '/creator/workspace', icon: Layers, badge: 'Live' },
-    { label: 'Notifications', path: '/creator/notifications', icon: Bell, badge: '3' },
+    { label: 'Notifications', path: '/creator/notifications', icon: Bell },
     { label: 'Profile', path: '/creator/profile', icon: User },
     { label: 'Settings', path: '/creator/settings', icon: Settings },
   ];
@@ -43,7 +43,7 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
     { label: 'Dashboard', path: '/editor/dashboard', icon: LayoutDashboard },
     { label: 'Browse Projects', path: '/editor/browse', icon: Compass },
     { label: 'My Applications', path: '/editor/applications', icon: FileCheck2 },
-    { label: 'Active Projects', path: '/editor/active-projects', icon: PlaySquare, badge: '3' },
+    { label: 'Active Projects', path: '/editor/active-projects', icon: PlaySquare },
     { label: 'Workspace', path: '/editor/workspace', icon: Layers, badge: 'Live' },
     { label: 'Earnings', path: '/editor/earnings', icon: Wallet },
     { label: 'Notifications', path: '/editor/notifications', icon: Bell },

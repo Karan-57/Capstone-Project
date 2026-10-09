@@ -1,44 +1,64 @@
-import React, { useState } from 'react';
-import { Plus, Search, Filter, Calendar, DollarSign, Clock, Users, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, DollarSign, Clock } from 'lucide-react';
 import Button from '../../components/common/Button';
 import ProjectCard from '../../components/common/ProjectCard';
-import { creatorProjectsData } from '../../services/projectService';
+import { projectService, mapBackendProject } from '../../services/projectService';
+import api from '../../services/api';
 
 export const Projects = () => {
   const [filter, setFilter] = useState('all');
-  const [projects, setProjects] = useState(creatorProjectsData);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [newProject, setNewProject] = useState({
     title: '',
     category: 'Video Editing',
-    budget: '₹25,000',
-    tags: 'YouTube, Premiere Pro',
+    budget: '999',
+    tags: 'unknown',
+    description: 'unknown'
   });
+
+  const loadProjects = async () => {
+    setLoading(true);
+    const data = await projectService.getCreatorProjects();
+    setProjects(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
 
   const filtered = projects.filter(p => {
     if (filter === 'all') return true;
     return p.status.toLowerCase().replace(' ', '-') === filter;
   });
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
-    const created = {
-      id: `proj-${Date.now()}`,
-      title: newProject.title,
-      tags: newProject.tags.split(',').map(t => t.trim()),
-      category: newProject.category,
-      iconType: 'film',
-      iconBg: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
-      status: 'Open',
-      statusColor: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-      assignedEditor: null,
-      progress: 0,
-      deadline: '2026-09-30',
-      budget: newProject.budget,
-    };
-    setProjects([created, ...projects]);
-    setShowModal(false);
-    setNewProject({ title: '', category: 'Video Editing', budget: '₹25,000', tags: 'YouTube, Premiere Pro' });
+    try {
+      const skills = newProject.tags ? newProject.tags.split(',').map(t => t.trim()) : ['unknown'];
+      const budgetNum = parseInt(newProject.budget.replace(/[^0-9]/g, ''), 10) || 999;
+      
+      const res = await api.post('/api/creator/projects', {
+        title: newProject.title.trim() || 'unknown',
+        description: newProject.description?.trim() || 'unknown',
+        category: newProject.category || 'unknown',
+        requiredSkills: skills,
+        budget: { fixed: budgetNum },
+      });
+
+      if (res.data?.project) {
+        setProjects(prev => [mapBackendProject(res.data.project), ...prev]);
+      } else {
+        await loadProjects();
+      }
+      setShowModal(false);
+      setNewProject({ title: '', category: 'Video Editing', budget: '999', tags: 'unknown', description: 'unknown' });
+    } catch (err) {
+      console.error('Failed to create project', err);
+      alert(err.response?.data?.message || 'Failed to create project');
+    }
   };
 
   return (
@@ -79,40 +99,48 @@ export const Projects = () => {
       </div>
 
       {/* Projects Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filtered.map((proj) => (
-          <div key={proj.id} className="glass-card p-5 space-y-3.5 border border-white/[0.06]">
-            <ProjectCard project={proj} />
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.04]">
-              <span className="flex items-center gap-1.5">
-                <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-                Budget: <strong className="text-white font-semibold">{proj.budget}</strong>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-purple-400" />
-                Deadline: {proj.deadline}
-              </span>
-            </div>
-            {proj.assignedEditor && (
-              <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <img
-                    src={proj.assignedEditor.avatar}
-                    alt={proj.assignedEditor.name}
-                    className="w-7 h-7 rounded-full object-cover"
-                  />
-                  <span className="text-xs text-slate-300">
-                    Editor: <strong className="text-white">{proj.assignedEditor.name}</strong>
-                  </span>
-                </div>
-                <span className="text-xs font-semibold text-purple-400">
-                  {proj.progress}% Done
+      {loading ? (
+        <div className="py-16 text-center text-xs text-slate-400">Loading projects...</div>
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center text-xs text-slate-500">
+          No projects found in this category
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filtered.map((proj) => (
+            <div key={proj.id} className="glass-card p-5 space-y-3.5 border border-white/[0.06]">
+              <ProjectCard project={proj} />
+              <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.04]">
+                <span className="flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                  Budget: <strong className="text-white font-semibold">{proj.budget}</strong>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-purple-400" />
+                  Deadline: {proj.deadline}
                 </span>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
+              {proj.assignedEditor && (
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={proj.assignedEditor.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                      alt={proj.assignedEditor.name}
+                      className="w-7 h-7 rounded-full object-cover"
+                    />
+                    <span className="text-xs text-slate-300">
+                      Editor: <strong className="text-white">{proj.assignedEditor.name}</strong>
+                    </span>
+                  </div>
+                  <span className="text-xs font-semibold text-purple-400">
+                    {proj.progress}% Done
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Create Project Modal */}
       {showModal && (
@@ -127,9 +155,21 @@ export const Projects = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 15-Minute Mystery Documentary Video"
+                  placeholder="e.g. YouTube Video Edit"
                   value={newProject.title}
                   onChange={e => setNewProject({...newProject, title: e.target.value})}
+                  className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-300 block mb-1">Description</label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Details and scope..."
+                  value={newProject.description}
+                  onChange={e => setNewProject({...newProject, description: e.target.value})}
                   className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
@@ -146,7 +186,7 @@ export const Projects = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-300 block mb-1">Tags (comma separated)</label>
+                  <label className="text-xs text-slate-300 block mb-1">Skills (comma separated)</label>
                   <input
                     type="text"
                     value={newProject.tags}
