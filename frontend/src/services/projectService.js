@@ -144,8 +144,131 @@ export const editorActiveProjectsData = [
   }
 ];
 
+import api from './api';
+
+const mapBackendProject = (p) => {
+  const iconTypes = ['film', 'layout', 'smartphone', 'shopping-cart'];
+  const iconBgs = [
+    'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+    'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+    'bg-pink-500/10 text-pink-400 border border-pink-500/20',
+    'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+  ];
+  const charCode = (p.title || 'p').charCodeAt(0) || 0;
+  const iconType = iconTypes[charCode % iconTypes.length];
+  const iconBg = iconBgs[charCode % iconBgs.length];
+
+  const statusLabel =
+    p.status === 'in_progress'
+      ? 'In Progress'
+      : p.status === 'completed'
+      ? 'Completed'
+      : p.status === 'assigned'
+      ? 'Assigned'
+      : p.status === 'cancelled'
+      ? 'Cancelled'
+      : 'Open';
+
+  const statusColor =
+    p.status === 'in_progress' || p.status === 'assigned'
+      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+      : p.status === 'completed'
+      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+      : 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+
+  const formatBudget = (b) => {
+    if (!b) return '₹25,000';
+    if (typeof b === 'string') return b;
+    if (b.min && b.max) return `₹${b.min.toLocaleString()} - ₹${b.max.toLocaleString()}`;
+    if (b.fixed) return `₹${b.fixed.toLocaleString()}`;
+    if (typeof b === 'number') return `₹${b.toLocaleString()}`;
+    return '₹25,000';
+  };
+
+  return {
+    id: p._id || p.id,
+    title: p.title || 'Untitled Project',
+    tags: p.requiredSkills?.length ? p.requiredSkills : [p.category || 'Video Editing'],
+    category: p.category || 'Video Production',
+    iconType,
+    iconBg,
+    status: statusLabel,
+    statusColor,
+    rawStatus: p.status,
+    assignedEditor: p.selectedEditorId
+      ? {
+          name: p.selectedEditorId.name || 'Assigned Editor',
+          avatar: p.selectedEditorId.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+        }
+      : null,
+    progress: p.status === 'completed' ? 100 : p.status === 'in_progress' ? 60 : p.status === 'assigned' ? 25 : 10,
+    deadline: p.deadline ? new Date(p.deadline).toISOString().split('T')[0] : '2026-10-30',
+    budget: formatBudget(p.budget),
+    createdAt: p.createdAt,
+    description: p.description,
+  };
+};
+
 export const projectService = {
-  getCreatorProjects: () => Promise.resolve(creatorProjectsData),
-  getEditorRecommended: () => Promise.resolve(editorRecommendedProjectsData),
-  getEditorActive: () => Promise.resolve(editorActiveProjectsData),
+  getCreatorProjects: async () => {
+    try {
+      const res = await api.get('/api/creator/projects');
+      if (res.data?.projects && Array.isArray(res.data.projects) && res.data.projects.length > 0) {
+        return res.data.projects.map(mapBackendProject);
+      }
+      return creatorProjectsData;
+    } catch (err) {
+      console.warn('[projectService] Failed to fetch creator projects from API, falling back to mock data:', err.message);
+      return creatorProjectsData;
+    }
+  },
+  getEditorRecommended: async () => {
+    try {
+      const res = await api.get('/api/projects');
+      if (res.data?.projects && Array.isArray(res.data.projects) && res.data.projects.length > 0) {
+        return res.data.projects.map((p) => ({
+          id: p._id || p.id,
+          title: p.title,
+          creator: p.creatorId?.name || 'Creator Studio',
+          creatorAvatar: p.creatorId?.profileImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+          budget: typeof p.budget === 'object' ? (p.budget?.fixed ? `₹${p.budget.fixed}` : '₹20,000') : (p.budget || '₹20,000'),
+          deadline: p.deadline ? new Date(p.deadline).toLocaleDateString() : '5 Days',
+          tags: p.requiredSkills?.length ? p.requiredSkills : [p.category],
+          proposalsCount: 0,
+          difficulty: p.complexity || 'Intermediate',
+          verified: true,
+        }));
+      }
+      return editorRecommendedProjectsData;
+    } catch (err) {
+      console.warn('[projectService] Failed to fetch open projects from API, falling back to mock data:', err.message);
+      return editorRecommendedProjectsData;
+    }
+  },
+  getEditorActive: async () => {
+    try {
+      // Editor active projects from their accepted applications
+      const res = await api.get('/api/application/my?status=accepted');
+      if (res.data?.applications && Array.isArray(res.data.applications) && res.data.applications.length > 0) {
+        return res.data.applications.map((app) => {
+          const p = app.projectId || {};
+          return {
+            id: p._id || app._id,
+            title: p.title || 'Client Project',
+            client: p.creatorId?.name || 'Client Producer',
+            clientAvatar: p.creatorId?.profileImage || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80',
+            progress: p.status === 'completed' ? 100 : 50,
+            dueDate: p.deadline ? new Date(p.deadline).toLocaleDateString() : 'Upcoming',
+            hoursRemaining: 24,
+            status: p.status === 'completed' ? 'Delivered' : 'In Production',
+            budget: `₹${app.bidAmount || 20000}`,
+            deliverableType: p.category || 'Video Delivery',
+          };
+        });
+      }
+      return editorActiveProjectsData;
+    } catch (err) {
+      return editorActiveProjectsData;
+    }
+  },
 };

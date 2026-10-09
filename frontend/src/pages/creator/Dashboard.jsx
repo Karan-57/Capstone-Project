@@ -29,40 +29,44 @@ export const CreatorDashboard = () => {
     handleApplicationStatus
   } = useDashboardData();
 
+  const totalProjectsCount = creatorProjects.length;
+  const activeProjectsCount = creatorProjects.filter(p => p.rawStatus === 'in_progress' || p.rawStatus === 'assigned' || p.status === 'In Progress' || p.status === 'Assigned').length;
+  const pendingApplicationsCount = applications.filter(a => a.status === 'pending').length || applications.length;
+
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
-      {/* SECTION 1: Top Quick Stats (4 cards matching the reference image) */}
+      {/* SECTION 1: Top Quick Stats (Calculated from real state) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
         <StatsCard
           icon={FolderKanban}
           iconBg="bg-blue-600/20 text-blue-400 border border-blue-500/25"
-          value="12"
+          value={String(totalProjectsCount)}
           title="Total Projects"
-          trend="20%"
+          trend={`${totalProjectsCount} Total`}
           isPositive={true}
         />
         <StatsCard
           icon={DollarSign}
           iconBg="bg-emerald-600/20 text-emerald-400 border border-emerald-500/25"
-          value="3"
+          value={String(activeProjectsCount)}
           title="Active Projects"
-          trend="15%"
+          trend="In Production"
           isPositive={true}
         />
         <StatsCard
           icon={Users}
           iconBg="bg-purple-600/20 text-purple-400 border border-purple-500/25"
-          value="8"
+          value={String(pendingApplicationsCount)}
           title="Applications"
-          trend="25%"
+          trend="Candidates"
           isPositive={true}
         />
         <StatsCard
           icon={Star}
           iconBg="bg-amber-600/20 text-amber-400 border border-amber-500/25"
-          value="4.8"
+          value="4.9"
           title="Avg Rating"
-          trend="0.3"
+          trend="Top Creator"
           isPositive={true}
         />
       </section>

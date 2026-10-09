@@ -19,7 +19,9 @@ import {
 import CollaboLogo from '../../assets/logos/CollaboLogo';
 import { useAuth } from '../../context/AuthContext';
 
-export const Sidebar = ({ role: propRole }) => {
+import { X } from 'lucide-react';
+
+export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
   const { role: contextRole, setRole, toggleRole, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -71,12 +73,31 @@ export const Sidebar = ({ role: propRole }) => {
   };
 
   return (
-    <aside className="w-64 min-h-screen bg-[#07090F]/80 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col justify-between p-4.5 select-none shrink-0 sticky top-0 h-screen overflow-y-auto z-40">
-      <div>
-        {/* Brand Header */}
-        <div className="flex items-center justify-between pb-5 pt-1 px-1">
-          <CollaboLogo className="w-8 h-8" textClassName="text-xl font-bold tracking-tight text-white font-mono" />
-        </div>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div
+          onClick={onClose}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden transition-opacity"
+        />
+      )}
+
+      <aside
+        className={`fixed md:sticky top-0 left-0 h-screen w-64 bg-[#07090F]/95 md:bg-[#07090F]/80 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col justify-between p-4.5 select-none shrink-0 z-50 overflow-y-auto transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        <div>
+          {/* Brand Header */}
+          <div className="flex items-center justify-between pb-5 pt-1 px-1">
+            <CollaboLogo className="w-8 h-8" textClassName="text-xl font-bold tracking-tight text-white font-mono" />
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg text-slate-400 hover:text-white md:hidden"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
         {/* Pierre Sù Inspired Frosted Capsule Mode Switcher */}
         <div className="mb-4 p-2 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] flex items-center justify-between shadow-inner">
@@ -152,7 +173,8 @@ export const Sidebar = ({ role: propRole }) => {
         </button>
       </div>
     </aside>
-  );
+  </>
+);
 };
 
 export default Sidebar;

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Search, Bell, Plus, Film } from 'lucide-react';
+import { Search, Bell, Plus, Film, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-export const Header = ({ onSearchChange }) => {
+export const Header = ({ onSearchChange, onMenuClick }) => {
   const { role, currentUser, toggleRole } = useAuth();
   const navigate = useNavigate();
 
@@ -16,9 +16,20 @@ export const Header = ({ onSearchChange }) => {
   };
 
   return (
-    <header className="flex flex-row items-center justify-end gap-4 py-6 px-8 bg-[#07090E] border-b border-white/[0.06]">
+    <header className="flex flex-row items-center justify-between gap-4 py-4 md:py-6 px-4 md:px-8 bg-[#07090E] border-b border-white/[0.06] shrink-0">
+      {/* Mobile Hamburger toggle */}
+      <div className="flex items-center gap-2 md:hidden">
+        <button
+          onClick={onMenuClick}
+          className="p-2 rounded-xl text-slate-400 hover:text-white bg-white/[0.04] border border-white/[0.06] transition-colors"
+          title="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
+
       {/* Right Controls */}
-      <div className="flex items-center gap-3.5 flex-wrap">
+      <div className="flex items-center gap-3.5 flex-wrap ml-auto">
         {/* Search input */}
         <div className="relative hidden lg:block">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />

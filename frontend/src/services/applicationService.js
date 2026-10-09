@@ -97,6 +97,53 @@ export const initialApplicationsData = [
   }
 ];
 
+import api from './api';
+
 export const applicationService = {
-  getApplications: () => Promise.resolve(initialApplicationsData),
+  getApplications: async () => {
+    try {
+      // 1. If creator, fetch their projects first to get real applications
+      const projectsRes = await api.get('/api/creator/projects');
+      const projects = projectsRes.data?.projects;
+      if (Array.isArray(projects) && projects.length > 0) {
+        const appsPromises = projects.slice(0, 5).map((p) =>
+          api
+            .get(`/api/creator/projects/${p._id}/applications`)
+            .then((r) =>
+              (r.data?.applications || []).map((app) => ({
+                id: app._id,
+                name: app.editorId?.name || 'Applicant Editor',
+                role: app.editorId?.bio || 'Video Editor',
+                avatar: app.editorId?.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
+                price: `₹${app.bidAmount || 15000}`,
+                duration: `${app.estimatedDeliveryDays || 7} days`,
+                rating: app.editorId?.rating || 4.8,
+                status: app.status || 'pending',
+                appliedFor: p.title,
+                appliedDate: new Date(app.createdAt).toLocaleDateString(),
+              }))
+            )
+            .catch(() => [])
+        );
+        const nestedApps = await Promise.all(appsPromises);
+        const flatApps = nestedApps.flat();
+        if (flatApps.length > 0) return flatApps;
+      }
+      return initialApplicationsData;
+    } catch (err) {
+      console.warn('[applicationService] Failed to fetch real applications, fallback to initial data:', err.message);
+      return initialApplicationsData;
+    }
+  },
+  getMyApplications: async () => {
+    try {
+      const res = await api.get('/api/application/my');
+      if (res.data?.applications && Array.isArray(res.data.applications)) {
+        return res.data.applications;
+      }
+      return [];
+    } catch (err) {
+      return [];
+    }
+  },
 };

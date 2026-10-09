@@ -35,30 +35,33 @@ export const EditorDashboard = () => {
     { id: 3, title: 'Upload Draft v1 for SaaS Product Walkthrough', time: '5:00 PM', done: false },
   ];
 
+  const availableProjectsCount = editorRecommended.length;
+  const activeProjectsCount = editorActive.length;
+
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
-      {/* Top Stats for Editor */}
+      {/* Top Stats for Editor (Real dynamic counts) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
         <StatsCard
           icon={Compass}
           iconBg="bg-blue-600/20 text-blue-400 border border-blue-500/25"
-          value="42"
+          value={String(availableProjectsCount)}
           title="Available Projects"
-          trend="12 new"
+          trend={`${availableProjectsCount} Open`}
           isPositive={true}
         />
         <StatsCard
           icon={FileCheck2}
           iconBg="bg-purple-600/20 text-purple-400 border border-purple-500/25"
-          value="7"
+          value={String(activeProjectsCount)}
           title="Applied Projects"
-          trend="3 pending"
+          trend="Submitted"
           isPositive={true}
         />
         <StatsCard
           icon={PlaySquare}
           iconBg="bg-emerald-600/20 text-emerald-400 border border-emerald-500/25"
-          value="3"
+          value={String(activeProjectsCount)}
           title="Active Projects"
           trend="In Production"
           isPositive={true}
