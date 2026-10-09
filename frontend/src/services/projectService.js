@@ -1,4 +1,5 @@
 import api from './api';
+import { DEFAULT_PFP } from '../constants/assets';
 
 export const mapBackendProject = (p) => {
   const iconTypes = ['film', 'layout', 'smartphone', 'shopping-cart'];
@@ -52,7 +53,7 @@ export const mapBackendProject = (p) => {
     assignedEditor: p?.selectedEditorId
       ? {
           name: p.selectedEditorId.name || 'unknown',
-          avatar: p.selectedEditorId.profileImage || '',
+          avatar: p.selectedEditorId.profileImage || DEFAULT_PFP,
         }
       : null,
     progress: p?.status === 'completed' ? 100 : p?.status === 'in_progress' ? 60 : p?.status === 'assigned' ? 25 : 0,
@@ -89,7 +90,7 @@ export const projectService = {
             id: p._id || p.id || 'unknown',
             title: p.title || 'unknown',
             creator: p.creatorId?.name || 'unknown',
-            creatorAvatar: p.creatorId?.profileImage || '',
+            creatorAvatar: p.creatorId?.profileImage || DEFAULT_PFP,
             budget: budgetVal,
             deadline: p.deadline ? new Date(p.deadline).toLocaleDateString() : 'unknown',
             tags: Array.isArray(p.requiredSkills) && p.requiredSkills.length ? p.requiredSkills : [p.category || 'unknown'],
@@ -115,7 +116,7 @@ export const projectService = {
             id: p._id || app._id || 'unknown',
             title: p.title || 'unknown',
             client: p.creatorId?.name || 'unknown',
-            clientAvatar: p.creatorId?.profileImage || '',
+            clientAvatar: p.creatorId?.profileImage || DEFAULT_PFP,
             progress: p.status === 'completed' ? 100 : 50,
             dueDate: p.deadline ? new Date(p.deadline).toLocaleDateString() : 'unknown',
             hoursRemaining: 999,

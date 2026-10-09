@@ -4,6 +4,7 @@ import CollaboLogo from '../../assets/logos/CollaboLogo';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
 import GoogleSignInButton from '../../components/common/GoogleSignInButton';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const EditorSignup = () => {
   const [fullName, setFullName] = useState('Alex Rivera');
@@ -23,7 +24,7 @@ export const EditorSignup = () => {
       title: 'Senior Motion & Video Editor',
       software,
       portfolioUrl,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatar: DEFAULT_PFP,
     });
     navigate('/editor/dashboard');
   };

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { refreshAccessToken, setAccessToken } from '../services/api';
+import api, { refreshAccessToken, setAccessToken } from '../services/api';
+import { DEFAULT_PFP } from '../constants/assets';
 
 const AuthContext = createContext();
 
@@ -18,13 +19,22 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem('collabo_auth') === 'true';
   });
 
+  const resolveAvatar = (userObj) => {
+    const img = userObj?.profileImage || userObj?.avatar;
+    if (!img) return DEFAULT_PFP;
+    if (img === 'https://ik.imagekit.io/karan57/default-pfp-png.webp' || img.includes('unsplash.com')) {
+      return DEFAULT_PFP;
+    }
+    return img;
+  };
+
   const [creatorUser, setCreatorUser] = useState(() => {
     const defaultCreator = {
       name: 'Jason Vance',
       role: 'creator',
       email: 'creator@collabo.io',
       channel: 'Tech & Lifestyle',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatar: DEFAULT_PFP,
     };
     const saved = localStorage.getItem('collabo_user');
     if (saved) {
@@ -34,7 +44,7 @@ export const AuthProvider = ({ children }) => {
           return {
             ...defaultCreator,
             ...parsed,
-            avatar: parsed.profileImage || parsed.avatar || defaultCreator.avatar,
+            avatar: resolveAvatar(parsed),
           };
         }
       } catch (e) {}
@@ -48,7 +58,7 @@ export const AuthProvider = ({ children }) => {
       role: 'editor',
       email: 'editor@collabo.io',
       title: 'Senior Motion & Video Editor',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatar: DEFAULT_PFP,
     };
     const saved = localStorage.getItem('collabo_user');
     if (saved) {
@@ -58,7 +68,7 @@ export const AuthProvider = ({ children }) => {
           return {
             ...defaultEditor,
             ...parsed,
-            avatar: parsed.profileImage || parsed.avatar || defaultEditor.avatar,
+            avatar: resolveAvatar(parsed),
           };
         }
       } catch (e) {}
@@ -88,7 +98,7 @@ export const AuthProvider = ({ children }) => {
           if (data.user) {
             const userWithAvatar = {
               ...data.user,
-              avatar: data.user.profileImage || data.user.avatar,
+              avatar: resolveAvatar(data.user),
             };
             if (data.user.role) {
               setRole(data.user.role);
@@ -147,7 +157,7 @@ export const AuthProvider = ({ children }) => {
     if (userData) {
       const userPayload = {
         ...userData,
-        avatar: userData.profileImage || userData.avatar,
+        avatar: resolveAvatar(userData),
       };
       if (selectedRole === 'creator') {
         setCreatorUser((prev) => ({ ...prev, ...userPayload }));
@@ -164,6 +174,54 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('collabo_auth');
     localStorage.removeItem('collabo_user');
     localStorage.removeItem('collabo_role');
+  };
+
+  const uploadProfilePicture = async (file) => {
+    const formData = new FormData();
+    formData.append('profileImage', file);
+    try {
+      const res = await api.patch('/api/users/me/profile-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const newUrl = res.data?.profileImage || res.data?.user?.profileImage;
+      if (newUrl) {
+        const updater = (prev) => ({
+          ...prev,
+          profileImage: newUrl,
+          avatar: newUrl,
+        });
+        if (role === 'creator') {
+          setCreatorUser(updater);
+        } else {
+          setEditorUser(updater);
+        }
+        const saved = localStorage.getItem('collabo_user');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            localStorage.setItem(
+              'collabo_user',
+              JSON.stringify({ ...parsed, profileImage: newUrl, avatar: newUrl })
+            );
+          } catch (e) {}
+        }
+        return newUrl;
+      }
+    } catch (err) {
+      console.warn('[AuthContext] Upload profile image error:', err.message);
+      const localUrl = URL.createObjectURL(file);
+      const updater = (prev) => ({
+        ...prev,
+        profileImage: localUrl,
+        avatar: localUrl,
+      });
+      if (role === 'creator') {
+        setCreatorUser(updater);
+      } else {
+        setEditorUser(updater);
+      }
+      return localUrl;
+    }
   };
 
   const currentUser = role === 'creator' ? creatorUser : editorUser;
@@ -186,6 +244,7 @@ export const AuthProvider = ({ children }) => {
         setCreatorUser,
         editorUser,
         setEditorUser,
+        uploadProfilePicture,
       }}
     >
       {children}

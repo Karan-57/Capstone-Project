@@ -4,8 +4,11 @@ import Button from '../../components/common/Button';
 import ProjectCard from '../../components/common/ProjectCard';
 import { projectService, mapBackendProject } from '../../services/projectService';
 import api from '../../services/api';
+import { useAlert } from '../../context/AlertContext';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const Projects = () => {
+  const { showAlert } = useAlert();
   const [filter, setFilter] = useState('all');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +53,7 @@ export const Projects = () => {
 
       if (res.data?.project) {
         setProjects(prev => [mapBackendProject(res.data.project), ...prev]);
+        showAlert('Project created successfully!', 'success');
       } else {
         await loadProjects();
       }
@@ -57,7 +61,7 @@ export const Projects = () => {
       setNewProject({ title: '', category: 'Video Editing', budget: '999', tags: 'unknown', description: 'unknown' });
     } catch (err) {
       console.error('Failed to create project', err);
-      alert(err.response?.data?.message || 'Failed to create project');
+      showAlert(err.response?.data?.message || 'Failed to create project', 'error');
     }
   };
 
@@ -71,14 +75,6 @@ export const Projects = () => {
             Monitor deliverables, revisions, and active editing milestones
           </p>
         </div>
-        <Button
-          variant="primary"
-          icon={Plus}
-          onClick={() => setShowModal(true)}
-          className="self-start sm:self-auto"
-        >
-          Create New Project
-        </Button>
       </div>
 
       {/* Filter Tabs */}
@@ -124,8 +120,9 @@ export const Projects = () => {
                 <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <img
-                      src={proj.assignedEditor.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                      src={proj.assignedEditor.avatar || DEFAULT_PFP}
                       alt={proj.assignedEditor.name}
+                      onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                       className="w-7 h-7 rounded-full object-cover"
                     />
                     <span className="text-xs text-slate-300">

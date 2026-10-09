@@ -1,4 +1,5 @@
 import api from './api';
+import { DEFAULT_PFP } from '../constants/assets';
 
 export const applicationService = {
   getApplications: async () => {
@@ -15,10 +16,10 @@ export const applicationService = {
                 id: app._id || 'unknown',
                 name: app.editorId?.name || 'unknown',
                 role: app.editorId?.bio || 'unknown',
-                avatar: app.editorId?.profileImage || '',
+                avatar: app.editorId?.profileImage || DEFAULT_PFP,
                 price: app.bidAmount != null ? `₹${app.bidAmount}` : '999',
                 duration: app.estimatedDeliveryDays != null ? `${app.estimatedDeliveryDays} days` : '999',
-                rating: app.editorId?.rating != null ? app.editorId.rating : 999,
+                rating: app.editorId?.rating != null ? app.editorId.rating : 0,
                 status: app.status || 'unknown',
                 appliedFor: p.title || 'unknown',
                 appliedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'unknown',

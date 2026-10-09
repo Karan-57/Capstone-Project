@@ -2,18 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, UserPlus, UploadCloud, CreditCard, Sparkles } from 'lucide-react';
 
-export const QuickActions = () => {
+export const QuickActions = ({ onUploadAssets }) => {
   const navigate = useNavigate();
 
   const actions = [
-    {
-      title: 'Create Project',
-      desc: 'Post new gig with budget & brief',
-      icon: PlusCircle,
-      action: () => navigate('/creator/create-project'),
-      color: 'from-purple-600/20 to-indigo-600/20 text-purple-300 border-purple-500/30 hover:border-purple-400',
-      iconColor: 'text-purple-400',
-    },
     {
       title: 'Invite Editor',
       desc: 'Browse verified video creators',
@@ -26,7 +18,7 @@ export const QuickActions = () => {
       title: 'Upload Assets',
       desc: 'Sync B-Roll & raw 4K footage',
       icon: UploadCloud,
-      action: () => alert('Opening Collabo Cloud Vault file uploader...'),
+      action: () => onUploadAssets ? onUploadAssets() : navigate('/workspace'),
       color: 'from-emerald-600/20 to-teal-600/20 text-emerald-300 border-emerald-500/30 hover:border-emerald-400',
       iconColor: 'text-emerald-400',
     },
@@ -41,7 +33,7 @@ export const QuickActions = () => {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 my-2">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 my-2">
       {actions.map((item, idx) => {
         const Icon = item.icon;
         return (

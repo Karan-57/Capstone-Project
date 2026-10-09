@@ -3,6 +3,7 @@ import { Star, Check, X, User, DollarSign, Clock, Search } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { applicationService } from '../../services/applicationService';
 import api from '../../services/api';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const Applications = () => {
   const [applications, setApplications] = useState([]);
@@ -103,8 +104,9 @@ export const Applications = () => {
             >
               <div className="flex items-start gap-3.5">
                 <img
-                  src={app.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                  src={app.avatar || DEFAULT_PFP}
                   alt={app.name || 'unknown'}
+                  onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                   className="w-12 h-12 rounded-xl object-cover border border-white/10 shrink-0"
                 />
                 <div>
@@ -112,7 +114,7 @@ export const Applications = () => {
                     <h3 className="text-sm font-bold text-white">{app.name || 'unknown'}</h3>
                     <span className="text-xs text-amber-400 font-semibold flex items-center gap-0.5">
                       <Star className="w-3 h-3 fill-amber-400" />
-                      {app.rating != null ? app.rating : 999}
+                      {app.rating != null ? app.rating : 0}
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">{app.role || 'unknown'}</p>

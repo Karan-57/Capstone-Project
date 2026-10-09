@@ -1,11 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Bell, Plus, Film, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { notificationService } from '../../services/notificationService';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const Header = ({ onSearchChange, onMenuClick }) => {
   const { role, currentUser, toggleRole } = useAuth();
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    notificationService.getNotifications().then((res) => {
+      if (isMounted && res) {
+        setUnreadCount(res.unreadCount != null ? res.unreadCount : 0);
+      }
+    }).catch(() => {
+      if (isMounted) setUnreadCount(0);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleCtaClick = () => {
     if (role === 'creator') {
@@ -71,9 +88,11 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
           title="Notifications"
         >
           <Bell className="w-4 h-4" />
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow">
-            {currentUser.unreadNotifications != null ? currentUser.unreadNotifications : 999}
-          </span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow">
+              {unreadCount}
+            </span>
+          )}
         </button>
 
         {/* User Profile Avatar */}
@@ -83,8 +102,12 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
         >
           <div className="relative">
             <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
+              src={currentUser?.profileImage || currentUser?.avatar || DEFAULT_PFP}
+              alt={currentUser?.name || 'unknown'}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PFP;
+              }}
               className="w-9 h-9 rounded-full object-cover border border-purple-500/40 ring-2 ring-purple-600/20 group-hover:ring-purple-500 transition-all"
             />
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#07090E]"></span>

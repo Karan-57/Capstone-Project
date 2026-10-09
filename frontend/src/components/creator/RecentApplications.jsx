@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Check, X } from 'lucide-react';
 import Button from '../common/Button';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const RecentApplications = ({ applications = [], onStatusChange }) => {
   const [activeTab, setActiveTab] = useState('all');
@@ -88,8 +89,9 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <img
-                  src={app.avatar}
+                  src={app.avatar || DEFAULT_PFP}
                   alt={app.name}
+                  onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                   className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0"
                 />
                 <div className="min-w-0">

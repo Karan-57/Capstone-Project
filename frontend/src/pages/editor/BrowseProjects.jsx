@@ -3,8 +3,11 @@ import { Search, Clock, CheckCircle, Send } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { projectService } from '../../services/projectService';
 import api from '../../services/api';
+import { useAlert } from '../../context/AlertContext';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const BrowseProjects = () => {
+  const { showAlert } = useAlert();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState('All');
@@ -42,13 +45,13 @@ export const BrowseProjects = () => {
         bidAmount: parseInt(bidAmount.replace(/[^0-9]/g, ''), 10) || 999,
         estimatedDeliveryDays: parseInt(estimatedDays, 10) || 999,
       });
-      alert(`Proposal successfully submitted for ${proposalModal.title}!`);
+      showAlert(`Proposal successfully submitted for ${proposalModal.title}!`, 'success');
       setProposalModal(null);
       setBidAmount('');
       setBidCover('');
     } catch (err) {
       console.error('Failed to send proposal', err);
-      alert(err.response?.data?.message || 'Failed to submit proposal');
+      showAlert(err.response?.data?.message || 'Failed to submit proposal', 'error');
     }
   };
 
@@ -109,8 +112,9 @@ export const BrowseProjects = () => {
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-3">
                     <img
-                      src={gig.creatorAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'}
+                      src={gig.creatorAvatar || DEFAULT_PFP}
                       alt={gig.creator}
+                      onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                       className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0"
                     />
                     <div>

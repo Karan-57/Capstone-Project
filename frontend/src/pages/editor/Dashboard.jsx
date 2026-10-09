@@ -30,7 +30,7 @@ export const EditorDashboard = () => {
 
   const availableProjectsCount = editorRecommended.length;
   const activeProjectsCount = editorActive.length;
-  const ratingValue = currentUser?.rating != null && currentUser.rating > 0 ? String(currentUser.rating) : '999';
+  const ratingValue = currentUser?.rating != null ? String(currentUser.rating) : '0';
 
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
@@ -65,7 +65,7 @@ export const EditorDashboard = () => {
           iconBg="bg-amber-600/20 text-amber-400 border border-amber-500/25"
           value={ratingValue}
           title="Editor Rating"
-          trend={ratingValue === '999' ? 'unknown' : 'Top Rated'}
+          trend={ratingValue === '0' ? 'No reviews yet' : 'Top Rated'}
           isPositive={true}
         />
       </section>

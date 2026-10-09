@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Film, Save, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Camera, Film, Save, Plus, Trash2, CheckCircle2, UploadCloud } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
+import { useAlert } from '../../context/AlertContext';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const EditorEditProfile = () => {
   const navigate = useNavigate();
-  const { editorUser } = useAuth();
+  const { editorUser, uploadProfilePicture, setEditorUser } = useAuth();
+  const { showAlert } = useAlert();
+  const fileInputRef = useRef(null);
 
-  const [name, setName] = useState(editorUser.name);
-  const [title, setTitle] = useState(editorUser.title);
-  const [avatar, setAvatar] = useState(editorUser.avatar);
+  const [name, setName] = useState(editorUser.name || 'unknown');
+  const [title, setTitle] = useState(editorUser.title || 'unknown');
+  const [avatar, setAvatar] = useState(editorUser.profileImage || editorUser.avatar || DEFAULT_PFP);
+  const [isUploadingImg, setIsUploadingImg] = useState(false);
   const [bio, setBio] = useState(
-    'Specializing in high-retention cinematic storytelling, fast-paced kinetic YouTube documentary edits, dynamic motion graphics, and Hollywood ACES color grading. 6+ years experience.'
+    editorUser.bio || 'Specializing in high-retention cinematic storytelling, fast-paced kinetic YouTube edits, and color grading.'
   );
   const [hourlyRate, setHourlyRate] = useState('₹2,500/hr');
   const [perVideoRate, setPerVideoRate] = useState('₹24,000/video');
@@ -21,12 +26,11 @@ export const EditorEditProfile = () => {
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const [skills, setSkills] = useState([
-    'Adobe Premiere Pro 2026',
+    'Adobe Premiere Pro',
     'After Effects',
     'DaVinci Resolve Studio',
     'Sound Design',
     'Color Grading',
-    'Blender 3D'
   ]);
   const [newSkill, setNewSkill] = useState('');
 
@@ -42,9 +46,36 @@ export const EditorEditProfile = () => {
     setSkills(skills.filter(s => s !== skillToRemove));
   };
 
+  const handleFileChange = async (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsUploadingImg(true);
+      try {
+        const url = await uploadProfilePicture(file);
+        if (url) {
+          setAvatar(url);
+          showAlert('Profile picture updated from PC!', 'success');
+        }
+      } catch (err) {
+        showAlert('Failed to upload picture from PC', 'error');
+      } finally {
+        setIsUploadingImg(false);
+      }
+    }
+  };
+
   const handleSave = (e) => {
     e.preventDefault();
+    setEditorUser(prev => ({
+      ...prev,
+      name,
+      title,
+      bio,
+      profileImage: avatar,
+      avatar,
+    }));
     setSavedSuccess(true);
+    showAlert('Editor profile updated successfully!', 'success');
     setTimeout(() => {
       setSavedSuccess(false);
       navigate('/editor/profile');
@@ -77,16 +108,24 @@ export const EditorEditProfile = () => {
         <div className="glass-card p-6 border border-white/[0.08] flex items-center gap-5">
           <div className="relative group">
             <img
-              src={avatar}
-              alt={name}
+              src={avatar || DEFAULT_PFP}
+              alt={name || 'unknown'}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PFP;
+              }}
               className="w-20 h-20 rounded-2xl object-cover border-2 border-purple-500/40"
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              className="hidden"
             />
             <button
               type="button"
-              onClick={() => {
-                const newImg = prompt('Enter image URL for new avatar:', avatar);
-                if (newImg) setAvatar(newImg);
-              }}
+              onClick={() => fileInputRef.current?.click()}
               className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white"
             >
               <Camera className="w-5 h-5" />
@@ -95,8 +134,16 @@ export const EditorEditProfile = () => {
           <div>
             <h3 className="text-sm font-bold text-white">Editor Avatar</h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              High resolution headshot recommended to build trust with high-paying creators.
+              Defaulted to ImageKit avatar. Upload custom picture from your PC.
             </p>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-2 text-xs font-semibold text-purple-400 hover:text-purple-300 underline underline-offset-2 flex items-center gap-1"
+            >
+              <UploadCloud className="w-3.5 h-3.5" />
+              {isUploadingImg ? 'Uploading from PC...' : 'Upload from PC'}
+            </button>
           </div>
         </div>
 

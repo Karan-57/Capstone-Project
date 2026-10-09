@@ -1,4 +1,5 @@
 import React from 'react';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const MessageCard = ({ message, onClick }) => {
   return (
@@ -9,8 +10,9 @@ export const MessageCard = ({ message, onClick }) => {
       <div className="flex items-center gap-3 min-w-0">
         <div className="relative shrink-0">
           <img
-            src={message.avatar}
+            src={message.avatar || DEFAULT_PFP}
             alt={message.sender}
+            onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
             className="w-10 h-10 rounded-full object-cover border border-white/10"
           />
           {message.online && (

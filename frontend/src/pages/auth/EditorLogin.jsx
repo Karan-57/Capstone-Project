@@ -4,6 +4,7 @@ import CollaboLogo from '../../assets/logos/CollaboLogo';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
 import GoogleSignInButton from '../../components/common/GoogleSignInButton';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const EditorLogin = () => {
   const [email, setEmail] = useState('alex@motioncraft.co');
@@ -19,7 +20,7 @@ export const EditorLogin = () => {
       email: email || 'alex@motioncraft.co',
       role: 'editor',
       title: 'Senior Motion & Video Editor',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatar: DEFAULT_PFP,
     });
     navigate('/editor/dashboard');
   };

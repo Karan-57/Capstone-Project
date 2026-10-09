@@ -18,6 +18,7 @@ import {
   X,
   Grid3X3,
 } from 'lucide-react';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 /* ─────────────────────────────────────────────────────
    MOCK DATA
@@ -176,7 +177,12 @@ function ChatPanel({ title, subtitle, avatar, messages, onSend, onBack, attachFi
           <ArrowLeft className="w-4 h-4" />
         </button>
         {avatar
-          ? <img src={avatar} alt={title} className="w-8 h-8 rounded-full object-cover border border-white/10" />
+          ? <img
+              src={avatar || DEFAULT_PFP}
+              alt={title}
+              onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
+              className="w-8 h-8 rounded-full object-cover border border-white/10"
+            />
           : <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400"><Users className="w-4 h-4" /></div>
         }
         <div className="min-w-0">
@@ -196,8 +202,9 @@ function ChatPanel({ title, subtitle, avatar, messages, onSend, onBack, attachFi
             <div key={msg.id} className={`flex items-start gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
               {!isMe && (
                 <img
-                  src={msg.avatar || avatar}
+                  src={msg.avatar || avatar || DEFAULT_PFP}
                   alt={msg.sender}
+                  onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                   className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0 mt-0.5"
                 />
               )}
@@ -563,8 +570,9 @@ function ProjectWorkspace({ project, onBack }) {
                 >
                   <div className="relative w-11 h-11 shrink-0">
                     <img
-                      src={member.avatar}
+                      src={member.avatar || DEFAULT_PFP}
                       alt={member.name}
+                      onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                       className="w-full h-full rounded-full object-cover border border-white/10"
                     />
                     {member.online && (
@@ -689,7 +697,14 @@ export const Workspace = ({ role = 'creator' }) => {
                   {/* Avatars */}
                   <div className="flex items-center gap-1 mt-1.5">
                     {p.members.slice(0, 3).map((m) => (
-                      <img key={m.id} src={m.avatar} alt={m.name} title={m.name} className="w-4 h-4 rounded-full border border-[#07090F] object-cover ring-1 ring-white/10" />
+                      <img
+                        key={m.id}
+                        src={m.avatar || DEFAULT_PFP}
+                        alt={m.name}
+                        title={m.name}
+                        onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
+                        className="w-4 h-4 rounded-full border border-[#07090F] object-cover ring-1 ring-white/10"
+                      />
                     ))}
                     <span className="text-[10px] text-slate-500 ml-1">{p.members.length} members</span>
                   </div>

@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import CollaboLogo from "../components/landing/CollaboLogo";
 import { DaVinciIcon, PremiereProIcon, BlueFolder3DIcon } from "../components/landing/SoftwareIcons";
 import { useAuth } from "../context/AuthContext";
+import { useAlert } from "../context/AlertContext";
 import { login as loginApi, register as registerApi } from "../services/auth.api";
 import { setAccessToken } from "../services/api";
 import OtpVerificationModal from "./auth/OtpVerificationModal";
@@ -22,6 +23,7 @@ export default function AuthModal({
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { login } = useAuth();
+  const { showAlert } = useAlert();
 
   // URL search params override initialRole if present
   const paramRole = searchParams?.get("role");
@@ -497,7 +499,7 @@ export default function AuthModal({
                     e.preventDefault();
                     const resetEmail = prompt("Enter your registered email address to receive password reset link:");
                     if (resetEmail) {
-                      alert(`Password reset instructions sent to ${resetEmail}`);
+                      showAlert(`Password reset instructions sent to ${resetEmail}`, 'info');
                     }
                   }}
                   className="text-[11px] font-medium text-slate-400 hover:text-slate-600"

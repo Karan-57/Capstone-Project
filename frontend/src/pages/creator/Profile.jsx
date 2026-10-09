@@ -4,6 +4,7 @@ import { CheckCircle2, Star, Edit3, Mail, MapPin, Phone, User, ShieldCheck } fro
 import Button from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
 import { projectService } from '../../services/projectService';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const Profile = () => {
   const navigate = useNavigate();
@@ -16,8 +17,8 @@ export const Profile = () => {
     }).catch(() => setTotalProjects(999));
   }, []);
 
-  const ratingVal = creatorUser?.rating != null && creatorUser.rating > 0 ? creatorUser.rating : 999;
-  const reviewCount = creatorUser?.totalReviews != null && creatorUser.totalReviews > 0 ? creatorUser.totalReviews : 999;
+  const ratingVal = creatorUser?.rating != null ? creatorUser.rating : 0;
+  const reviewCount = creatorUser?.totalReviews != null ? creatorUser.totalReviews : 0;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -28,8 +29,12 @@ export const Profile = () => {
         <div className="relative pt-12 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
           <div className="flex items-end gap-4">
             <img
-              src={creatorUser?.avatar || creatorUser?.profileImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+              src={creatorUser?.profileImage || creatorUser?.avatar || DEFAULT_PFP}
               alt={creatorUser?.name || 'unknown'}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PFP;
+              }}
               className="w-24 h-24 rounded-2xl object-cover border-4 border-[#0F1420] shadow-xl"
             />
             <div className="mb-1">
@@ -65,7 +70,7 @@ export const Profile = () => {
             <div className="text-xs text-slate-400">Paid to Editors</div>
           </div>
           <div>
-            <div className="text-xl font-bold text-amber-400">{ratingVal === 999 ? '999' : `${ratingVal} / 5.0`}</div>
+            <div className="text-xl font-bold text-amber-400">{ratingVal === 0 ? '0 / 5.0' : `${ratingVal} / 5.0`}</div>
             <div className="text-xs text-slate-400">Creator Rating</div>
           </div>
           <div>

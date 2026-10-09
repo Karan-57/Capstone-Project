@@ -18,9 +18,11 @@ import {
 } from 'lucide-react';
 import Button from '../../components/common/Button';
 import FolderUploadDropzone from '../../components/common/FolderUploadDropzone';
+import { useAlert } from '../../context/AlertContext';
 
 export const CreateProject = () => {
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   // Form State
   const [title, setTitle] = useState('');
@@ -132,7 +134,7 @@ export const CreateProject = () => {
   const handlePublish = (e) => {
     e.preventDefault();
     if (!title.trim()) {
-      alert('Please enter a project title.');
+      showAlert('Please enter a project title.', 'warning');
       return;
     }
 

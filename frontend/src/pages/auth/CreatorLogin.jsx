@@ -4,6 +4,7 @@ import CollaboLogo from '../../assets/logos/CollaboLogo';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
 import GoogleSignInButton from '../../components/common/GoogleSignInButton';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const CreatorLogin = () => {
   const [email, setEmail] = useState('creator@collabo.io');
@@ -19,7 +20,7 @@ export const CreatorLogin = () => {
       email: email || 'creator@collabo.io',
       role: 'creator',
       channel: 'Tech & Lifestyle',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatar: DEFAULT_PFP,
     });
     navigate('/creator/dashboard');
   };

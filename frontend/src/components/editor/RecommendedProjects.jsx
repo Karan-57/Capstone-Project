@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import Button from '../common/Button';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const RecommendedProjects = ({ projects = [] }) => {
   const navigate = useNavigate();
@@ -35,8 +36,9 @@ export const RecommendedProjects = ({ projects = [] }) => {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <img
-                    src={gig.creatorAvatar}
+                    src={gig.creatorAvatar || DEFAULT_PFP}
                     alt={gig.creator}
+                    onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                     className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0"
                   />
                   <div>

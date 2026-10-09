@@ -2,9 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wallet, ArrowUpRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import Button from '../common/Button';
+import { useAlert } from '../../context/AlertContext';
 
 export const EarningsOverview = ({ earnings }) => {
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   const data = earnings || {
     availableBalance: '₹64,200',
@@ -50,7 +52,7 @@ export const EarningsOverview = ({ earnings }) => {
               <Button
                 variant="primary"
                 size="xs"
-                onClick={() => alert('Withdraw initiated to linked Bank Account')}
+                onClick={() => showAlert('Withdraw initiated to linked Bank Account', 'success')}
                 className="w-full text-xs py-1"
               >
                 Withdraw Funds

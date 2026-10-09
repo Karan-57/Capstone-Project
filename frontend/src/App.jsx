@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { AlertProvider } from './context/AlertContext';
 import AppRoutes from './routes/AppRoutes';
 import CustomCursor from './components/landing/CustomCursor';
 
@@ -45,10 +46,12 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <AuthProvider>
-          <CustomCursor />
-          <AppRoutes />
-        </AuthProvider>
+        <AlertProvider>
+          <AuthProvider>
+            <CustomCursor />
+            <AppRoutes />
+          </AuthProvider>
+        </AlertProvider>
       </BrowserRouter>
     </ErrorBoundary>
   );

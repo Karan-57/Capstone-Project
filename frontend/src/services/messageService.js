@@ -1,4 +1,5 @@
 import api from './api';
+import { DEFAULT_PFP } from '../constants/assets';
 
 export const messageService = {
   getMessages: async () => {
@@ -11,7 +12,7 @@ export const messageService = {
           return {
             id: c._id || 'unknown',
             sender: otherParticipant?.name || 'unknown',
-            avatar: otherParticipant?.profileImage || '',
+            avatar: otherParticipant?.profileImage || DEFAULT_PFP,
             lastMessage: c.lastMessage?.text || c.lastMessage?.content || 'unknown',
             timestamp: c.updatedAt ? new Date(c.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'unknown',
             unread: c.unreadCount ? c.unreadCount > 0 : false,

@@ -18,6 +18,8 @@ import {
 import Button from '../../components/common/Button';
 import FolderUploadDropzone from '../../components/common/FolderUploadDropzone';
 import { useAuth } from '../../context/AuthContext';
+import { DEFAULT_PFP } from '../../constants/assets';
+import api from '../../services/api';
 
 export const EditorProfile = () => {
   const navigate = useNavigate();
@@ -26,6 +28,18 @@ export const EditorProfile = () => {
   const [activeTab, setActiveTab] = useState('portfolio');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [playingVideo, setPlayingVideo] = useState(null);
+  const [realReviews, setRealReviews] = useState([]);
+
+  React.useEffect(() => {
+    const userId = editorUser?._id || editorUser?.id;
+    if (userId) {
+      api.get(`/api/users/${userId}/get-review`).then((res) => {
+        if (res.data?.reviews) {
+          setRealReviews(res.data.reviews);
+        }
+      }).catch(() => {});
+    }
+  }, [editorUser?._id, editorUser?.id]);
 
   // Portfolio items with playable sample edits
   const [portfolioItems, setPortfolioItems] = useState([
@@ -101,20 +115,21 @@ export const EditorProfile = () => {
         <div className="relative pt-12 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
           <div className="flex items-end gap-4">
             <img
-              src={editorUser.avatar}
-              alt={editorUser.name}
+              src={editorUser?.profileImage || editorUser?.avatar || DEFAULT_PFP}
+              alt={editorUser?.name || 'unknown'}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PFP;
+              }}
               className="w-24 h-24 rounded-2xl object-cover border-4 border-[#0F1420] shadow-2xl"
             />
             <div className="mb-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-2xl font-bold text-white tracking-tight">{editorUser.name}</h2>
                 <CheckCircle2 className="w-4 h-4 text-purple-400 fill-purple-400/20" />
-                <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                  TOP RATED PRO
-                </span>
               </div>
               <p className="text-xs text-slate-300 mt-1">
-                {editorUser.title} • 6+ Years Experience
+                {editorUser.title || 'Video Editor'}
               </p>
             </div>
           </div>
@@ -135,11 +150,11 @@ export const EditorProfile = () => {
         <div className="mt-7 pt-5 border-t border-white/[0.05] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           <div>
             <div className="text-xl font-bold text-white">
-              {editorUser?.rating != null && editorUser.rating > 0 ? `${editorUser.rating} / 5.0` : '999'}
+              {editorUser?.rating != null ? `${editorUser.rating} / 5.0` : '0 / 5.0'}
             </div>
             <div className="text-xs text-slate-400 flex items-center justify-center gap-1 mt-0.5">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-              <span>({editorUser?.totalReviews != null && editorUser.totalReviews > 0 ? editorUser.totalReviews : 999} reviews)</span>
+              <span>({editorUser?.totalReviews != null ? editorUser.totalReviews : 0} reviews)</span>
             </div>
           </div>
           <div>
@@ -148,7 +163,7 @@ export const EditorProfile = () => {
           </div>
           <div>
             <div className="text-xl font-bold text-purple-400">
-              {editorUser?.speed != null && editorUser.speed > 0 ? `${editorUser.speed} / 10` : '999'}
+              {editorUser?.speed != null ? `${editorUser.speed} / 10` : '0 / 10'}
             </div>
             <div className="text-xs text-slate-400 mt-0.5">Speed Rating</div>
           </div>
@@ -167,7 +182,7 @@ export const EditorProfile = () => {
             {[
               { id: 'portfolio', label: `Portfolio & Works (${portfolioItems.length})`, icon: Film },
               { id: 'showreel', label: 'Featured Showreel', icon: Sparkles },
-              { id: 'reviews', label: 'Client Reviews (64)', icon: Star },
+              { id: 'reviews', label: `Client Reviews (${editorUser?.totalReviews || realReviews.length || 0})`, icon: Star },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -327,37 +342,40 @@ export const EditorProfile = () => {
         {/* TAB CONTENT: Client Reviews */}
         {activeTab === 'reviews' && (
           <div className="space-y-3">
-            {[
-              {
-                client: 'Nexus Media Corp',
-                rating: 5.0,
-                date: '2 weeks ago',
-                comment: 'Alex took our 45-minute messy interview and transformed it into a breathtaking 18-minute documentary. Pacing and sound design were 10/10.',
-                project: 'Deep Dive: AI Revolution 2026'
-              },
-              {
-                client: 'Chloe Adams',
-                rating: 5.0,
-                date: '1 month ago',
-                comment: 'Top tier short-form reels editor. Retention on my Instagram jumped by 34% immediately.',
-                project: 'Viral Reel Pack (Weekly Drop)'
-              }
-            ].map((rev, idx) => (
-              <div key={idx} className="glass-card p-5 rounded-2xl border border-white/[0.06] space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-bold text-white">{rev.client}</h4>
-                    <span className="text-[11px] text-purple-400 font-medium">{rev.project}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <span>{rev.rating}</span>
-                  </div>
+            {realReviews.length === 0 ? (
+              <div className="glass-card p-12 text-center border border-white/[0.06] rounded-2xl">
+                <div className="w-10 h-10 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mx-auto mb-3 text-slate-400">
+                  <Star className="w-5 h-5 text-amber-400" />
                 </div>
-                <p className="text-xs text-slate-300 italic">"{rev.comment}"</p>
-                <span className="text-[10px] text-slate-500 block">{rev.date}</span>
+                <h4 className="text-sm font-semibold text-white">No reviews yet</h4>
+                <p className="text-xs text-slate-500 mt-1">
+                  Reviews and ratings from completed creator productions will appear here.
+                </p>
               </div>
-            ))}
+            ) : (
+              realReviews.map((rev, idx) => (
+                <div key={rev._id || idx} className="glass-card p-5 rounded-2xl border border-white/[0.06] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-white">
+                        {rev.reviewerId?.name || rev.client || 'unknown'}
+                      </h4>
+                      <span className="text-[11px] text-purple-400 font-medium">
+                        {rev.projectId?.title || rev.project || 'unknown'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
+                      <Star className="w-3.5 h-3.5 fill-amber-400" />
+                      <span>{rev.rating != null ? rev.rating : 999}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-300 italic">"{rev.comment || 'unknown'}"</p>
+                  <span className="text-[10px] text-slate-500 block font-mono">
+                    {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : 'unknown'}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>

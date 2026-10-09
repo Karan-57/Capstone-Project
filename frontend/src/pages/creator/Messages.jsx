@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Send, Paperclip, Phone, Video, Search, CheckCheck, Play, Pause, Smile, Sparkles } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { messageService } from '../../services/messageService';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const Messages = () => {
   const [conversations, setConversations] = useState([]);
@@ -69,7 +70,12 @@ export const Messages = () => {
               }`}
             >
               <div className="relative shrink-0">
-                <img src={c.avatar} alt={c.sender} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                <img
+                  src={c.avatar || DEFAULT_PFP}
+                  alt={c.sender}
+                  onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
+                  className="w-10 h-10 rounded-full object-cover border border-white/10"
+                />
                 {c.online && (
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute bottom-0 right-0 ring-2 ring-[#0A0D15] shadow-[0_0_6px_#34D399]" />
                 )}
@@ -96,8 +102,9 @@ export const Messages = () => {
           <div className="p-4 border-b border-white/[0.06] flex items-center justify-between bg-[#0C101C]/80 backdrop-blur-md">
             <div className="flex items-center gap-3">
               <img
-                src={activeChat.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'}
+                src={activeChat.avatar || DEFAULT_PFP}
                 alt={activeChat.sender || 'unknown'}
+                onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                 className="w-10 h-10 rounded-full object-cover border border-purple-500/30"
               />
               <div>

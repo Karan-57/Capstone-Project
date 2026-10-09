@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FolderKanban,
   DollarSign,
   Users,
   Star,
-  MessageSquare
+  MessageSquare,
+  UploadCloud
 } from 'lucide-react';
 import StatsCard from '../../components/common/StatsCard';
 import ActiveProjects from '../../components/creator/ActiveProjects';
@@ -14,6 +15,7 @@ import ReviewsAndRating from '../../components/creator/ReviewsAndRating';
 import EarningsOverview from '../../components/creator/EarningsOverview';
 import UpcomingDeadlines from '../../components/creator/UpcomingDeadlines';
 import QuickActions from '../../components/creator/QuickActions';
+import UploadAssetModal from '../../components/creator/UploadAssetModal';
 import MessageCard from '../../components/common/MessageCard';
 import Button from '../../components/common/Button';
 import { useDashboardData } from '../../hooks/useDashboardData';
@@ -22,6 +24,10 @@ import { useAuth } from '../../context/AuthContext';
 export const CreatorDashboard = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [droppedFile, setDroppedFile] = useState(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
   const {
     loading,
     creatorProjects,
@@ -33,10 +39,40 @@ export const CreatorDashboard = () => {
   const totalProjectsCount = creatorProjects.length;
   const activeProjectsCount = creatorProjects.filter(p => p.rawStatus === 'in_progress' || p.rawStatus === 'assigned' || p.status === 'In Progress' || p.status === 'Assigned').length;
   const pendingApplicationsCount = applications.filter(a => a.status === 'pending').length || applications.length;
-  const ratingValue = currentUser?.rating != null && currentUser.rating > 0 ? String(currentUser.rating) : '999';
+  const ratingValue = currentUser?.rating != null ? String(currentUser.rating) : '0';
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in">
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDraggingOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          setIsDraggingOver(false);
+        }
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDraggingOver(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          setDroppedFile(e.dataTransfer.files[0]);
+          setIsUploadModalOpen(true);
+        }
+      }}
+      className="space-y-6 pb-12 animate-fade-in relative min-h-[calc(100vh-100px)]"
+    >
+      {/* Drag & Drop Visual Overlay */}
+      {isDraggingOver && (
+        <div className="fixed inset-0 z-50 bg-[#07090F]/90 backdrop-blur-md border-4 border-dashed border-purple-500 flex flex-col items-center justify-center pointer-events-none animate-fade-in">
+          <div className="p-5 rounded-3xl bg-purple-600/20 border border-purple-500/40 mb-4 animate-bounce">
+            <UploadCloud className="w-16 h-16 text-purple-400" />
+          </div>
+          <h3 className="text-2xl font-extrabold text-white tracking-tight">Drop Media to Upload to Workspace</h3>
+          <p className="text-sm text-purple-300 mt-1">Select project destination upon drop</p>
+        </div>
+      )}
+
       {/* SECTION 1: Top Quick Stats (Calculated from real state & user) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
         <StatsCard
@@ -68,13 +104,23 @@ export const CreatorDashboard = () => {
           iconBg="bg-amber-600/20 text-amber-400 border border-amber-500/25"
           value={ratingValue}
           title="Avg Rating"
-          trend={ratingValue === '999' ? 'unknown' : 'Top Creator'}
+          trend={ratingValue === '0' ? 'No reviews yet' : 'Top Creator'}
           isPositive={true}
         />
       </section>
 
       {/* Quick Action Shortcuts Banner */}
-      <QuickActions />
+      <QuickActions
+        onUploadAssets={() => {
+          setDroppedFile(null);
+          setIsUploadModalOpen(true);
+        }}
+      />
+
+      {/* SECTION 3: Upcoming Deadlines (Moved ABOVE Recent Projects as requested) */}
+      <section>
+        <UpcomingDeadlines projects={creatorProjects} />
+      </section>
 
       {/* SECTION 2 & 4: Middle Grid (Recent Projects + My Applications) */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-5.5">
@@ -149,10 +195,16 @@ export const CreatorDashboard = () => {
         </div>
       </section>
 
-      {/* SECTION 3: Upcoming Deadlines */}
-      <section className="mt-6">
-        <UpcomingDeadlines projects={creatorProjects} />
-      </section>
+      {/* Upload Asset to Project Workspace Modal */}
+      <UploadAssetModal
+        isOpen={isUploadModalOpen}
+        onClose={() => {
+          setIsUploadModalOpen(false);
+          setDroppedFile(null);
+        }}
+        initialFile={droppedFile}
+        projects={creatorProjects}
+      />
     </div>
   );
 };

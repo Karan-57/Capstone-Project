@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShoppingCart, Smartphone, BarChart3, Film, Clock, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 const iconMap = {
   'shopping-cart': ShoppingCart,
@@ -61,8 +62,9 @@ export const ProjectCard = ({ project, onView }) => {
           {project.assignedEditor ? (
             <div className="flex items-center gap-1.5">
               <img
-                src={project.assignedEditor.avatar}
+                src={project.assignedEditor.avatar || DEFAULT_PFP}
                 alt={project.assignedEditor.name}
+                onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                 className="w-5 h-5 rounded-full object-cover border border-purple-500/40"
               />
               <span className="text-slate-300 text-[11px] truncate max-w-[100px]">{project.assignedEditor.name}</span>

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { CreditCard, ShieldCheck, CheckCircle2, ArrowDownRight, DollarSign, Lock } from 'lucide-react';
 import Button from '../../components/common/Button';
+import { useAlert } from '../../context/AlertContext';
 
 export const Payments = () => {
+  const { showAlert } = useAlert();
   const [escrows, setEscrows] = useState([
     {
       id: 'esc-1',
@@ -34,7 +36,7 @@ export const Payments = () => {
     setEscrows(prev =>
       prev.map(item => (item.id === id ? { ...item, status: 'Released', canRelease: false } : item))
     );
-    alert('Payment milestone released to editor!');
+    showAlert('Payment milestone released to editor!', 'success');
   };
 
   return (

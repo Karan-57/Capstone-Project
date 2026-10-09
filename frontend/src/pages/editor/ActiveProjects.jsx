@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UploadCloud, CheckCircle2, Clock, FileVideo } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { projectService } from '../../services/projectService';
+import { DEFAULT_PFP } from '../../constants/assets';
 
 export const ActiveProjects = () => {
   const [projects, setProjects] = useState([]);
@@ -42,8 +43,9 @@ export const ActiveProjects = () => {
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <img
-                    src={proj.clientAvatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80'}
+                    src={proj.clientAvatar || DEFAULT_PFP}
                     alt={proj.client}
+                    onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                     className="w-11 h-11 rounded-xl object-cover border border-white/10"
                   />
                   <div>
