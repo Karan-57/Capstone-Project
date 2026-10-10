@@ -101,7 +101,8 @@ async function registerUserController(req, res) {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict",
+            sameSite: "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
@@ -205,7 +206,8 @@ async function loginUserController(req, res) {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict",
+            sameSite: "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
@@ -452,25 +454,44 @@ async function refreshToken(req, res) {
 
         const refreshTokenHash = hashToken(refreshToken);
 
-        const session = await sessionModel.findOne({
+        let session = await sessionModel.findOne({
             refreshTokenHash,
             revoked: false
         });
 
+        // Resilient session recovery: If JWT is cryptographically valid, re-anchor active session
         if (!session) {
+            const userExists = await userModel.findById(decoded.id);
+            if (userExists) {
+                session = await sessionModel.create({
+                    user: userExists._id,
+                    refreshTokenHash,
+                    ip: req.ip || req.connection?.remoteAddress || 'unknown',
+                    userAgent: req.headers['user-agent'] || 'unknown',
+                    revoked: false,
+                });
+            }
+        }
+
+        if (!session || session.revoked) {
             return res.status(401).json({
                 message: "Invalid or revoked refresh token"
             });
         }
 
+        const user = await userModel.findById(decoded.id).select("-password");
+        if (!user) {
+            return res.status(401).json({ message: "User account not found" });
+        }
+
         const accessToken = jwt.sign(
-            { id: decoded.id, session: session._id },
+            { id: user._id, session: session._id },
             config.JWT_SECRET,
             { expiresIn: '15m' }
         );
 
         const newRefreshToken = jwt.sign(
-            { id: decoded.id },
+            { id: user._id },
             config.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -481,13 +502,24 @@ async function refreshToken(req, res) {
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict",
+            sameSite: "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
         return res.status(200).json({
             message: "Access token refreshed",
-            accessToken
+            accessToken,
+            user: {
+                id: user._id,
+                _id: user._id,
+                name: user.name,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                profileImage: user.profileImage,
+                rating: user.rating,
+            }
         });
     } catch (err) {
         console.error("Error in refreshToken:", err);
@@ -753,7 +785,8 @@ async function googleAuthController(req, res) {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict",
+            sameSite: "lax",
+            path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 

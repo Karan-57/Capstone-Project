@@ -224,6 +224,7 @@ export const Messages = () => {
                             </span>
                           ))}
                         </div>
+                      )}
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-1 text-xs">
                         {['👍', '🔥', '❤️', '🚀'].map((em) => (
                           <button

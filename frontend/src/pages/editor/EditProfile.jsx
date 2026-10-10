@@ -19,12 +19,12 @@ export const EditorEditProfile = () => {
   const [avatar, setAvatar] = useState(editorUser.profileImage || editorUser.avatar || DEFAULT_PFP);
   const [isUploadingImg, setIsUploadingImg] = useState(false);
   const [bio, setBio] = useState(
-    editorUser.bio || 'Specializing in high-retention cinematic storytelling, fast-paced kinetic YouTube edits, and color grading.'
+    editorUser.bio || ''
   );
-  const [hourlyRate, setHourlyRate] = useState('₹2,500/hr');
-  const [perVideoRate, setPerVideoRate] = useState('₹24,000/video');
-  const [showreelUrl, setShowreelUrl] = useState('https://vimeo.com/alexrivera/showreel2026');
-  const [showreelTitle, setShowreelTitle] = useState('2026 Cinematic & YouTube Editing Showreel (4K)');
+  const [hourlyRate, setHourlyRate] = useState(editorUser.hourlyRate ? `₹${editorUser.hourlyRate}/hr` : '');
+  const [perVideoRate, setPerVideoRate] = useState('');
+  const [showreelUrl, setShowreelUrl] = useState('');
+  const [showreelTitle, setShowreelTitle] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const [skills, setSkills] = useState([
@@ -241,11 +241,11 @@ export const EditorEditProfile = () => {
 
           <div>
             <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-              Showreel Title
+              Showreel Title (Optional)
             </label>
             <input
               type="text"
-              required
+              placeholder="e.g. My 2026 Production Showreel"
               value={showreelTitle}
               onChange={(e) => setShowreelTitle(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
@@ -254,11 +254,11 @@ export const EditorEditProfile = () => {
 
           <div>
             <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-              Showreel Embed / Video URL (Vimeo, YouTube, or MP4)
+              Showreel Embed / Video URL (YouTube, Vimeo, or MP4)
             </label>
             <input
               type="url"
-              required
+              placeholder="https://youtube.com/watch?v=... or MP4 URL"
               value={showreelUrl}
               onChange={(e) => setShowreelUrl(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"

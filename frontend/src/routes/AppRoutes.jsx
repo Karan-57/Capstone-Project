@@ -34,6 +34,7 @@ const PageLoader = () => (
 // Lazy-loaded Auth Pages
 const Login = lazy(() => import('../pages/auth/Login'));
 const Signup = lazy(() => import('../pages/auth/Signup'));
+const ResetPassword = lazy(() => import('../pages/auth/ResetPassword'));
 
 // Lazy-loaded Creator Pages
 const CreatorDashboard = lazy(() => import('../pages/creator/Dashboard'));
@@ -45,6 +46,7 @@ const CreatorPayments = lazy(() => import('../pages/creator/Payments'));
 const CreatorNotifications = lazy(() => import('../pages/creator/Notifications'));
 const CreatorProfile = lazy(() => import('../pages/creator/Profile'));
 const CreatorEditProfile = lazy(() => import('../pages/creator/EditProfile'));
+const CreatorMessages = lazy(() => import('../pages/creator/Messages'));
 
 // Lazy-loaded Editor Pages
 const EditorDashboard = lazy(() => import('../pages/editor/Dashboard'));
@@ -55,6 +57,7 @@ const EditorEarnings = lazy(() => import('../pages/editor/Earnings'));
 const EditorNotifications = lazy(() => import('../pages/editor/Notifications'));
 const EditorProfile = lazy(() => import('../pages/editor/Profile'));
 const EditorEditProfile = lazy(() => import('../pages/editor/EditProfile'));
+const EditorMessages = lazy(() => import('../pages/editor/Messages'));
 
 // Lazy-loaded Workspace Page
 const Workspace = lazy(() => import('../pages/workspace/Workspace'));
@@ -77,6 +80,7 @@ export const AppRoutes = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/register" element={<Navigate to="/signup" replace />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Redirect legacy paths directly to unified query-based routes */}
           <Route path="/auth/creator-login" element={<Navigate to="/login?role=creator" replace />} />
@@ -99,7 +103,7 @@ export const AppRoutes = () => {
             <Route path="create-project" element={<CreateProject />} />
             <Route path="applications" element={<CreatorApplications />} />
             <Route path="workspace" element={<Workspace role="creator" />} />
-            <Route path="messages" element={<Workspace role="creator" />} />
+            <Route path="messages" element={<CreatorMessages />} />
             <Route path="analytics" element={<CreatorAnalytics />} />
             <Route path="payments" element={<CreatorPayments />} />
             <Route path="notifications" element={<CreatorNotifications />} />
@@ -123,7 +127,7 @@ export const AppRoutes = () => {
             <Route path="applications" element={<MyApplications />} />
             <Route path="active-projects" element={<EditorActiveProjects />} />
             <Route path="workspace" element={<Workspace role="editor" />} />
-            <Route path="messages" element={<Workspace role="editor" />} />
+            <Route path="messages" element={<EditorMessages />} />
             <Route path="earnings" element={<EditorEarnings />} />
             <Route path="notifications" element={<EditorNotifications />} />
             <Route path="profile" element={<EditorProfile />} />

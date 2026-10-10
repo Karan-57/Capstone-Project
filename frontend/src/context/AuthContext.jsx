@@ -15,9 +15,7 @@ export const AuthProvider = ({ children }) => {
   });
 
   // Loading state while verifying refresh token on page mount / tab reload
-  const [isAuthLoading, setIsAuthLoading] = useState(() => {
-    return localStorage.getItem('collabo_auth') === 'true';
-  });
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const resolveAvatar = (userObj) => {
     const img = userObj?.profileImage || userObj?.avatar;
@@ -81,14 +79,6 @@ export const AuthProvider = ({ children }) => {
     let isMounted = true;
 
     async function silentRefreshOnMount() {
-      const hasAuth = localStorage.getItem('collabo_auth') === 'true';
-
-      // If user is completely unauthenticated, nothing to refresh
-      if (!hasAuth) {
-        if (isMounted) setIsAuthLoading(false);
-        return;
-      }
-
       try {
         const data = await refreshAccessToken();
         if (data?.accessToken && isMounted) {

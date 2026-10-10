@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import api, { setAccessToken } from '../../services/api';
 
@@ -16,6 +17,7 @@ import api, { setAccessToken } from '../../services/api';
  *   onError    - optional callback(errorMessage) called on failure
  */
 export default function GoogleSignInButton({ role = 'creator', onSuccess, onError }) {
+    const [originBlocked, setOriginBlocked] = useState(false);
 
     async function handleGoogleSuccess(credentialResponse) {
         try {
@@ -44,9 +46,19 @@ export default function GoogleSignInButton({ role = 'creator', onSuccess, onErro
     }
 
     function handleGoogleError() {
-        const message = 'Google sign-in was cancelled or failed.';
-        console.error('[GoogleSignIn]', message);
+        // Typically triggered when origin is not authorized or user closed prompt
+        const message = 'Google sign-in unavailable or cancelled.';
+        console.warn('[GoogleSignIn]', message);
+        setOriginBlocked(true);
         if (onError) onError(message);
+    }
+
+    if (originBlocked) {
+        return (
+            <div className="w-full text-center py-2 px-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300">
+                Google OAuth origin not whitelisted in Google Cloud Console. Please log in with your email & password below.
+            </div>
+        );
     }
 
     return (

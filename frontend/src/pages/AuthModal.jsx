@@ -10,6 +10,7 @@ import { setAccessToken } from "../services/api";
 import OtpVerificationModal from "./auth/OtpVerificationModal";
 import GoogleSignInButton from "../components/common/GoogleSignInButton";
 import LegalModal from "./legal/LegalModal";
+import ForgotPasswordModal from "../components/auth/ForgotPasswordModal";
 
 
 export default function AuthModal({
@@ -72,6 +73,7 @@ export default function AuthModal({
   // OTP Verification Modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpTargetEmail, setOtpTargetEmail] = useState("");
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -530,19 +532,16 @@ export default function AuthModal({
                 Password
               </label>
               {mode === "login" && (
-                <a
-                  href="#forgot"
+                <button
+                  type="button"
                   onClick={(e) => {
                     e.preventDefault();
-                    const resetEmail = prompt("Enter your registered email address to receive password reset link:");
-                    if (resetEmail) {
-                      showAlert(`Password reset instructions sent to ${resetEmail}`, 'info');
-                    }
+                    setIsForgotModalOpen(true);
                   }}
-                  className="text-[11px] font-medium text-slate-400 hover:text-slate-600"
+                  className="text-[11px] font-medium text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer"
                 >
                   Forgot?
-                </a>
+                </button>
               )}
             </div>
 
@@ -752,6 +751,13 @@ export default function AuthModal({
           role={role}
         />
       )}
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={isForgotModalOpen}
+        onClose={() => setIsForgotModalOpen(false)}
+        initialEmail={identifier.includes('@') ? identifier : email}
+      />
     </div>
   );
 }

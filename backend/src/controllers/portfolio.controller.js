@@ -24,7 +24,7 @@ async function getMyPortfolioController(req, res) {
             .populate('editor', 'name username email profileImage bio rating');
 
         if (!portfolio) {
-            return res.status(404).json({ message: "Portfolio not found. You have not created a portfolio yet." });
+            return res.status(200).json({ portfolio: { portfolioItems: [] } });
         }
 
         return res.status(200).json({ portfolio });

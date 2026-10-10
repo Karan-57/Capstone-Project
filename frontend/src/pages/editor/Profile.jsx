@@ -25,6 +25,11 @@ export const EditorProfile = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [playingVideo, setPlayingVideo] = useState(null);
   const [realReviews, setRealReviews] = useState([]);
+  const [portfolioItems, setPortfolioItems] = useState([]);
+  const [showreelData, setShowreelData] = useState(null);
+  const [totalEarned, setTotalEarned] = useState(0);
+  const [productionsDone, setProductionsDone] = useState(0);
+  const [isLoadingPortfolio, setIsLoadingPortfolio] = useState(true);
 
   React.useEffect(() => {
     const userId = editorUser?._id || editorUser?.id;
@@ -36,67 +41,74 @@ export const EditorProfile = () => {
       }).catch(() => {});
     }
 
+    // Load dynamic portfolio and showreel
     api.get('/api/portfolio/my').then((res) => {
-      const items = res.data?.portfolio?.portfolioItems;
-      if (Array.isArray(items) && items.length > 0) {
-        setPortfolioItems(items.map(it => ({
-          id: it._id || it.id || Date.now(),
-          title: it.title,
-          runtime: it.runtime || '03:15',
-          category: it.category || 'Editing Cut',
-          client: it.client || 'Client Project',
-          thumbnail: it.thumbnail || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&auto=format&fit=crop&q=80',
-          videoUrl: it.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-          tags: it.tags || ['Premiere Pro'],
-          views: it.views || '1',
-          description: it.description || ''
-        })));
+      const p = res.data?.portfolio;
+      if (p) {
+        if (p.showreelUrl || p.showreelVideoUrl) {
+          setShowreelData({
+            url: p.showreelUrl || p.showreelVideoUrl,
+            title: p.showreelTitle || p.title || 'Featured Showreel'
+          });
+        }
+        const items = p.portfolioItems;
+        if (Array.isArray(items)) {
+          setPortfolioItems(items.map(it => ({
+            id: it._id || it.id || Date.now(),
+            title: it.title,
+            runtime: it.runtime || '03:15',
+            category: it.category || it.projectType || 'Editing Cut',
+            client: it.client || 'Client Project',
+            thumbnail: it.thumbnail || it.thumbnailUrl || '',
+            videoUrl: it.videoUrl || '',
+            tags: it.tags || it.skillsUsed || ['Editing'],
+            views: it.views || '1',
+            description: it.description || ''
+          })));
+        }
       }
+    }).catch(() => {
+      setPortfolioItems([]);
+    }).finally(() => {
+      setIsLoadingPortfolio(false);
+    });
+
+    // Compute dynamic earnings and completed productions
+    Promise.all([
+      api.get('/api/application/my?status=accepted').catch(() => ({ data: { applications: [] } })),
+      api.get('/api/workspace').catch(() => ({ data: { workspaces: [] } })),
+    ]).then(([appsRes, wsRes]) => {
+      const apps = appsRes.data?.applications || [];
+      const workspaces = wsRes.data?.workspaces || [];
+      const completedWsProjectIds = new Set(
+        workspaces.filter(w => w.status === 'completed').map(w => w.projectId?._id || w.projectId)
+      );
+
+      let earned = 0;
+      let completedCount = 0;
+
+      (apps || []).forEach(app => {
+        const numericBid = typeof app.bidAmount === 'number'
+          ? app.bidAmount
+          : (parseInt(String(app.bidAmount || 0).replace(/[^0-9]/g, ''), 10) || 0);
+        const isCompleted = completedWsProjectIds.has(app.projectId);
+
+        if (isCompleted) {
+          earned += numericBid;
+          completedCount += 1;
+        }
+      });
+
+      setTotalEarned(earned);
+      setProductionsDone(completedCount);
     }).catch(() => {});
   }, [editorUser?._id, editorUser?.id]);
 
-  // Portfolio items with playable sample edits
-  const [portfolioItems, setPortfolioItems] = useState([
-    {
-      id: 1,
-      title: 'Cinematic Iceland 4K Drone & Color Grade Reel',
-      runtime: '02:18',
-      category: 'Travel / Cinematic',
-      client: 'Nomad Stories',
-      thumbnail: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=600&auto=format&fit=crop&q=80',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      tags: ['DaVinci Resolve', '4K 60fps', 'ACES Rec.709'],
-      views: '12.4K',
-      description: 'Full color grading and natural environmental sound design recorded with binaural mics.'
-    },
-    {
-      id: 2,
-      title: 'High-Retention TikTok / Instagram Reels Compilation',
-      runtime: '00:58',
-      category: 'Short Form',
-      client: 'Sarah Jenkins',
-      thumbnail: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-      tags: ['After Effects', 'Alex Hormozi Style', 'Kinetic Typography'],
-      views: '84.2K',
-      description: 'Dynamic zoom transitions, sfx riser drops, and color-coded subtitles.'
-    },
-    {
-      id: 3,
-      title: 'Future of Robotics & Autonomous AI (18-Min Cut)',
-      runtime: '18:34',
-      category: 'YouTube Documentary',
-      client: 'Nexus Media Corp',
-      thumbnail: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&auto=format&fit=crop&q=80',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
-      tags: ['Premiere Pro', 'Audio Restoration', 'Vox-Style 2D'],
-      views: '240K',
-      description: 'Long-form narrative pacing keeping retention above 58% throughout 18 minutes.'
-    }
-  ]);
-
   const [newCutTitle, setNewCutTitle] = useState('');
   const [newCutCategory, setNewCutCategory] = useState('YouTube Longform');
+  const [newCutVideoUrl, setNewCutVideoUrl] = useState('');
+  const [newCutThumbnailUrl, setNewCutThumbnailUrl] = useState('');
+  const [newCutDescription, setNewCutDescription] = useState('');
 
   const handleAddNewCut = async (e) => {
     e.preventDefault();
@@ -108,17 +120,20 @@ export const EditorProfile = () => {
       runtime: '03:15',
       category: newCutCategory,
       client: 'Direct Upload',
-      thumbnail: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&auto=format&fit=crop&q=80',
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      tags: ['Adobe Premiere Pro', 'Sound Design'],
+      thumbnail: newCutThumbnailUrl.trim() || '',
+      videoUrl: newCutVideoUrl.trim() || '',
+      tags: ['Video Edit'],
       views: '1',
-      description: 'Newly uploaded sample editing cut.'
+      description: newCutDescription.trim() || 'Custom portfolio video cut.'
     };
 
     const nextItems = [newItem, ...portfolioItems];
     setPortfolioItems(nextItems);
     setShowUploadModal(false);
     setNewCutTitle('');
+    setNewCutVideoUrl('');
+    setNewCutThumbnailUrl('');
+    setNewCutDescription('');
 
     try {
       await api.patch('/api/portfolio', { portfolioItems: nextItems }).catch(async () => {
@@ -187,21 +202,25 @@ export const EditorProfile = () => {
             </div>
             <div className="text-xs text-slate-400 flex items-center justify-center gap-1 mt-0.5">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-              <span>({editorUser?.totalReviews != null ? editorUser.totalReviews : 0} reviews)</span>
+              <span>({editorUser?.totalReviews != null ? editorUser.totalReviews : realReviews.length} reviews)</span>
             </div>
           </div>
           <div className="p-2 sm:p-0">
-            <div className="text-lg sm:text-xl font-bold text-emerald-400">999</div>
+            <div className="text-lg sm:text-xl font-bold text-emerald-400">
+              ₹{totalEarned.toLocaleString()}
+            </div>
             <div className="text-xs text-slate-400 mt-0.5">Earned on Collabo</div>
           </div>
           <div className="p-2 sm:p-0">
             <div className="text-lg sm:text-xl font-bold text-purple-400">
-              {editorUser?.speed != null ? `${editorUser.speed} / 10` : '0 / 10'}
+              {editorUser?.speed != null ? `${editorUser.speed} / 10` : '10 / 10'}
             </div>
             <div className="text-xs text-slate-400 mt-0.5">Speed Rating</div>
           </div>
           <div className="p-2 sm:p-0">
-            <div className="text-lg sm:text-xl font-bold text-white">999</div>
+            <div className="text-lg sm:text-xl font-bold text-white">
+              {productionsDone}
+            </div>
             <div className="text-xs text-slate-400 mt-0.5">Productions Done</div>
           </div>
         </div>
@@ -277,14 +296,21 @@ export const EditorProfile = () => {
                     {/* Thumbnail with Play Overlay */}
                     <div
                       onClick={() => setPlayingVideo(item)}
-                      className="relative aspect-video cursor-pointer overflow-hidden bg-slate-900"
+                      className="relative aspect-video cursor-pointer overflow-hidden bg-slate-900 flex items-center justify-center"
                     >
-                      <img
-                        src={item.thumbnail}
-                        alt={item.title ? `${item.title} video thumbnail` : 'Portfolio video thumbnail'}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      {item.thumbnail ? (
+                        <img
+                          src={item.thumbnail}
+                          alt={item.title ? `${item.title} video thumbnail` : 'Portfolio video thumbnail'}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-tr from-slate-900 to-purple-950/40 text-purple-400/70 p-4">
+                          <Film className="w-10 h-10 mb-2 opacity-60" />
+                          <span className="text-[11px] font-semibold text-slate-400">Video Preview</span>
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition-colors">
                         <div className="w-12 h-12 rounded-full bg-purple-600/90 text-white flex items-center justify-center shadow-lg shadow-purple-950/80 group-hover:scale-110 transition-transform">
                           <Play className="w-5 h-5 fill-white ml-0.5" />
@@ -342,7 +368,9 @@ export const EditorProfile = () => {
           <div className="glass-card p-5 sm:p-6 md:p-8 rounded-2xl border border-white/[0.08] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="text-lg font-bold text-white">Featured Production Showreel</h3>
+                <h3 className="text-lg font-bold text-white">
+                  {showreelData?.title || 'Featured Production Showreel'}
+                </h3>
                 <p className="text-xs text-slate-400 mt-0.5">High-retention editing samples and master visual reels</p>
               </div>
               <Button
@@ -352,20 +380,54 @@ export const EditorProfile = () => {
                 onClick={() => navigate('/editor/edit-profile')}
                 className="self-start sm:self-auto"
               >
-                Update URL
+                {showreelData?.url ? 'Update Showreel' : 'Add Showreel'}
               </Button>
             </div>
 
-            <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/[0.1] shadow-2xl relative">
-              <video
-                controls
-                className="w-full h-full object-cover"
-                poster="https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1200&auto=format&fit=crop&q=80"
-                src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-              >
-                Your browser does not support the video tag.
-              </video>
-            </div>
+            {showreelData?.url ? (
+              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/[0.1] shadow-2xl relative">
+                {showreelData.url.includes('youtube.com') || showreelData.url.includes('youtu.be') || showreelData.url.includes('vimeo.com') ? (
+                  <iframe
+                    src={
+                      showreelData.url.includes('watch?v=')
+                        ? showreelData.url.replace('watch?v=', 'embed/')
+                        : showreelData.url
+                    }
+                    title="Showreel Video"
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    controls
+                    className="w-full h-full object-cover"
+                    src={showreelData.url}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                )}
+              </div>
+            ) : (
+              <div className="p-12 text-center rounded-2xl border border-dashed border-white/[0.1] space-y-3 bg-white/[0.01]">
+                <div className="w-12 h-12 rounded-2xl bg-purple-950/40 border border-purple-800/30 flex items-center justify-center text-purple-400 mx-auto">
+                  <Film className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-semibold text-white">No showreel video added yet</h4>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  Add a YouTube, Vimeo, or direct MP4 link in your profile to showcase your best visual work to creators.
+                </p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={Edit3}
+                  onClick={() => navigate('/editor/edit-profile')}
+                  className="mt-2"
+                >
+                  Configure Showreel Link
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -396,12 +458,12 @@ export const EditorProfile = () => {
                     </div>
                     <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
                       <Star className="w-3.5 h-3.5 fill-amber-400" />
-                      <span>{rev.rating != null ? rev.rating : 999}</span>
+                      <span>{rev.rating != null ? rev.rating : 5}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-300 italic leading-relaxed">"{rev.comment || 'unknown'}"</p>
+                  <p className="text-xs text-slate-300 italic leading-relaxed">"{rev.comment || ''}"</p>
                   <span className="text-[10px] text-slate-500 block font-mono">
-                    {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : 'unknown'}
+                    {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : 'Recent'}
                   </span>
                 </div>
               ))
@@ -482,6 +544,39 @@ export const EditorProfile = () => {
                   <option>Commercial / Ad</option>
                   <option>Gaming / Stream</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">Video URL (MP4 / Direct Link)</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/video.mp4"
+                  value={newCutVideoUrl}
+                  onChange={(e) => setNewCutVideoUrl(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">Thumbnail URL (Optional)</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/... or ImageKit URL"
+                  value={newCutThumbnailUrl}
+                  onChange={(e) => setNewCutThumbnailUrl(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">Brief Description</label>
+                <textarea
+                  rows={2}
+                  placeholder="Describe your editing style, effects, and color grading..."
+                  value={newCutDescription}
+                  onChange={(e) => setNewCutDescription(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500 resize-none"
+                />
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-3">
