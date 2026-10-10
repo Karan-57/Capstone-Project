@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AlertProvider } from './context/AlertContext';
+import { WalletProvider } from './context/WalletContext';
 import AppRoutes from './routes/AppRoutes';
 import CustomCursor from './components/landing/CustomCursor';
 
@@ -56,8 +57,10 @@ function App() {
       <BrowserRouter>
         <AlertProvider>
           <AuthProvider>
-            <CustomCursor />
-            <AppRoutes />
+            <WalletProvider>
+              <CustomCursor />
+              <AppRoutes />
+            </WalletProvider>
           </AuthProvider>
         </AlertProvider>
       </BrowserRouter>

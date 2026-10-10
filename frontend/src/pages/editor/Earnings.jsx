@@ -4,11 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { applicationService } from '../../services/applicationService';
 import { useAlert } from '../../context/AlertContext';
+import { useWallet } from '../../context/WalletContext';
+import { WithdrawModal } from '../../components/wallet/WithdrawModal';
 import api from '../../services/api';
 
 export const Earnings = () => {
   const navigate = useNavigate();
   const { showAlert } = useAlert();
+  const { walletBalance, escrowLocked } = useWallet();
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [pendingEscrow, setPendingEscrow] = useState(0);
@@ -94,16 +98,18 @@ export const Earnings = () => {
         <div className="glass-card p-5 border border-white/[0.06] flex flex-col justify-between">
           <div>
             <span className="text-xs text-slate-400">Available to Cash Out</span>
-            <div className="text-2xl font-bold text-white mt-1">₹{availableBalance.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-white mt-1 font-mono">
+              ₹{(walletBalance != null ? walletBalance : availableBalance).toLocaleString('en-IN')}
+            </div>
           </div>
           <Button
             variant="primary"
             size="xs"
-            disabled={availableBalance === 0}
-            onClick={() => showAlert(`Payout of ₹${availableBalance.toLocaleString()} transfer initiated to linked Bank Account`, 'success')}
+            disabled={(walletBalance || availableBalance) === 0}
+            onClick={() => setIsWithdrawModalOpen(true)}
             className="mt-4 w-full disabled:opacity-50"
           >
-            Withdraw to Bank
+            Withdraw to Bank / UPI
           </Button>
         </div>
 
@@ -111,7 +117,9 @@ export const Earnings = () => {
           <span className="text-xs text-slate-400 flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-purple-400" /> In Escrow Protection
           </span>
-          <div className="text-2xl font-bold text-purple-400 mt-1">₹{pendingEscrow.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-purple-400 mt-1 font-mono">
+            ₹{(escrowLocked != null ? escrowLocked : pendingEscrow).toLocaleString('en-IN')}
+          </div>
           <p className="text-[11px] text-slate-400 mt-2">
             Auto-clears into your balance upon client milestone sign-off
           </p>
@@ -167,6 +175,11 @@ export const Earnings = () => {
           </div>
         )}
       </div>
+
+      <WithdrawModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+      />
     </div>
   );
 };

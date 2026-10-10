@@ -53,6 +53,17 @@ export const paymentService = {
 
   getEditorEarnings: async () => {
     try {
+      const currentRole = localStorage.getItem('collabo_role') || 'creator';
+      if (currentRole !== 'editor') {
+        return {
+          available: 0,
+          escrow: 0,
+          lifetime: 0,
+          completedCount: 0,
+          recentPayouts: [],
+        };
+      }
+
       const [appsRes, wsRes] = await Promise.all([
         api.get('/api/application/my').catch(() => ({ data: { applications: [] } })),
         api.get('/api/workspace').catch(() => ({ data: { workspaces: [] } })),
@@ -111,6 +122,98 @@ export const paymentService = {
         recentPayouts: [],
       };
     }
+  },
+
+  // 1. Create Razorpay Test Order (1 Credit = 1 INR)
+  createOrder: async (amount) => {
+    const res = await api.post('/api/wallet/create-order', { amount: Number(amount) });
+    return res.data;
+  },
+
+  // 2. Verify Razorpay Payment Signature
+  verifyPayment: async (data) => {
+    const res = await api.post('/api/wallet/verify', data);
+    return res.data;
+  },
+
+  // 3. Instant 1-Click Demo Faucet
+  demoTopup: async (amount) => {
+    const res = await api.post('/api/wallet/demo-topup', { amount: Number(amount) });
+    return res.data;
+  },
+
+  // 4. Get User Wallet Balance, PIN status & Ledger
+  getWalletDetails: async () => {
+    try {
+      const res = await api.get('/api/wallet/me');
+      return res.data;
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  // 5. Set or Update 4-Digit Security PIN
+  setSecurityPin: async (pin) => {
+    const res = await api.post('/api/wallet/pin/set', { pin: String(pin) });
+    return res.data;
+  },
+
+  // 6. Verify 4-Digit Security PIN
+  verifySecurityPin: async (pin) => {
+    const res = await api.post('/api/wallet/pin/verify', { pin: String(pin) });
+    return res.data;
+  },
+
+  // 7. Lock Milestone Funds in Escrow
+  lockEscrow: async ({ amount, workspaceId, projectId, milestoneTitle, pin }) => {
+    const res = await api.post('/api/wallet/escrow/lock', {
+      amount: Number(amount),
+      workspaceId,
+      projectId,
+      milestoneTitle,
+      pin: String(pin || ''),
+    });
+    return res.data;
+  },
+
+  // 8. Release Milestone Funds from Escrow
+  releaseEscrow: async ({ amount, editorId, workspaceId, projectId, milestoneTitle, pin }) => {
+    const res = await api.post('/api/wallet/escrow/release', {
+      amount: Number(amount),
+      editorId,
+      workspaceId,
+      projectId,
+      milestoneTitle,
+      pin: String(pin || ''),
+    });
+    return res.data;
+  },
+
+  // 9. Editor Simulated Payout / Withdrawal
+  withdrawCredits: async ({ amount, pin, upiId, bankAccountNumber, ifscCode }) => {
+    const res = await api.post('/api/wallet/withdraw', {
+      amount: Number(amount),
+      pin: String(pin || ''),
+      upiId,
+      bankAccountNumber,
+      ifscCode,
+    });
+    return res.data;
+  },
+
+  // 7. Dynamically load official Razorpay SDK on-demand
+  loadRazorpaySdk: () => {
+    return new Promise((resolve) => {
+      if (typeof window !== 'undefined' && window.Razorpay) {
+        return resolve(true);
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
   },
 };
 

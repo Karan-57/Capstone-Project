@@ -163,75 +163,83 @@ export const Messages = () => {
                 <p className="text-sm">No messages in this conversation yet. Send a message to start collaborating!</p>
               </div>
             ) : (
-              chatHistory.map((item) => (
-                <div
-                  key={item.id}
-                  className={`flex flex-col ${item.sender === 'me' ? 'items-end' : 'items-start'} group`}
-                >
-                  {item.isVoice ? (
-                    <div className="p-3.5 rounded-2xl bg-[#141A28] border border-white/[0.08] flex items-center gap-3 text-xs">
-                      <button
-                        onClick={() => setIsPlayingVoice(!isPlayingVoice)}
-                        className="w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-md"
-                      >
-                        {isPlayingVoice ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
-                      </button>
+              chatHistory.map((item) => {
+                const isMe = Boolean(
+                  item.sender === 'me' ||
+                  (currentUserId && item.senderId && String(item.senderId) === String(currentUserId))
+                );
 
-                      <div className="flex items-center gap-1">
-                        {[12, 24, 18, 30, 20, 14, 28, 16, 22, 10, 18].map((h, i) => (
+                return (
+                  <div
+                    key={item.id}
+                    className={`w-full flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-md group`}>
+                      {item.isVoice ? (
+                        <div className="p-3.5 rounded-2xl bg-[#141A28] border border-white/[0.08] flex items-center gap-3 text-xs">
+                          <button
+                            onClick={() => setIsPlayingVoice(!isPlayingVoice)}
+                            className="w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-md"
+                          >
+                            {isPlayingVoice ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+                          </button>
+
+                          <div className="flex items-center gap-1">
+                            {[12, 24, 18, 30, 20, 14, 28, 16, 22, 10, 18].map((h, i) => (
+                              <span
+                                key={i}
+                                className={`w-1 rounded-full transition-all ${
+                                  isPlayingVoice ? 'bg-purple-400 animate-pulse' : 'bg-slate-600'
+                                }`}
+                                style={{ height: `${h}px` }}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-mono">{item.duration || 'unknown'}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`p-3.5 rounded-2xl text-xs leading-relaxed relative ${
+                            isMe
+                              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-br-xs shadow-md shadow-purple-900/30'
+                              : 'bg-[#182030] text-slate-100 rounded-bl-xs border border-white/[0.08]'
+                          }`}
+                        >
+                          <p>{item.text || 'unknown'}</p>
                           <span
-                            key={i}
-                            className={`w-1 rounded-full transition-all ${
-                              isPlayingVoice ? 'bg-purple-400 animate-pulse' : 'bg-slate-600'
+                            className={`text-[10px] block mt-1 text-right font-mono ${
+                              isMe ? 'text-purple-200' : 'text-slate-400'
                             }`}
-                            style={{ height: `${h}px` }}
-                          />
+                          >
+                            {item.time || 'unknown'}
+                          </span>
+                        </div>
+                      )}
+
+                      {item.reactions && item.reactions.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                          {item.reactions.map((r, i) => (
+                            <span key={i} className="px-1.5 py-0.5 text-[10px] bg-[#1E2638] rounded-full border border-white/[0.08]">
+                              {r}
+                            </span>
+                          ))}
+                        </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-1 text-xs">
+                        {['👍', '🔥', '❤️', '🚀'].map((em) => (
+                          <button
+                            key={em}
+                            type="button"
+                            onClick={() => addReaction(item.id, em)}
+                            className="hover:scale-125 transition-transform px-1"
+                          >
+                            {em}
+                          </button>
                         ))}
                       </div>
-                      <span className="text-[10px] text-slate-400 font-mono">{item.duration || 'unknown'}</span>
                     </div>
-                  ) : (
-                    <div
-                      className={`max-w-md p-3.5 rounded-2xl text-xs leading-relaxed relative ${
-                        item.sender === 'me'
-                          ? 'bg-purple-600 text-white rounded-tr-none shadow-md shadow-purple-900/30'
-                          : 'bg-[#151C2C] text-slate-200 rounded-tl-none border border-white/[0.06]'
-                      }`}
-                    >
-                      <p>{item.text || 'unknown'}</p>
-                      <span
-                        className={`text-[10px] block mt-1 text-right font-mono ${
-                          item.sender === 'me' ? 'text-purple-200' : 'text-slate-500'
-                        }`}
-                      >
-                        {item.time || 'unknown'}
-                      </span>
-                    </div>
-                  )}
-
-                  {item.reactions && item.reactions.length > 0 && (
-                    <div className="flex items-center gap-1 mt-1">
-                      {item.reactions.map((r, i) => (
-                        <span key={i} className="px-1.5 py-0.5 text-[10px] bg-[#1E2638] rounded-full border border-white/[0.08]">
-                          {r}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mt-1 text-xs">
-                    {['👍', '🔥', '❤️', '🚀'].map((em) => (
-                      <button
-                        key={em}
-                        onClick={() => addReaction(item.id, em)}
-                        className="hover:scale-125 transition-transform px-1"
-                      >
-                        {em}
-                      </button>
-                    ))}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 

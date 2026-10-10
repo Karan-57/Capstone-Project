@@ -159,6 +159,21 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    // Wallet & Banking (1 Credit = ₹1)
+    walletBalance: {
+      type: Number,
+      default: 10000,
+      min: [0, "Wallet balance cannot be negative"],
+    },
+    transactionPin: {
+      type: String,
+      select: false,
+    },
+    hasTransactionPin: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   {

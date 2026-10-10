@@ -108,6 +108,10 @@ export const projectService = {
   },
   getEditorActive: async () => {
     try {
+      const currentRole = localStorage.getItem('collabo_role') || 'creator';
+      if (currentRole !== 'editor') {
+        return [];
+      }
       const res = await api.get('/api/application/my?status=accepted');
       if (res.data?.applications && Array.isArray(res.data.applications)) {
         return res.data.applications.map((app) => {

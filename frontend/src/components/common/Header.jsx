@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Plus, Film, Menu } from 'lucide-react';
+import { Search, Bell, Plus, Film, Menu, Coins } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useWallet } from '../../context/WalletContext';
 import { useNavigate } from 'react-router-dom';
 import { notificationService } from '../../services/notificationService';
 import { DEFAULT_PFP } from '../../constants/assets';
+import WalletTopUpModal from '../wallet/WalletTopUpModal';
 
 export const Header = ({ onSearchChange, onMenuClick }) => {
   const { role, currentUser } = useAuth();
+  const { walletBalance } = useWallet();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isTopUpOpen, setIsTopUpOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -81,6 +85,27 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
           </button>
         )}
 
+        {/* Wallet Balance Pill */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-500/25 shadow-sm">
+          <div className="flex items-center gap-1.5">
+            <Coins className="w-4 h-4 text-amber-400 shrink-0" />
+            <div className="flex flex-col">
+              <span className="text-[9px] text-slate-400 leading-none uppercase font-mono tracking-wider">Credits</span>
+              <span className="text-xs font-bold font-mono text-amber-300 leading-tight">
+                ₹{walletBalance.toLocaleString('en-IN')}
+              </span>
+            </div>
+          </div>
+          {role === 'creator' && (
+            <button
+              onClick={() => setIsTopUpOpen(true)}
+              className="ml-1 px-2 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-[10px] font-bold transition-all cursor-pointer hover:scale-105 active:scale-95"
+            >
+              + Top Up
+            </button>
+          )}
+        </div>
+
         {/* Notification Bell */}
         <button
           onClick={() => navigate(role === 'creator' ? '/creator/notifications' : '/editor/notifications')}
@@ -115,6 +140,12 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Wallet Top-Up Modal */}
+      <WalletTopUpModal
+        isOpen={isTopUpOpen}
+        onClose={() => setIsTopUpOpen(false)}
+      />
     </header>
   );
 };

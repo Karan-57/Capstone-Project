@@ -11,12 +11,17 @@ export const EditorSignup = () => {
   const [portfolioUrl, setPortfolioUrl] = useState('https://vimeo.com/alexrivera/showreel2026');
   const [software, setSoftware] = useState('Adobe Premiere Pro & After Effects');
   const [password, setPassword] = useState('password123');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!agreedToTerms) {
+      setErrorMsg("Please accept the Terms & Conditions and Privacy Policy to continue.");
+      return;
+    }
     login('editor', {
       name: fullName || 'Alex Rivera',
       email: 'alex@motioncraft.co',
@@ -121,7 +126,37 @@ export const EditorSignup = () => {
             />
           </div>
 
-          <Button type="submit" variant="primary" className="w-full py-2.5">
+          <div className="flex items-start gap-2.5 pt-1 text-xs text-slate-300">
+            <input
+              type="checkbox"
+              id="editorAgreeTerms"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-white/20 accent-blue-600 cursor-pointer shrink-0"
+            />
+            <div className="leading-relaxed text-slate-400 select-none">
+              <label htmlFor="editorAgreeTerms" className="cursor-pointer">
+                I agree to Collabo's{' '}
+              </label>
+              <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-blue-400 font-medium hover:underline inline">
+                Terms and Conditions
+              </Link>{' '}
+              <span>and </span>
+              <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-400 font-medium hover:underline inline">
+                Privacy Policy
+              </Link>
+              <span>.</span>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={!agreedToTerms}
+            className={`w-full py-2.5 transition-all duration-200 ${
+              !agreedToTerms ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border border-white/5 pointer-events-none' : ''
+            }`}
+          >
             Submit Editor Application
           </Button>
         </form>

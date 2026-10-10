@@ -156,22 +156,29 @@ export const Messages = () => {
           </div>
 
           <div className="flex-1 p-4 sm:p-5 overflow-y-auto space-y-3.5">
-            {messages.map((item) => (
-              <div key={item.id} className={`flex ${item.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-md p-3.5 rounded-2xl text-xs leading-relaxed ${
-                    item.sender === 'me'
-                      ? 'bg-purple-600 text-white rounded-tr-none shadow-md shadow-purple-900/30'
-                      : 'bg-[#182030] text-slate-200 rounded-tl-none border border-white/[0.05]'
-                  }`}
-                >
-                  <p>{item.text}</p>
-                  <span className={`text-[10px] block mt-1 text-right ${item.sender === 'me' ? 'text-purple-200' : 'text-slate-400'}`}>
-                    {item.time}
-                  </span>
+            {messages.map((item) => {
+              const isMe = Boolean(
+                item.sender === 'me' ||
+                (currentUserId && item.senderId && String(item.senderId) === String(currentUserId))
+              );
+
+              return (
+                <div key={item.id} className={`w-full flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                  <div
+                    className={`max-w-[85%] sm:max-w-md p-3.5 rounded-2xl text-xs leading-relaxed ${
+                      isMe
+                        ? 'bg-gradient-to-r from-blue-600 to-sky-600 text-white rounded-br-xs shadow-md shadow-blue-900/30'
+                        : 'bg-[#182030] text-slate-100 rounded-bl-xs border border-white/[0.08]'
+                    }`}
+                  >
+                    <p>{item.text}</p>
+                    <span className={`text-[10px] block mt-1 text-right font-mono ${isMe ? 'text-sky-200' : 'text-slate-400'}`}>
+                      {item.time}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {messages.length === 0 && (
               <div className="h-full flex items-center justify-center text-xs text-slate-500 text-center py-12">
                 No messages yet. Send a message to start chatting!

@@ -11,6 +11,13 @@ import ProtectedRoute from './ProtectedRoute';
 // Common Components
 import StickyMobileCTA from '../components/common/StickyMobileCTA';
 
+// Core Public & Legal Pages (Statically imported for zero latency & instant tab rendering)
+import LandingPage from '../pages/LandingPage';
+import About from '../pages/About';
+import PrivacyPolicy from '../pages/legal/PlatformPrivacy';
+import TermsAndConditions from '../pages/legal/TermsAndConditions';
+import NotFound from '../pages/NotFound';
+
 // Page Loader Fallback
 const PageLoader = () => (
   <div className="min-h-screen bg-[#07090E] flex flex-col items-center justify-center gap-4">
@@ -23,13 +30,6 @@ const PageLoader = () => (
     <span className="text-xs font-medium text-slate-400 tracking-wider">Loading...</span>
   </div>
 );
-
-// Core Public & Legal Pages (Statically imported to ensure 100% reliable direct tab loads)
-import LandingPage from '../pages/LandingPage';
-import About from '../pages/About';
-import PrivacyPolicy from '../pages/legal/PrivacyPolicy';
-import TermsAndConditions from '../pages/legal/TermsAndConditions';
-import NotFound from '../pages/NotFound';
 
 // Lazy-loaded Auth Pages
 const Login = lazy(() => import('../pages/auth/Login'));

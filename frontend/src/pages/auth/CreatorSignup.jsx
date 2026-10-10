@@ -11,8 +11,14 @@ export const CreatorSignup = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!agreedToTerms) {
+      setErrorMsg("Please accept the Terms & Conditions and Privacy Policy to continue.");
+      return;
+    }
     login('creator', {
       name: 'Jason Vance',
       email: 'jason@studio.io',
@@ -97,7 +103,37 @@ export const CreatorSignup = () => {
             />
           </div>
 
-          <Button type="submit" variant="primary" className="w-full py-2.5">
+          <div className="flex items-start gap-2.5 pt-1 text-xs text-slate-300">
+            <input
+              type="checkbox"
+              id="creatorAgreeTerms"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-white/20 accent-purple-600 cursor-pointer shrink-0"
+            />
+            <div className="leading-relaxed text-slate-400 select-none">
+              <label htmlFor="creatorAgreeTerms" className="cursor-pointer">
+                I agree to Collabo's{' '}
+              </label>
+              <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-purple-400 font-medium hover:underline inline">
+                Terms and Conditions
+              </Link>{' '}
+              <span>and </span>
+              <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="text-purple-400 font-medium hover:underline inline">
+                Privacy Policy
+              </Link>
+              <span>.</span>
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={!agreedToTerms}
+            className={`w-full py-2.5 transition-all duration-200 ${
+              !agreedToTerms ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border border-white/5 pointer-events-none' : ''
+            }`}
+          >
             Create Creator Account
           </Button>
         </form>

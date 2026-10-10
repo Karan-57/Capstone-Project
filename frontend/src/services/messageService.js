@@ -43,15 +43,20 @@ export const messageService = {
       const res = await api.get(`/api/conversations/${conversationId}/messages`);
       const msgs = res.data?.messages || [];
       return msgs.map((m) => {
-        const isMe = currentUserId
-          ? String(m.sender?._id || m.sender?.id || m.sender) === String(currentUserId)
-          : false;
+        const senderObj = typeof m.sender === 'object' && m.sender !== null ? m.sender : null;
+        const senderId = (senderObj?._id || senderObj?.id || m.sender)?.toString();
+        const isMe = Boolean(
+          m.isSelf === true ||
+          m.sender === 'me' ||
+          (currentUserId && senderId && String(senderId) === String(currentUserId))
+        );
 
         return {
           id: m._id || m.id,
-          sender: isMe ? 'me' : m.sender?.name || 'Sender',
-          senderName: m.sender?.name || 'User',
-          senderAvatar: m.sender?.profileImage || DEFAULT_PFP,
+          sender: isMe ? 'me' : (senderObj?.name || m.senderName || 'Sender'),
+          senderId,
+          senderName: senderObj?.name || m.senderName || 'User',
+          senderAvatar: senderObj?.profileImage || m.senderAvatar || DEFAULT_PFP,
           text: m.text || '',
           time: m.createdAt
             ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })

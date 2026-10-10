@@ -31,6 +31,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
 import SEO from '../../components/common/SEO';
 import api from '../../services/api';
+import MilestoneEscrowPipeline from '../../components/workspace/MilestoneEscrowPipeline';
 
 /* ─────────────────────────────────────────────────────
    HELPERS & FORMATTERS
@@ -216,6 +217,7 @@ function ChatPanel({
   onBack,
 }) {
   const { showAlert } = useAlert();
+  const { currentUser, role: userRole } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -223,6 +225,10 @@ function ChatPanel({
   const [isAttaching, setIsAttaching] = useState(false);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const myId = (currentUserId || currentUser?._id || currentUser?.id)?.toString();
+  const myEmail = currentUser?.email?.toLowerCase();
+  const myUsername = currentUser?.username?.toLowerCase();
 
   const fetchMessages = useCallback(async () => {
     if (!conversationId) {
@@ -263,8 +269,13 @@ function ChatPanel({
       const res = await api.post(`/api/conversations/${conversationId}/messages`, {
         text: textToSend,
       });
-      const newMsg = res.data?.data;
-      if (newMsg) {
+      const rawMsg = res.data?.data || (typeof res.data?.message === 'object' ? res.data.message : null);
+      if (rawMsg) {
+        const newMsg = {
+          ...rawMsg,
+          isSelf: true,
+          sender: rawMsg.sender || currentUser,
+        };
         setMessages((prev) => [...prev, newMsg]);
       } else {
         await fetchMessages();
@@ -362,16 +373,37 @@ function ChatPanel({
           </div>
         )}
 
-        {messages.map((msg) => {
-          const senderId = (msg.sender?._id || msg.sender)?.toString();
-          const isMe = currentUserId && senderId === currentUserId.toString();
-          const senderName = msg.sender?.name || (isMe ? 'You' : 'Collaborator');
-          const senderAvatar = msg.sender?.profileImage || DEFAULT_PFP;
+        {messages.map((msg, idx) => {
+          const senderObj = typeof msg.sender === 'object' && msg.sender !== null ? msg.sender : null;
+          const senderId = (senderObj?._id || senderObj?.id || msg.sender)?.toString();
+          const senderEmail = senderObj?.email?.toLowerCase();
+          const senderUsername = senderObj?.username?.toLowerCase();
+          const senderNameRaw = senderObj?.name || msg.senderName;
+
+          const isMe = Boolean(
+            msg.isSelf === true ||
+            msg.sender === 'me' ||
+            (myId && senderId && senderId === myId) ||
+            (myEmail && senderEmail && senderEmail === myEmail) ||
+            (myUsername && senderUsername && senderUsername === myUsername)
+          );
+
+          const senderName = isMe ? 'You' : (senderNameRaw || 'Collaborator');
+          const senderAvatar = isMe
+            ? (currentUser?.avatar || currentUser?.profileImage || DEFAULT_PFP)
+            : (senderObj?.profileImage || msg.senderAvatar || DEFAULT_PFP);
           const msgTime = formatTime(msg.createdAt);
 
           return (
-            <div key={msg._id || msg.id} className={`flex items-start gap-2.5 ${isMe ? 'flex-row-reverse' : ''}`}>
-              {!isMe && (
+            <div
+              key={msg._id || msg.id || idx}
+              className={`w-full flex ${isMe ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+            >
+              <div
+                className={`flex items-end gap-2.5 max-w-[85%] sm:max-w-[75%] ${
+                  isMe ? 'flex-row-reverse' : 'flex-row'
+                }`}
+              >
                 <img
                   src={senderAvatar}
                   alt={senderName ? `${senderName} avatar` : 'Chat participant avatar'}
@@ -379,53 +411,76 @@ function ChatPanel({
                   onError={(e) => {
                     e.currentTarget.src = DEFAULT_PFP;
                   }}
-                  className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0 mt-0.5"
+                  className={`w-7 h-7 rounded-full object-cover shrink-0 mb-0.5 border ${
+                    isMe
+                      ? userRole === 'editor'
+                        ? 'border-blue-500/40 ring-1 ring-blue-500/30'
+                        : 'border-purple-500/40 ring-1 ring-purple-500/30'
+                      : 'border-white/10'
+                  }`}
                 />
-              )}
-              <div className={`max-w-[72%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
-                {!isMe && (
-                  <span className="text-[11px] font-semibold text-slate-400 px-1">{senderName}</span>
-                )}
-                {msg.text && (
-                  <div
-                    className={`px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed shadow-md ${
-                      isMe
-                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-sm'
-                        : 'bg-[#151C2C] text-slate-200 border border-white/[0.06] rounded-tl-sm'
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                )}
-                {Array.isArray(msg.attachments) &&
-                  msg.attachments.map((att, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs ${
+
+                <div className={`flex flex-col gap-1 min-w-0 ${isMe ? 'items-end' : 'items-start'}`}>
+                  <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <span
+                      className={`text-[11px] font-semibold tracking-tight ${
                         isMe
-                          ? 'bg-indigo-700/40 border-indigo-500/30 text-white'
-                          : 'bg-[#151C2C] border-white/[0.06] text-slate-200'
+                          ? userRole === 'editor'
+                            ? 'text-sky-300'
+                            : 'text-purple-300'
+                          : 'text-slate-300'
                       }`}
                     >
-                      <Paperclip className="w-3.5 h-3.5 shrink-0 text-purple-300" />
-                      <div className="min-w-0">
-                        <p className="font-semibold truncate">{att.name || 'Attachment'}</p>
-                        {att.size && <p className="text-[10px] opacity-70">{formatFileSize(att.size)}</p>}
-                      </div>
-                      {att.url && (
-                        <a
-                          href={att.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Open file"
-                          className="shrink-0 opacity-80 hover:opacity-100"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      )}
+                      {senderName}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-mono">{msgTime}</span>
+                  </div>
+
+                  {msg.text && (
+                    <div
+                      className={`px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-md break-words ${
+                        isMe
+                          ? userRole === 'editor'
+                            ? 'bg-gradient-to-r from-blue-600 to-sky-600 text-white rounded-br-xs shadow-blue-900/30'
+                            : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-br-xs shadow-purple-900/30'
+                          : 'bg-[#182030] text-slate-100 border border-white/[0.08] rounded-bl-xs shadow-black/40'
+                      }`}
+                    >
+                      {msg.text}
                     </div>
-                  ))}
-                <span className="text-[10px] text-slate-500 font-mono px-1">{msgTime}</span>
+                  )}
+
+                  {Array.isArray(msg.attachments) &&
+                    msg.attachments.map((att, attIdx) => (
+                      <div
+                        key={attIdx}
+                        className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-xs shadow-sm ${
+                          isMe
+                            ? userRole === 'editor'
+                              ? 'bg-blue-900/40 border-blue-500/40 text-white'
+                              : 'bg-indigo-900/40 border-indigo-500/40 text-white'
+                            : 'bg-[#182030] border-white/[0.08] text-slate-200'
+                        }`}
+                      >
+                        <Paperclip className="w-3.5 h-3.5 shrink-0 text-purple-300" />
+                        <div className="min-w-0">
+                          <p className="font-semibold truncate">{att.name || 'Attachment'}</p>
+                          {att.size && <p className="text-[10px] opacity-70">{formatFileSize(att.size)}</p>}
+                        </div>
+                        {att.url && (
+                          <a
+                            href={att.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Open file"
+                            className="shrink-0 opacity-80 hover:opacity-100 ml-1"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                </div>
               </div>
             </div>
           );
@@ -1090,9 +1145,18 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
           </div>
         </section>
 
-        {/* ── SECTION 4: DELIVERABLES & PRODUCTION APPROVALS ── */}
-        <section className="space-y-3.5">
-          <div className="flex items-center justify-between flex-wrap gap-2">
+        {/* ── SECTION 4: MULTI-STAGE ESCROW & PRODUCTION APPROVALS ── */}
+        <section className="space-y-4">
+          <MilestoneEscrowPipeline
+            workspaceId={workspace._id}
+            totalBudget={workspace.projectId?.budget || 10000}
+            isCreator={isCreator}
+            editorName={workspace.editorId?.name || 'Assigned Editor'}
+            editorId={workspace.editorId?._id || workspace.editorId}
+            projectId={workspace.projectId?._id || workspace.projectId}
+          />
+
+          <div className="flex items-center justify-between flex-wrap gap-2 pt-2">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Video className="w-4 h-4 text-emerald-400" />
               Final Cut Deliverables & Approvals

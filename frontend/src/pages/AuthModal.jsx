@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams, Link } from "react-router-dom";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import CollaboLogo from "../components/landing/CollaboLogo";
@@ -9,6 +9,7 @@ import { login as loginApi, register as registerApi } from "../services/auth.api
 import { setAccessToken } from "../services/api";
 import OtpVerificationModal from "./auth/OtpVerificationModal";
 import GoogleSignInButton from "../components/common/GoogleSignInButton";
+import LegalModal from "./legal/LegalModal";
 
 
 export default function AuthModal({
@@ -29,8 +30,31 @@ export default function AuthModal({
   const paramRole = searchParams?.get("role");
   const validParamRole = paramRole === "editor" || paramRole === "creator" ? paramRole : null;
 
-  const [mode, setMode] = useState(initialMode);
+  const [mode, setMode] = useState(() => {
+    if (location.pathname === "/signup" || location.pathname.includes("signup")) return "signup";
+    return initialMode || "login";
+  });
   const [role, setRole] = useState(validParamRole || initialRole); // "creator" | "editor"
+
+  // Sync mode whenever initialMode or URL path changes
+  useEffect(() => {
+    if (location.pathname === "/signup" || location.pathname.includes("signup")) {
+      setMode("signup");
+    } else if (location.pathname === "/login" || location.pathname.includes("login")) {
+      setMode("login");
+    } else if (initialMode) {
+      setMode(initialMode);
+    }
+  }, [location.pathname, initialMode]);
+
+  // Sync role when query param or initialRole changes
+  useEffect(() => {
+    if (validParamRole) {
+      setRole(validParamRole);
+    } else if (initialRole) {
+      setRole(initialRole);
+    }
+  }, [validParamRole, initialRole]);
 
   // Inputs
   const [identifier, setIdentifier] = useState(""); // email or username for login
@@ -40,6 +64,7 @@ export default function AuthModal({
   const [username, setUsername] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(null); // 'terms' | 'privacy' | null
 
   // Password visibility state: shown only while cursor is pressed / held down
   const [isPasswordRevealed, setIsPasswordRevealed] = useState(false);
@@ -66,6 +91,16 @@ export default function AuthModal({
     setErrorMsg("");
     if (isFullPage && setSearchParams) {
       setSearchParams({ role: newRole });
+    }
+  };
+
+  // When toggling mode (login ↔ signup), update state and URL route in full page
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setErrorMsg("");
+    if (isFullPage) {
+      const currentRole = role || "creator";
+      navigate(`/${newMode}?role=${currentRole}`, { replace: true });
     }
   };
 
@@ -247,7 +282,7 @@ export default function AuthModal({
     <div
       className={
         isFullPage
-          ? "min-h-screen bg-[#07090E] flex items-center justify-center p-4 py-12 relative overflow-hidden"
+          ? "min-h-screen bg-[#07090E] flex flex-col items-center justify-center p-4 py-8 sm:py-12 relative overflow-y-auto"
           : "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn overflow-y-auto"
       }
     >
@@ -266,7 +301,7 @@ export default function AuthModal({
         <BlueFolder3DIcon className="w-16 h-16" />
       </div>
 
-      {/* Modal / Card Container with 500ms smooth height/layout transition (Normal distribution / ease-in-out S-curve) */}
+      {/* Modal / Card Container with 500ms smooth height/layout transition */}
       <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 sm:p-8 overflow-hidden z-10 my-auto transition-all duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)]">
         {/* Close Button (Modal mode only) */}
         {!isFullPage && (
@@ -346,10 +381,7 @@ export default function AuthModal({
 
           <button
             type="button"
-            onClick={() => {
-              setMode("login");
-              setErrorMsg("");
-            }}
+            onClick={() => handleModeChange("login")}
             className={`relative z-10 w-1/2 py-2 text-xs sm:text-sm font-semibold text-center transition-colors duration-300 rounded-lg flex items-center justify-center cursor-pointer ${
               mode === "login"
                 ? isCreator
@@ -363,10 +395,7 @@ export default function AuthModal({
 
           <button
             type="button"
-            onClick={() => {
-              setMode("signup");
-              setErrorMsg("");
-            }}
+            onClick={() => handleModeChange("signup")}
             className={`relative z-10 w-1/2 py-2 text-xs sm:text-sm font-semibold text-center transition-colors duration-300 rounded-lg flex items-center justify-center cursor-pointer ${
               mode === "signup"
                 ? isCreator
@@ -594,35 +623,65 @@ export default function AuthModal({
 
           {/* Terms & Conditions Agreement Checkbox (Signup Mode) */}
           {mode === "signup" && (
-            <div className="flex items-start gap-2.5 pt-1 text-xs text-slate-600 animate-fadeIn">
+            <div className="flex items-start gap-2.5 pt-2 pb-1 text-xs text-slate-600 animate-fadeIn">
               <input
                 type="checkbox"
                 id="agreeTerms"
+                name="agreeTerms"
                 checked={agreedToTerms}
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded text-purple-600 border-slate-300 focus:ring-purple-500 cursor-pointer shrink-0"
+                className={`mt-0.5 w-4 h-4 rounded border-slate-300 cursor-pointer shrink-0 transition-colors ${
+                  isCreator
+                    ? "accent-purple-600 text-purple-600 focus:ring-purple-500"
+                    : "accent-blue-600 text-blue-600 focus:ring-blue-500"
+                }`}
               />
-              <label htmlFor="agreeTerms" className="cursor-pointer select-none leading-relaxed">
-                I agree to Collabo's{" "}
-                <Link to="/terms" target="_blank" className="text-purple-600 font-semibold hover:underline">
+              <div className="leading-relaxed text-slate-600 select-none">
+                <label htmlFor="agreeTerms" className="cursor-pointer">
+                  I agree to Collabo's{" "}
+                </label>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowLegalModal("terms");
+                  }}
+                  className={`font-semibold hover:underline cursor-pointer inline ${
+                    isCreator ? "text-purple-600" : "text-blue-600"
+                  }`}
+                >
                   Terms and Conditions
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" target="_blank" className="text-purple-600 font-semibold hover:underline">
+                </button>
+                <span> and </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowLegalModal("privacy");
+                  }}
+                  className={`font-semibold hover:underline cursor-pointer inline ${
+                    isCreator ? "text-purple-600" : "text-blue-600"
+                  }`}
+                >
                   Privacy Policy
-                </Link>.
-              </label>
+                </button>
+                <span>.</span>
+              </div>
             </div>
           )}
 
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3 px-4 rounded-xl text-white text-sm font-bold tracking-wide transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2 active:scale-[0.98] mt-2 ${
-              isCreator
-                ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-purple-500/30"
-                : "bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 shadow-blue-500/30"
+            disabled={isSubmitting || (mode === "signup" && !agreedToTerms)}
+            className={`w-full py-3 px-4 rounded-xl text-sm font-bold tracking-wide transition-all duration-300 flex items-center justify-center gap-2 mt-2 ${
+              mode === "signup" && !agreedToTerms
+                ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none select-none opacity-60 pointer-events-none"
+                : isCreator
+                ? "text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md hover:shadow-lg shadow-purple-500/30 cursor-pointer active:scale-[0.98]"
+                : "text-white bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 shadow-md hover:shadow-lg shadow-blue-500/30 cursor-pointer active:scale-[0.98]"
             }`}
           >
             {isSubmitting ? (
@@ -635,6 +694,37 @@ export default function AuthModal({
               <span>Continue to OTP Verification →</span>
             )}
           </button>
+
+          {/* Switch Mode Footer Link */}
+          <div className="mt-3 pt-3 border-t border-slate-100 text-center text-xs text-slate-500">
+            {mode === "signup" ? (
+              <p>
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("login")}
+                  className={`font-semibold hover:underline cursor-pointer ${
+                    isCreator ? "text-purple-600" : "text-blue-600"
+                  }`}
+                >
+                  Sign In
+                </button>
+              </p>
+            ) : (
+              <p>
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("signup")}
+                  className={`font-semibold hover:underline cursor-pointer ${
+                    isCreator ? "text-purple-600" : "text-blue-600"
+                  }`}
+                >
+                  Sign Up
+                </button>
+              </p>
+            )}
+          </div>
         </form>
       </div>
 
@@ -646,6 +736,20 @@ export default function AuthModal({
           role={role}
           onSuccess={handleOtpVerified}
           onCancel={() => setShowOtpModal(false)}
+        />
+      )}
+
+      {/* Aesthetic Terms & Privacy Legal Modal View */}
+      {showLegalModal && (
+        <LegalModal
+          type={showLegalModal}
+          isOpen={!!showLegalModal}
+          onClose={() => setShowLegalModal(null)}
+          onAccept={() => {
+            setAgreedToTerms(true);
+            setShowLegalModal(null);
+          }}
+          role={role}
         />
       )}
     </div>

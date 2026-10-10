@@ -10,6 +10,7 @@ const { createNotification } = require('../services/notification.service');
 const { parseMediaLink } = require('../utils/linkParser.util');
 const { deleteImageKitFile, uploadToImageKit } = require('../services/imagekit.service');
 const { getOrCreateProjectConversation } = require('../services/chat.service');
+const { releaseEscrowInternal } = require('./payment.controller');
 
 /**
  * Helper to get only ACTIVE members of the workspace, strictly excluding the actor.
@@ -1100,6 +1101,37 @@ async function approveDeliveryController(req, res) {
             status: 'completed',
             message: `Delivery cut v${delivery.version} approved by creator. Workspace completed.`
         });
+
+        // Automatically release milestone escrow payout to the editor
+        try {
+            let payoutAmount = 5000;
+            if (workspace.projectId) {
+                const projectDoc = await projectModel.findById(workspace.projectId);
+                if (projectDoc?.budget) {
+                    if (typeof projectDoc.budget === 'number') {
+                        payoutAmount = projectDoc.budget;
+                    } else if (projectDoc.budget.fixed) {
+                        payoutAmount = Number(projectDoc.budget.fixed);
+                    } else if (projectDoc.budget.max) {
+                        payoutAmount = Number(projectDoc.budget.max);
+                    }
+                }
+            }
+
+            const targetEditorId = delivery.editorId?._id || delivery.editorId || workspace.editorId;
+            if (targetEditorId) {
+                await releaseEscrowInternal({
+                    creatorId: userId,
+                    editorId: targetEditorId,
+                    amount: payoutAmount,
+                    workspaceId: workspace._id,
+                    projectId: workspace.projectId,
+                    milestoneTitle: `Delivery Cut v${delivery.version || 1} Approval`,
+                });
+            }
+        } catch (paymentErr) {
+            console.error('[workspace.controller] Escrow release on delivery approval error:', paymentErr.message);
+        }
 
         await delivery.populate('editorId', 'name username email profileImage rating');
         if (delivery.fileId) {

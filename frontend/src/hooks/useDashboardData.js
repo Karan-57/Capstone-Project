@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { projectService } from '../services/projectService';
 import { applicationService } from '../services/applicationService';
 import { paymentService } from '../services/paymentService';
@@ -6,6 +7,7 @@ import { messageService } from '../services/messageService';
 import api from '../services/api';
 
 export const useDashboardData = () => {
+  const { role, isAuthLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [creatorProjects, setCreatorProjects] = useState([]);
   const [editorRecommended, setEditorRecommended] = useState([]);
@@ -16,34 +18,54 @@ export const useDashboardData = () => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
+    let isMounted = true;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [cProj, eRec, eAct, apps, earn, eEarn, msgs] = await Promise.all([
-          projectService.getCreatorProjects(),
-          projectService.getEditorRecommended(),
-          projectService.getEditorActive(),
-          applicationService.getApplications(),
-          paymentService.getEarningsChart('thisMonth'),
-          paymentService.getEditorEarnings(),
-          messageService.getMessages(),
-        ]);
-        setCreatorProjects(cProj);
-        setEditorRecommended(eRec);
-        setEditorActive(eAct);
-        setApplications(apps);
-        setEarningsData(earn);
-        setEditorEarnings(eEarn);
-        setMessages(msgs);
+        if (role === 'creator') {
+          const [cProj, apps, earn, msgs] = await Promise.all([
+            projectService.getCreatorProjects().catch(() => []),
+            applicationService.getApplications().catch(() => []),
+            paymentService.getEarningsChart('thisMonth').catch(() => null),
+            messageService.getMessages().catch(() => []),
+          ]);
+          if (isMounted) {
+            setCreatorProjects(cProj || []);
+            setApplications(apps || []);
+            setEarningsData(earn);
+            setMessages(msgs || []);
+          }
+        } else if (role === 'editor') {
+          const [eRec, eAct, eEarn, msgs] = await Promise.all([
+            projectService.getEditorRecommended().catch(() => []),
+            projectService.getEditorActive().catch(() => []),
+            paymentService.getEditorEarnings().catch(() => null),
+            messageService.getMessages().catch(() => []),
+          ]);
+          if (isMounted) {
+            setEditorRecommended(eRec || []);
+            setEditorActive(eAct || []);
+            setEditorEarnings(eEarn);
+            setMessages(msgs || []);
+          }
+        }
       } catch (err) {
-        console.error('Failed to load dashboard data', err);
+        console.warn('[useDashboardData] Failed to load dashboard data:', err.message);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [role, isAuthLoading]);
 
   const handleApplicationStatus = async (appId, newStatus) => {
     try {

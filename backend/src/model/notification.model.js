@@ -21,6 +21,8 @@ const NOTIFICATION_TYPES = [
   'REQUIREMENTS_UPDATED',
   'NEW_REVIEW',
   'DEADLINE_REMINDER',
+  'PAYMENT_RECEIVED',
+  'PAYMENT_RELEASED',
 ];
 
 const notificationSchema = new mongoose.Schema(
