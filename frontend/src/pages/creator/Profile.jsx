@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Star, Edit3, Mail, MapPin, Phone, User, ShieldCheck } from 'lucide-react';
 import Button from '../../components/common/Button';
+import Footer from '../../components/common/Footer';
+import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
 import { projectService } from '../../services/projectService';
 import { DEFAULT_PFP } from '../../constants/assets';
@@ -9,19 +11,33 @@ import { DEFAULT_PFP } from '../../constants/assets';
 export const Profile = () => {
   const navigate = useNavigate();
   const { creatorUser } = useAuth();
-  const [totalProjects, setTotalProjects] = useState(999);
+  const [totalProjects, setTotalProjects] = useState(0);
+  const [totalSpent, setTotalSpent] = useState(0);
 
   useEffect(() => {
     projectService.getCreatorProjects().then((projs) => {
       setTotalProjects(projs.length);
-    }).catch(() => setTotalProjects(999));
+      const spent = projs.reduce((sum, p) => {
+        const val = typeof p.budget === 'number' ? p.budget : parseInt(String(p.budget).replace(/[^0-9]/g, ''), 10) || 0;
+        return (p.rawStatus === 'completed' || p.rawStatus === 'assigned' || p.rawStatus === 'in_progress') ? sum + val : sum;
+      }, 0);
+      setTotalSpent(spent);
+    }).catch(() => {
+      setTotalProjects(0);
+      setTotalSpent(0);
+    });
   }, []);
 
   const ratingVal = creatorUser?.rating != null ? creatorUser.rating : 0;
   const reviewCount = creatorUser?.totalReviews != null ? creatorUser.totalReviews : 0;
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl pb-8 animate-fade-in">
+      <SEO
+        title={`${creatorUser?.name || 'Creator'} - Profile`}
+        description={`Creator profile for ${creatorUser?.name || 'video creator'} on Collabo.`}
+      />
+
       {/* Creator Profile Banner */}
       <div className="glass-card p-6 border border-white/[0.06] relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-purple-800/20"></div>
@@ -30,7 +46,8 @@ export const Profile = () => {
           <div className="flex items-end gap-4">
             <img
               src={creatorUser?.profileImage || creatorUser?.avatar || DEFAULT_PFP}
-              alt={creatorUser?.name || 'unknown'}
+              alt={creatorUser?.name ? `${creatorUser.name} profile photo` : 'Creator profile photo'}
+              loading="lazy"
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
@@ -66,7 +83,7 @@ export const Profile = () => {
             <div className="text-xs text-slate-400">Total Projects</div>
           </div>
           <div>
-            <div className="text-xl font-bold text-emerald-400">999</div>
+            <div className="text-xl font-bold text-emerald-400">₹{totalSpent.toLocaleString()}</div>
             <div className="text-xs text-slate-400">Paid to Editors</div>
           </div>
           <div>
@@ -117,6 +134,9 @@ export const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Profile Footer */}
+      <Footer />
     </div>
   );
 };

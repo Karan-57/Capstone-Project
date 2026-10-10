@@ -103,7 +103,8 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
           <div className="relative">
             <img
               src={currentUser?.profileImage || currentUser?.avatar || DEFAULT_PFP}
-              alt={currentUser?.name || 'unknown'}
+              alt={currentUser?.name ? `${currentUser.name} avatar` : 'User profile avatar'}
+              loading="lazy"
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;

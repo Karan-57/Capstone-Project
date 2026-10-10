@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, DollarSign, Clock } from 'lucide-react';
 import Button from '../../components/common/Button';
 import ProjectCard from '../../components/common/ProjectCard';
+import { SkeletonProjectCard } from '../../components/common/Skeleton';
+import SEO from '../../components/common/SEO';
 import { projectService, mapBackendProject } from '../../services/projectService';
 import api from '../../services/api';
 import { useAlert } from '../../context/AlertContext';
@@ -67,6 +69,11 @@ export const Projects = () => {
 
   return (
     <div className="space-y-6">
+      <SEO
+        title="Manage Projects"
+        description="Monitor deliverables, milestones, and active video editing pipelines."
+      />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -96,7 +103,12 @@ export const Projects = () => {
 
       {/* Projects Grid */}
       {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">Loading projects...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SkeletonProjectCard />
+          <SkeletonProjectCard />
+          <SkeletonProjectCard />
+          <SkeletonProjectCard />
+        </div>
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center text-xs text-slate-500">
           No projects found in this category
@@ -121,7 +133,7 @@ export const Projects = () => {
                   <div className="flex items-center gap-2">
                     <img
                       src={proj.assignedEditor.avatar || DEFAULT_PFP}
-                      alt={proj.assignedEditor.name}
+                      alt={proj.assignedEditor.name || 'Assigned Editor Avatar'}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                       className="w-7 h-7 rounded-full object-cover"
                     />

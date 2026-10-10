@@ -90,7 +90,8 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
               <div className="flex items-center gap-3 min-w-0">
                 <img
                   src={app.avatar || DEFAULT_PFP}
-                  alt={app.name}
+                  alt={app.name || 'Applicant avatar'}
+                  loading="lazy"
                   onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                   className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0"
                 />

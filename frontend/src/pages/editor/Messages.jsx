@@ -1,35 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Paperclip, Phone, Video, Search, ArrowLeft } from 'lucide-react';
 import Button from '../../components/common/Button';
+import SEO from '../../components/common/SEO';
 import { messageService } from '../../services/messageService';
+import { useAuth } from '../../context/AuthContext';
 import { DEFAULT_PFP } from '../../constants/assets';
 
 export const Messages = () => {
+  const { currentUser } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [inputMsg, setInputMsg] = useState('');
   const [messages, setMessages] = useState([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  const currentUserId = currentUser?._id || currentUser?.id;
 
   useEffect(() => {
     const loadConversations = async () => {
-      const data = await messageService.getMessages();
+      const data = await messageService.getMessages(currentUserId);
       setConversations(data || []);
       if (data && data.length > 0 && window.innerWidth >= 768) {
         setActiveChat(data[0]);
       }
     };
     loadConversations();
-  }, []);
+  }, [currentUserId]);
 
-  const handleSend = (e) => {
+  useEffect(() => {
+    if (!activeChat?.id) return;
+    const fetchChatMessages = async () => {
+      setIsLoadingMessages(true);
+      const msgs = await messageService.getConversationMessages(activeChat.id, currentUserId);
+      setMessages(msgs || []);
+      setIsLoadingMessages(false);
+    };
+    fetchChatMessages();
+  }, [activeChat?.id, currentUserId]);
+
+  const handleSend = async (e) => {
     e.preventDefault();
-    if (!inputMsg.trim()) return;
-    setMessages([...messages, { id: Date.now(), sender: 'me', text: inputMsg, time: 'Just now' }]);
+    if (!inputMsg.trim() || !activeChat?.id) return;
+    const textToSend = inputMsg.trim();
     setInputMsg('');
+
+    const tempMsg = { id: `temp-${Date.now()}`, sender: 'me', text: textToSend, time: 'Just now' };
+    setMessages(prev => [...prev, tempMsg]);
+
+    try {
+      await messageService.sendMessage(activeChat.id, textToSend);
+    } catch (err) {
+      console.error('Failed to send message via API:', err);
+    }
   };
 
   return (
     <div className="glass-card h-[calc(100vh-140px)] flex border border-white/[0.08] overflow-hidden">
+      <SEO
+        title="Client Messages"
+        description="Communicate with creators directly, clarify editing directions, and exchange updates."
+      />
+
       {/* Conversations List */}
       <div
         className={`${
@@ -60,7 +91,8 @@ export const Messages = () => {
               <div className="relative shrink-0">
                 <img
                   src={c.avatar || DEFAULT_PFP}
-                  alt={c.sender}
+                  alt={c.sender ? `${c.sender} avatar` : 'Client avatar'}
+                  loading="lazy"
                   onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -103,7 +135,8 @@ export const Messages = () => {
               </button>
               <img
                 src={activeChat.avatar || DEFAULT_PFP}
-                alt={activeChat.sender}
+                alt={activeChat.sender ? `${activeChat.sender} avatar` : 'Active conversation avatar'}
+                loading="lazy"
                 onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                 className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0"
               />

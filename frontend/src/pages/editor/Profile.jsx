@@ -11,6 +11,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import Button from '../../components/common/Button';
+import Footer from '../../components/common/Footer';
+import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
 import { DEFAULT_PFP } from '../../constants/assets';
 import api from '../../services/api';
@@ -33,6 +35,24 @@ export const EditorProfile = () => {
         }
       }).catch(() => {});
     }
+
+    api.get('/api/portfolio/my').then((res) => {
+      const items = res.data?.portfolio?.portfolioItems;
+      if (Array.isArray(items) && items.length > 0) {
+        setPortfolioItems(items.map(it => ({
+          id: it._id || it.id || Date.now(),
+          title: it.title,
+          runtime: it.runtime || '03:15',
+          category: it.category || 'Editing Cut',
+          client: it.client || 'Client Project',
+          thumbnail: it.thumbnail || 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&auto=format&fit=crop&q=80',
+          videoUrl: it.videoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+          tags: it.tags || ['Premiere Pro'],
+          views: it.views || '1',
+          description: it.description || ''
+        })));
+      }
+    }).catch(() => {});
   }, [editorUser?._id, editorUser?.id]);
 
   // Portfolio items with playable sample edits
@@ -78,13 +98,13 @@ export const EditorProfile = () => {
   const [newCutTitle, setNewCutTitle] = useState('');
   const [newCutCategory, setNewCutCategory] = useState('YouTube Longform');
 
-  const handleAddNewCut = (e) => {
+  const handleAddNewCut = async (e) => {
     e.preventDefault();
     if (!newCutTitle.trim()) return;
 
     const newItem = {
       id: Date.now(),
-      title: newCutTitle,
+      title: newCutTitle.trim(),
       runtime: '03:15',
       category: newCutCategory,
       client: 'Direct Upload',
@@ -95,13 +115,30 @@ export const EditorProfile = () => {
       description: 'Newly uploaded sample editing cut.'
     };
 
-    setPortfolioItems([newItem, ...portfolioItems]);
+    const nextItems = [newItem, ...portfolioItems];
+    setPortfolioItems(nextItems);
     setShowUploadModal(false);
     setNewCutTitle('');
+
+    try {
+      await api.patch('/api/portfolio', { portfolioItems: nextItems }).catch(async () => {
+        await api.post('/api/portfolio', {
+          title: editorUser?.name ? `${editorUser.name}'s Portfolio` : 'Video Portfolio',
+          portfolioItems: nextItems,
+        });
+      });
+    } catch (err) {
+      console.warn('Portfolio sync warning:', err.message);
+    }
   };
 
   return (
     <div className="space-y-7 max-w-5xl mx-auto pb-16 animate-fade-in">
+      <SEO
+        title={`${editorUser?.name || 'Editor'} - Showreel & Portfolio`}
+        description={`Video editing portfolio, showreels, and client ratings for ${editorUser?.name || 'editor'} on Collabo.`}
+      />
+
       {/* Profile Card Header */}
       <div className="glass-card p-5 sm:p-6 md:p-8 border border-white/[0.08] relative overflow-hidden">
         <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-blue-900/20"></div>
@@ -110,7 +147,8 @@ export const EditorProfile = () => {
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
             <img
               src={editorUser?.profileImage || editorUser?.avatar || DEFAULT_PFP}
-              alt={editorUser?.name || 'unknown'}
+              alt={editorUser?.name ? `${editorUser.name} profile photo` : 'Editor profile photo'}
+              loading="lazy"
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
@@ -243,7 +281,8 @@ export const EditorProfile = () => {
                     >
                       <img
                         src={item.thumbnail}
-                        alt={item.title}
+                        alt={item.title ? `${item.title} video thumbnail` : 'Portfolio video thumbnail'}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition-colors">
@@ -457,6 +496,9 @@ export const EditorProfile = () => {
           </div>
         </div>
       )}
+
+      {/* Profile Footer */}
+      <Footer />
     </div>
   );
 };

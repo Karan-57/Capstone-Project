@@ -1,0 +1,16 @@
+# Robots.txt for Collabo Platform
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /privacy
+Allow: /terms
+Allow: /login
+Allow: /signup
+
+# Disallow private user dashboards & workspaces from search crawlers
+Disallow: /creator/
+Disallow: /editor/
+Disallow: /workspace/
+Disallow: /api/
+
+Sitemap: https://collabo.app/sitemap.xml

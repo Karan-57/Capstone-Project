@@ -1,35 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Paperclip, Phone, Video, Search, CheckCheck, Play, Pause, Smile, Sparkles } from 'lucide-react';
 import Button from '../../components/common/Button';
+import SEO from '../../components/common/SEO';
 import { messageService } from '../../services/messageService';
+import { useAuth } from '../../context/AuthContext';
 import { DEFAULT_PFP } from '../../constants/assets';
 
 export const Messages = () => {
+  const { currentUser } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [activeChat, setActiveChat] = useState(null);
   const [inputMsg, setInputMsg] = useState('');
   const [isPlayingVoice, setIsPlayingVoice] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  const currentUserId = currentUser?._id || currentUser?.id;
 
   useEffect(() => {
     const loadConversations = async () => {
-      const data = await messageService.getMessages();
+      const data = await messageService.getMessages(currentUserId);
       setConversations(data || []);
       if (data && data.length > 0) {
         setActiveChat(data[0]);
       }
     };
     loadConversations();
-  }, []);
+  }, [currentUserId]);
 
-  const handleSend = (e) => {
+  useEffect(() => {
+    if (!activeChat?.id) return;
+    const fetchChatMessages = async () => {
+      setIsLoadingMessages(true);
+      const msgs = await messageService.getConversationMessages(activeChat.id, currentUserId);
+      setChatHistory(msgs || []);
+      setIsLoadingMessages(false);
+    };
+    fetchChatMessages();
+  }, [activeChat?.id, currentUserId]);
+
+  const handleSend = async (e) => {
     e.preventDefault();
-    if (!inputMsg.trim()) return;
-    setChatHistory([
-      ...chatHistory,
-      { id: Date.now(), sender: 'me', text: inputMsg, time: 'Just now' }
-    ]);
+    if (!inputMsg.trim() || !activeChat?.id) return;
+    const textToSend = inputMsg.trim();
     setInputMsg('');
+
+    const tempMsg = { id: `temp-${Date.now()}`, sender: 'me', text: textToSend, time: 'Just now' };
+    setChatHistory(prev => [...prev, tempMsg]);
+
+    try {
+      await messageService.sendMessage(activeChat.id, textToSend);
+    } catch (err) {
+      console.error('Failed to send message via API:', err);
+    }
   };
 
   const addReaction = (msgId, emoji) => {
@@ -44,6 +67,11 @@ export const Messages = () => {
 
   return (
     <div className="glass-panel h-[calc(100vh-140px)] flex border border-white/[0.08] overflow-hidden">
+      <SEO
+        title="Direct Messages & Chat"
+        description="Communicate with editors in real time, discuss revisions, and collaborate."
+      />
+
       {/* Conversations List */}
       <div className="w-80 border-r border-white/[0.07] bg-[#07090F]/90 flex flex-col shrink-0">
         <div className="p-4 border-b border-white/[0.06]">
@@ -58,7 +86,7 @@ export const Messages = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-white/[0.03]">
+        <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04]">
           {conversations.map((c) => (
             <div
               key={c.id}
@@ -72,7 +100,8 @@ export const Messages = () => {
               <div className="relative shrink-0">
                 <img
                   src={c.avatar || DEFAULT_PFP}
-                  alt={c.sender}
+                  alt={c.sender ? `${c.sender} avatar` : 'Chat participant avatar'}
+                  loading="lazy"
                   onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                   className="w-10 h-10 rounded-full object-cover border border-white/10"
                 />
@@ -103,7 +132,8 @@ export const Messages = () => {
             <div className="flex items-center gap-3">
               <img
                 src={activeChat.avatar || DEFAULT_PFP}
-                alt={activeChat.sender || 'unknown'}
+                alt={activeChat.sender ? `${activeChat.sender} avatar` : 'Active conversation avatar'}
+                loading="lazy"
                 onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                 className="w-10 h-10 rounded-full object-cover border border-purple-500/30"
               />

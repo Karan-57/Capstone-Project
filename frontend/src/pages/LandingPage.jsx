@@ -6,6 +6,7 @@ import HeroCardsShowcase from "../components/landing/HeroCardsShowcase";
 import ProcessDock from "../components/landing/ProcessDock";
 import Navbar from "../components/landing/Navbar";
 import StartupLoader from "../components/landing/StartupLoader";
+import SEO from "../components/common/SEO";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -49,6 +50,11 @@ export default function LandingPage() {
 
   return (
     <div className="relative min-h-screen bg-[#fafbfc] text-slate-900 overflow-x-hidden font-sans selection:bg-purple-100 selection:text-purple-900">
+      <SEO
+        title="AI-Powered Video Collaboration Platform"
+        description="Connect top creators with elite video editors. Milestone escrow payments, AI proposal analysis, and interactive real-time review workspace."
+      />
+
       {/* ─── APPLE STARTUP LOADER ─── */}
       {showLoader && <StartupLoader onComplete={handleLoaderComplete} />}
 
@@ -256,7 +262,13 @@ export default function LandingPage() {
             <span className="text-xs text-slate-400">© 2026 Collabo Inc. Capstone Project.</span>
           </div>
 
-          <div className="flex items-center gap-6 text-sm text-slate-500 font-medium">
+          <div className="flex flex-wrap items-center gap-6 text-sm text-slate-500 font-medium">
+            <button onClick={() => navigate("/privacy")} className="hover:text-slate-900 transition-colors cursor-pointer text-xs">
+              Privacy Policy
+            </button>
+            <button onClick={() => navigate("/terms")} className="hover:text-slate-900 transition-colors cursor-pointer text-xs">
+              Terms & Conditions
+            </button>
             <button onClick={() => navigate("/login?role=creator")} className="hover:text-purple-600 transition-colors cursor-pointer">
               Creator Portal
             </button>

@@ -85,7 +85,10 @@ workspaceSchema.pre('save', function (next) {
       memberUserIds.add(this.editorId.toString());
     }
   }
-  next();
+
+  if (typeof next === 'function') {
+    next();
+  }
 });
 
 const workspaceModel = mongoose.model('workspace', workspaceSchema);

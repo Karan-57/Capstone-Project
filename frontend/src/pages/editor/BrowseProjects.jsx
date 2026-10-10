@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Clock, CheckCircle, Send, X } from 'lucide-react';
+import { Search, Clock, CheckCircle, Send, X, Sparkles } from 'lucide-react';
 import Button from '../../components/common/Button';
+import { SkeletonCard } from '../../components/common/Skeleton';
+import SEO from '../../components/common/SEO';
 import { projectService } from '../../services/projectService';
 import api from '../../services/api';
 import { useAlert } from '../../context/AlertContext';
@@ -16,6 +18,7 @@ export const BrowseProjects = () => {
   const [bidAmount, setBidAmount] = useState('');
   const [bidCover, setBidCover] = useState('');
   const [estimatedDays, setEstimatedDays] = useState('7');
+  const [isAiSuggestingBid, setIsAiSuggestingBid] = useState(false);
 
   const loadProjects = async () => {
     setLoading(true);
@@ -39,11 +42,26 @@ export const BrowseProjects = () => {
 
   const handleSendProposal = async (e) => {
     e.preventDefault();
+    if (!bidCover.trim()) {
+      showAlert('Please enter a cover note / pitch for your proposal.', 'warning');
+      return;
+    }
+    const parsedBid = parseInt(String(bidAmount).replace(/[^0-9]/g, ''), 10);
+    if (!parsedBid || parsedBid <= 0) {
+      showAlert('Please enter a valid bid amount greater than 0.', 'warning');
+      return;
+    }
+    const parsedDays = parseInt(String(estimatedDays).replace(/[^0-9]/g, ''), 10);
+    if (!parsedDays || parsedDays <= 0) {
+      showAlert('Please enter valid estimated delivery days.', 'warning');
+      return;
+    }
+
     try {
       await api.post(`/api/application/${proposalModal.id}/apply`, {
-        proposal: bidCover.trim() || 'unknown',
-        bidAmount: parseInt(bidAmount.replace(/[^0-9]/g, ''), 10) || 999,
-        estimatedDeliveryDays: parseInt(estimatedDays, 10) || 999,
+        proposal: bidCover.trim(),
+        bidAmount: parsedBid,
+        estimatedDeliveryDays: parsedDays,
       });
       showAlert(`Proposal successfully submitted for ${proposalModal.title}!`, 'success');
       setProposalModal(null);
@@ -55,8 +73,49 @@ export const BrowseProjects = () => {
     }
   };
 
+  const handleAiSuggestBid = async () => {
+    if (!proposalModal) return;
+    setIsAiSuggestingBid(true);
+    try {
+      const res = await api.post(`/api/ai/suggest-editor-bid/${proposalModal.id}`, {
+        project: {
+          title: proposalModal.title,
+          category: proposalModal.category || (proposalModal.tags && proposalModal.tags[0]) || 'Video',
+          budget: proposalModal.budget,
+          timeline: proposalModal.deadline
+        }
+      });
+      const data = res.data?.data;
+      if (data) {
+        if (data.suggestedBidAmount) {
+          setBidAmount(String(data.suggestedBidAmount));
+        }
+        if (data.suggestedDeliveryDays) {
+          setEstimatedDays(String(data.suggestedDeliveryDays));
+        }
+        if (data.coverNote) {
+          setBidCover(data.coverNote);
+        }
+        showAlert(
+          `AI Tailored Bid: ₹${data.suggestedBidAmount} in ${data.suggestedDeliveryDays} days. ${data.pricingStrategy || ''}`,
+          'success'
+        );
+      }
+    } catch (err) {
+      console.warn('AI bid suggestion error:', err);
+      showAlert(err.response?.data?.message || 'AI coach unavailable. Please fill in your proposal details manually.', 'warning');
+    } finally {
+      setIsAiSuggestingBid(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <SEO
+        title="Browse Video Gigs"
+        description="Discover active creator editing briefs, submit bids with custom turnaround times, and get hired."
+      />
+
       <div>
         <h2 className="text-xl font-bold text-white tracking-tight">Browse Open Creator Gigs</h2>
         <p className="text-xs text-slate-400 mt-0.5">
@@ -96,7 +155,12 @@ export const BrowseProjects = () => {
 
       {/* Projects Feed */}
       {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">Loading open gigs...</div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center text-xs text-slate-500">
           No open gigs found matching your filters
@@ -113,7 +177,7 @@ export const BrowseProjects = () => {
                   <div className="flex items-start gap-3 min-w-0">
                     <img
                       src={gig.creatorAvatar || DEFAULT_PFP}
-                      alt={gig.creator}
+                      alt={gig.creator || 'Creator Avatar'}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                       className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0 mt-0.5"
                     />
@@ -177,12 +241,24 @@ export const BrowseProjects = () => {
                 <h3 className="text-lg font-bold text-white">Submit Application</h3>
                 <p className="text-xs text-purple-300 mt-0.5">{proposalModal.title}</p>
               </div>
-              <button
-                onClick={() => setProposalModal(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 hover:bg-white/10"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAiSuggestBid}
+                  disabled={isAiSuggestingBid}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600/25 via-indigo-600/25 to-purple-500/20 hover:from-purple-600/40 hover:to-indigo-600/40 border border-purple-500/40 text-purple-300 hover:text-white shadow-sm transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Auto-fill competitive bid, delivery days, and tailored cover pitch with AI"
+                >
+                  <Sparkles className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform ${isAiSuggestingBid ? 'animate-spin' : ''}`} />
+                  <span>{isAiSuggestingBid ? 'Generating...' : 'Auto-Pitch with AI'}</span>
+                </button>
+                <button
+                  onClick={() => setProposalModal(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSendProposal} className="space-y-4 mt-4">

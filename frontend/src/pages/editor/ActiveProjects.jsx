@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, FolderGit2 } from 'lucide-react';
 import Button from '../../components/common/Button';
+import { SkeletonCard } from '../../components/common/Skeleton';
+import SEO from '../../components/common/SEO';
 import { projectService } from '../../services/projectService';
 import { DEFAULT_PFP } from '../../constants/assets';
 
@@ -22,6 +24,11 @@ export const ActiveProjects = () => {
 
   return (
     <div className="space-y-6">
+      <SEO
+        title="Active Contracts"
+        description="Submit rough cuts, review frame-accurate client timestamps, and manage active production contracts."
+      />
+
       <div>
         <h2 className="text-xl font-bold text-white tracking-tight">In-Production Contracts</h2>
         <p className="text-xs text-slate-400 mt-0.5">
@@ -30,7 +37,10 @@ export const ActiveProjects = () => {
       </div>
 
       {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">Loading contracts...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       ) : projects.length === 0 ? (
         <div className="glass-card p-12 text-center border border-white/[0.06] rounded-2xl">
           <FolderGit2 className="w-10 h-10 text-slate-600 mx-auto mb-3" />
@@ -58,7 +68,8 @@ export const ActiveProjects = () => {
                 <div className="flex items-start sm:items-center gap-3 min-w-0">
                   <img
                     src={proj.clientAvatar || DEFAULT_PFP}
-                    alt={proj.client}
+                    alt={proj.client || 'Client avatar'}
+                    loading="lazy"
                     onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                     className="w-11 h-11 rounded-xl object-cover border border-white/10 shrink-0"
                   />

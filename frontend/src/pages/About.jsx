@@ -6,6 +6,7 @@ import Workflow from "../components/landing/Workflow";
 import MatchPreview from "../components/landing/MatchPreview";
 import CollaborationPreview from "../components/landing/CollaborationPreview";
 import Footer from "../components/landing/Footer";
+import SEO from "../components/common/SEO";
 
 const PROBLEMS = [
   {
@@ -98,6 +99,11 @@ export default function About() {
 
   return (
     <div className="relative min-h-screen bg-[#fafbfc] text-slate-900 overflow-x-hidden font-sans selection:bg-purple-100 selection:text-purple-900">
+      <SEO
+        title="About Collabo"
+        description="Learn how Collabo reimagines video production through AI matching, frame-accurate timeline reviews, and transparent escrow milestones."
+      />
+
       {/* ─── FLOATING PILL NAVBAR ─── */}
       <Navbar activeTab="About" />
 

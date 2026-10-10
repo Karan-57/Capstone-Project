@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileCheck2 } from 'lucide-react';
 import Button from '../../components/common/Button';
+import { SkeletonRow } from '../../components/common/Skeleton';
+import SEO from '../../components/common/SEO';
 import { applicationService } from '../../services/applicationService';
 
 export const MyApplications = () => {
@@ -34,6 +36,11 @@ export const MyApplications = () => {
 
   return (
     <div className="space-y-6">
+      <SEO
+        title="My Proposals"
+        description="Track the status of your video editing bids, creator reviews, and accepted contracts."
+      />
+
       <div>
         <h2 className="text-xl font-bold text-white tracking-tight">My Submitted Proposals</h2>
         <p className="text-xs text-slate-400 mt-0.5">
@@ -42,7 +49,11 @@ export const MyApplications = () => {
       </div>
 
       {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">Loading proposals...</div>
+        <div className="space-y-3">
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </div>
       ) : bids.length === 0 ? (
         <div className="glass-card p-12 text-center border border-white/[0.06] rounded-2xl">
           <FileCheck2 className="w-10 h-10 text-slate-600 mx-auto mb-3" />

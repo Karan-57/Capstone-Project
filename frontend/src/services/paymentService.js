@@ -1,3 +1,5 @@
+import api from './api';
+
 export const earningsChartData = {
   thisMonth: {
     total: '₹45,000',
@@ -25,19 +27,90 @@ export const earningsChartData = {
   }
 };
 
-export const editorEarningsData = {
-  availableBalance: '₹64,200',
-  pendingEscrow: '₹22,000',
-  lifetimeEarned: '₹3,48,000',
-  completedProjects: 24,
-  recentPayouts: [
-    { id: 'pay-1', project: 'SaaS Walkthrough Video', client: 'CloudFlow Labs', amount: '₹28,000', date: 'Yesterday', status: 'Completed' },
-    { id: 'pay-2', project: 'Cinematic Travel Trailer', client: 'Nomad Stories', amount: '₹18,500', date: 'Aug 24, 2026', status: 'Completed' },
-    { id: 'pay-3', project: 'YouTube Tech Review Ep. 12', client: 'Dave Lee Studio', amount: '₹14,000', date: 'Aug 18, 2026', status: 'Completed' },
-  ]
+export const paymentService = {
+  getEarningsChart: async (timeframe = 'thisMonth') => {
+    try {
+      const res = await api.get('/api/creator/projects');
+      const projects = res.data?.projects || [];
+      const totalSpent = projects.reduce((sum, p) => {
+        const val = typeof p.budget === 'number' ? p.budget : (p.budget?.fixed || 0);
+        return p.status === 'completed' ? sum + val : sum;
+      }, 0);
+
+      if (totalSpent > 0) {
+        return {
+          total: `₹${totalSpent.toLocaleString()}`,
+          comparison: 'Real lifetime settlements',
+          trendPositive: true,
+          points: earningsChartData[timeframe]?.points || earningsChartData.thisMonth.points
+        };
+      }
+    } catch {
+      // Fallback
+    }
+    return earningsChartData[timeframe] || earningsChartData.thisMonth;
+  },
+
+  getEditorEarnings: async () => {
+    try {
+      const [appsRes, wsRes] = await Promise.all([
+        api.get('/api/application/my').catch(() => ({ data: { applications: [] } })),
+        api.get('/api/workspace').catch(() => ({ data: { workspaces: [] } })),
+      ]);
+
+      const applications = appsRes.data?.applications || [];
+      const workspaces = wsRes.data?.workspaces || [];
+      const completedWsProjectIds = new Set(
+        workspaces.filter(w => w.status === 'completed').map(w => (w.projectId?._id || w.projectId || '').toString())
+      );
+
+      let available = 0;
+      let escrow = 0;
+      let lifetime = 0;
+      let completedCount = 0;
+      const recentPayouts = [];
+
+      applications.forEach(app => {
+        if (app.status === 'accepted') {
+          const numericBid = Number(app.bidAmount) || 0;
+          const pId = (app.projectId?._id || app.projectId || '').toString();
+          const isCompleted = completedWsProjectIds.has(pId);
+
+          if (isCompleted) {
+            available += numericBid;
+            lifetime += numericBid;
+            completedCount += 1;
+            recentPayouts.push({
+              id: app._id,
+              project: app.projectId?.title || 'Video Editing Production',
+              client: app.projectId?.creatorId?.name || 'Client',
+              amount: `₹${numericBid.toLocaleString()}`,
+              date: app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'Settled',
+              status: 'Completed',
+            });
+          } else {
+            escrow += numericBid;
+          }
+        }
+      });
+
+      return {
+        availableBalance: `₹${available.toLocaleString()}`,
+        pendingEscrow: `₹${escrow.toLocaleString()}`,
+        lifetimeEarned: `₹${lifetime.toLocaleString()}`,
+        completedProjects: completedCount,
+        recentPayouts: recentPayouts.slice(0, 5),
+      };
+    } catch (err) {
+      console.warn('[paymentService] Real earnings calculation fallback:', err.message);
+      return {
+        availableBalance: '₹0',
+        pendingEscrow: '₹0',
+        lifetimeEarned: '₹0',
+        completedProjects: 0,
+        recentPayouts: [],
+      };
+    }
+  },
 };
 
-export const paymentService = {
-  getEarningsChart: (timeframe = 'thisMonth') => Promise.resolve(earningsChartData[timeframe] || earningsChartData.thisMonth),
-  getEditorEarnings: () => Promise.resolve(editorEarningsData),
-};

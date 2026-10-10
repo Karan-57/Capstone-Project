@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { useNavigate, useLocation, useSearchParams, Link } from "react-router-dom";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import CollaboLogo from "../components/landing/CollaboLogo";
 import { DaVinciIcon, PremiereProIcon, BlueFolder3DIcon } from "../components/landing/SoftwareIcons";
 import { useAuth } from "../context/AuthContext";
@@ -39,6 +39,7 @@ export default function AuthModal({
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Password visibility state: shown only while cursor is pressed / held down
   const [isPasswordRevealed, setIsPasswordRevealed] = useState(false);
@@ -177,6 +178,12 @@ export default function AuthModal({
 
         if (password.length < 6) {
           setErrorMsg("Password must be at least 6 characters long.");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (!agreedToTerms) {
+          setErrorMsg("Please accept the Terms & Conditions and Privacy Policy to continue.");
           setIsSubmitting(false);
           return;
         }
@@ -375,8 +382,9 @@ export default function AuthModal({
 
         {/* ─── ERROR BANNER ─── */}
         {errorMsg && (
-          <div className="mb-4 p-3 rounded-xl text-xs bg-rose-50 border border-rose-200 text-rose-600 font-medium">
-            {errorMsg}
+          <div className="mb-4 p-3 rounded-xl text-xs bg-rose-50 border border-rose-200 text-rose-600 font-medium flex items-center gap-2 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+            <span className="flex-1">{errorMsg}</span>
           </div>
         )}
 
@@ -583,6 +591,29 @@ export default function AuthModal({
             </div>
           </div>
 
+
+          {/* Terms & Conditions Agreement Checkbox (Signup Mode) */}
+          {mode === "signup" && (
+            <div className="flex items-start gap-2.5 pt-1 text-xs text-slate-600 animate-fadeIn">
+              <input
+                type="checkbox"
+                id="agreeTerms"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded text-purple-600 border-slate-300 focus:ring-purple-500 cursor-pointer shrink-0"
+              />
+              <label htmlFor="agreeTerms" className="cursor-pointer select-none leading-relaxed">
+                I agree to Collabo's{" "}
+                <Link to="/terms" target="_blank" className="text-purple-600 font-semibold hover:underline">
+                  Terms and Conditions
+                </Link>{" "}
+                and{" "}
+                <Link to="/privacy" target="_blank" className="text-purple-600 font-semibold hover:underline">
+                  Privacy Policy
+                </Link>.
+              </label>
+            </div>
+          )}
 
           {/* Submit Button */}
           <button

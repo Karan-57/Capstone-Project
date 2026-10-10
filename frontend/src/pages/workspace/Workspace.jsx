@@ -20,10 +20,16 @@ import {
   Trash2,
   Loader2,
   ExternalLink,
+  CheckCircle2,
+  Star,
+  Video,
+  RefreshCw,
+  Play,
 } from 'lucide-react';
 import { DEFAULT_PFP } from '../../constants/assets';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
+import SEO from '../../components/common/SEO';
 import api from '../../services/api';
 
 /* ─────────────────────────────────────────────────────
@@ -323,7 +329,8 @@ function ChatPanel({
         {avatar ? (
           <img
             src={avatar || DEFAULT_PFP}
-            alt={title}
+            alt={title ? `${title} workspace` : 'Workspace avatar'}
+            loading="lazy"
             onError={(e) => {
               e.currentTarget.src = DEFAULT_PFP;
             }}
@@ -367,7 +374,8 @@ function ChatPanel({
               {!isMe && (
                 <img
                   src={senderAvatar}
-                  alt={senderName}
+                  alt={senderName ? `${senderName} avatar` : 'Chat participant avatar'}
+                  loading="lazy"
                   onError={(e) => {
                     e.currentTarget.src = DEFAULT_PFP;
                   }}
@@ -564,6 +572,25 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
   const [activeView, setActiveView] = useState(null);
   const [showAllMedia, setShowAllMedia] = useState(false);
 
+  // Deliveries, Revisions & Review state
+  const [deliveries, setDeliveries] = useState([]);
+  const [loadingDeliveries, setLoadingDeliveries] = useState(true);
+  const [showDeliverModal, setShowDeliverModal] = useState(false);
+  const [deliverUrl, setDeliverUrl] = useState('');
+  const [deliverTitle, setDeliverTitle] = useState('');
+  const [deliverNotes, setDeliverNotes] = useState('');
+  const [submittingDelivery, setSubmittingDelivery] = useState(false);
+
+  const [revisionDeliveryId, setRevisionDeliveryId] = useState(null);
+  const [revisionDesc, setRevisionDesc] = useState('');
+  const [submittingRevision, setSubmittingRevision] = useState(false);
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
   const isCreator =
     (workspace.creatorId?._id || workspace.creatorId)?.toString() ===
     currentUserId?.toString();
@@ -577,6 +604,18 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
       console.warn('[Workspace] Failed to fetch files:', err.message);
     } finally {
       setLoadingFiles(false);
+    }
+  }, [workspace._id]);
+
+  // Load deliveries
+  const fetchDeliveries = useCallback(async () => {
+    try {
+      const res = await api.get(`/api/workspace/${workspace._id}/deliveries`);
+      setDeliveries(res.data?.deliveries || []);
+    } catch (err) {
+      console.warn('[Workspace] Failed to fetch deliveries:', err.message);
+    } finally {
+      setLoadingDeliveries(false);
     }
   }, [workspace._id]);
 
@@ -596,8 +635,87 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
 
   useEffect(() => {
     fetchFiles();
+    fetchDeliveries();
     fetchGroupConv();
-  }, [fetchFiles, fetchGroupConv]);
+  }, [fetchFiles, fetchDeliveries, fetchGroupConv]);
+
+  const handleSubmitDelivery = async (e) => {
+    e.preventDefault();
+    if (!deliverUrl.trim()) {
+      showAlert('Please provide a video URL or link to the cut.', 'warning');
+      return;
+    }
+    setSubmittingDelivery(true);
+    try {
+      await api.post(`/api/workspace/${workspace._id}/deliver`, {
+        videoUrl: deliverUrl.trim(),
+        title: deliverTitle.trim() || undefined,
+        notes: deliverNotes.trim() || undefined,
+      });
+      showAlert('Final video cut submitted for creator review! ✓', 'success');
+      setShowDeliverModal(false);
+      setDeliverUrl('');
+      setDeliverTitle('');
+      setDeliverNotes('');
+      fetchDeliveries();
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to submit delivery', 'error');
+    } finally {
+      setSubmittingDelivery(false);
+    }
+  };
+
+  const handleApproveDelivery = async (deliveryId) => {
+    try {
+      await api.post(`/api/workspace/${deliveryId}/approve`);
+      showAlert('Delivery approved! Project marked as completed and escrow cleared! 🎉', 'success');
+      fetchDeliveries();
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to approve delivery', 'error');
+    }
+  };
+
+  const handleSubmitRevision = async (e) => {
+    e.preventDefault();
+    if (!revisionDesc.trim() || !revisionDeliveryId) {
+      showAlert('Please enter feedback / revision description.', 'warning');
+      return;
+    }
+    setSubmittingRevision(true);
+    try {
+      await api.post(`/api/workspace/${revisionDeliveryId}/revision`, {
+        description: revisionDesc.trim(),
+      });
+      showAlert('Revision requested! The editor has been notified.', 'info');
+      setRevisionDeliveryId(null);
+      setRevisionDesc('');
+      fetchDeliveries();
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to request revision', 'error');
+    } finally {
+      setSubmittingRevision(false);
+    }
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    const projectId = workspace.projectId?._id || workspace.projectId;
+    if (!projectId) return;
+    setSubmittingReview(true);
+    try {
+      await api.post(`/api/projects/${projectId}/reviews`, {
+        rating: reviewRating,
+        comment: reviewComment.trim() || 'Great collaboration!',
+      });
+      showAlert('Review submitted successfully! Thank you!', 'success');
+      setShowReviewModal(false);
+      setReviewSubmitted(true);
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to submit review', 'error');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   // Handle uploading files directly to ImageKit via backend
   const handleUploadFiles = async (fileList) => {
@@ -945,7 +1063,8 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
                   <div className="relative w-11 h-11 shrink-0">
                     <img
                       src={member.avatar || DEFAULT_PFP}
-                      alt={member.name}
+                      alt={member.name ? `${member.name} avatar` : 'Member avatar'}
+                      loading="lazy"
                       onError={(e) => {
                         e.currentTarget.src = DEFAULT_PFP;
                       }}
@@ -970,7 +1089,329 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
             )}
           </div>
         </section>
+
+        {/* ── SECTION 4: DELIVERABLES & PRODUCTION APPROVALS ── */}
+        <section className="space-y-3.5">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Video className="w-4 h-4 text-emerald-400" />
+              Final Cut Deliverables & Approvals
+            </h3>
+            <div className="flex items-center gap-2">
+              {!isCreator && (
+                <button
+                  type="button"
+                  onClick={() => setShowDeliverModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm cursor-pointer"
+                >
+                  <Video className="w-3.5 h-3.5" />
+                  Deliver Final Cut
+                </button>
+              )}
+              {(workspace.status === 'completed' || deliveries.some((d) => d.status === 'approved')) && !reviewSubmitted && (
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-black font-bold transition-all shadow-sm cursor-pointer"
+                >
+                  <Star className="w-3.5 h-3.5 fill-black" />
+                  Leave Review
+                </button>
+              )}
+            </div>
+          </div>
+
+          {loadingDeliveries ? (
+            <div className="p-4 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-purple-400" /> Loading deliverables...
+            </div>
+          ) : deliveries.length === 0 ? (
+            <div className="p-4 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] text-center text-xs text-slate-500">
+              No final cuts delivered yet. When the editor submits a cut, it will appear here for review and milestone approval.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {deliveries.map((delivery) => (
+                <div
+                  key={delivery._id}
+                  className="p-4 rounded-2xl bg-[#0E1322] border border-white/[0.06] space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          v{delivery.version || 1}
+                        </span>
+                        <h4 className="text-sm font-bold text-white truncate">{delivery.title || `Cut v${delivery.version}`}</h4>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Delivered by <span className="text-slate-200 font-medium">{delivery.editorId?.name || 'Editor'}</span> · {formatTime(delivery.createdAt)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={`px-2.5 py-1 text-xs font-semibold rounded-lg capitalize border ${
+                          delivery.status === 'approved'
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            : delivery.status === 'revision_requested'
+                            ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                            : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                        }`}
+                      >
+                        {delivery.status?.replace('_', ' ') || 'Pending Review'}
+                      </span>
+                      {delivery.videoUrl && (
+                        <a
+                          href={delivery.videoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg bg-white/10 hover:bg-white/15 text-slate-200 transition-colors"
+                        >
+                          <Play className="w-3 h-3 text-emerald-400" /> Watch
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  {delivery.notes && (
+                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] text-xs text-slate-300 leading-relaxed">
+                      {delivery.notes}
+                    </div>
+                  )}
+
+                  {/* Creator Action Buttons for Pending Review */}
+                  {isCreator && delivery.status === 'pending_review' && (
+                    <div className="pt-2 flex items-center justify-end gap-2 border-t border-white/[0.04]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRevisionDeliveryId(delivery._id);
+                          setRevisionDesc('');
+                        }}
+                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 transition-all cursor-pointer"
+                      >
+                        Request Revision
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleApproveDelivery(delivery._id)}
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm cursor-pointer"
+                      >
+                        Approve & Clear Escrow
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
+
+      {/* ── MODAL: SUBMIT FINAL DELIVERY (Editor) ── */}
+      {showDeliverModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md glass-card p-6 border border-white/[0.1] rounded-2xl bg-[#0B0E17]/95 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Video className="w-5 h-5 text-emerald-400" />
+                Deliver Final Cut
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowDeliverModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitDelivery} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Video Link / Stream URL <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://drive.google.com/... or Vimeo/Frame.io link"
+                  value={deliverUrl}
+                  onChange={(e) => setDeliverUrl(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Cut Title (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Master Final Cut (Color Graded)"
+                  value={deliverTitle}
+                  onChange={(e) => setDeliverTitle(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Delivery Notes / Changeground</label>
+                <textarea
+                  rows={3}
+                  placeholder="Added cinematic sound design and corrected color at 02:15 timestamp..."
+                  value={deliverNotes}
+                  onChange={(e) => setDeliverNotes(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500 resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDeliverModal(false)}
+                  className="px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingDelivery}
+                  className="px-4 py-1.5 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
+                >
+                  {submittingDelivery ? 'Submitting...' : 'Submit Cut'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: REQUEST REVISION (Creator) ── */}
+      {revisionDeliveryId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md glass-card p-6 border border-white/[0.1] rounded-2xl bg-[#0B0E17]/95 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <RefreshCw className="w-5 h-5 text-rose-400" />
+                Request Revision
+              </h3>
+              <button
+                type="button"
+                onClick={() => setRevisionDeliveryId(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitRevision} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Detailed Revision Notes <span className="text-rose-400">*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="Please increase audio volume on dialogue around 01:20 and speed up transitions between clips."
+                  value={revisionDesc}
+                  onChange={(e) => setRevisionDesc(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-rose-500 resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRevisionDeliveryId(null)}
+                  className="px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingRevision}
+                  className="px-4 py-1.5 rounded-xl font-bold bg-rose-600 hover:bg-rose-500 text-white disabled:opacity-50"
+                >
+                  {submittingRevision ? 'Sending...' : 'Send Revision Request'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: SUBMIT REVIEW (Creator or Editor) ── */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md glass-card p-6 border border-white/[0.1] rounded-2xl bg-[#0B0E17]/95 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                Leave Collaboration Review
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowReviewModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitReview} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-2">Rating</label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className="p-1 cursor-pointer transition-transform hover:scale-110"
+                    >
+                      <Star
+                        className={`w-6 h-6 ${
+                          star <= reviewRating
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-slate-600'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="text-sm font-bold text-white ml-2">{reviewRating} / 5</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Feedback & Recommendation</label>
+                <textarea
+                  rows={3}
+                  placeholder="Great communication, delivered ahead of schedule with top-notch video editing quality!"
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-amber-500 resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(false)}
+                  className="px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="px-4 py-1.5 rounded-xl font-bold bg-amber-500 hover:bg-amber-400 text-black disabled:opacity-50"
+                >
+                  {submittingReview ? 'Submitting...' : 'Post Review'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -1022,6 +1463,11 @@ export const Workspace = () => {
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-[#07090E]">
+      <SEO
+        title="Production Workspace"
+        description="Collaborative video production workspace with direct messaging, versioned file delivery, and timestamped feedback."
+      />
+
       {/* ── LEFT: WORKSPACES LIST ── */}
       <aside
         className={`${
@@ -1114,8 +1560,9 @@ export const Workspace = () => {
                         <img
                           key={m._id}
                           src={m.avatar || DEFAULT_PFP}
-                          alt={m.name}
+                          alt={m.name ? `${m.name} avatar` : 'Member avatar'}
                           title={m.name}
+                          loading="lazy"
                           onError={(e) => {
                             e.currentTarget.src = DEFAULT_PFP;
                           }}

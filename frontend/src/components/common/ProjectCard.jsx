@@ -63,7 +63,8 @@ export const ProjectCard = ({ project, onView }) => {
             <div className="flex items-center gap-1.5">
               <img
                 src={project.assignedEditor.avatar || DEFAULT_PFP}
-                alt={project.assignedEditor.name}
+                alt={project.assignedEditor.name || 'Assigned editor'}
+                loading="lazy"
                 onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                 className="w-5 h-5 rounded-full object-cover border border-purple-500/40"
               />

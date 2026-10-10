@@ -3,6 +3,7 @@ import { projectService } from '../services/projectService';
 import { applicationService } from '../services/applicationService';
 import { paymentService } from '../services/paymentService';
 import { messageService } from '../services/messageService';
+import api from '../services/api';
 
 export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
@@ -44,10 +45,19 @@ export const useDashboardData = () => {
     fetchData();
   }, []);
 
-  const handleApplicationStatus = (appId, newStatus) => {
-    setApplications(prev =>
-      prev.map(app => (app.id === appId ? { ...app, status: newStatus } : app))
-    );
+  const handleApplicationStatus = async (appId, newStatus) => {
+    try {
+      if (newStatus === 'accepted') {
+        await api.post(`/api/application/${appId}/accept`);
+      } else if (newStatus === 'rejected') {
+        await api.post(`/api/application/${appId}/reject`);
+      }
+      setApplications(prev =>
+        prev.map(app => (app.id === appId ? { ...app, status: newStatus } : app))
+      );
+    } catch (err) {
+      console.error('Failed to update application status from dashboard:', err);
+    }
   };
 
   return {

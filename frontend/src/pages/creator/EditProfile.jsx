@@ -2,15 +2,17 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, CheckCircle2, User, Globe, Video, Save, UploadCloud } from 'lucide-react';
 import Button from '../../components/common/Button';
+import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
 import { DEFAULT_PFP } from '../../constants/assets';
 
 export const CreatorEditProfile = () => {
   const navigate = useNavigate();
-  const { creatorUser, uploadProfilePicture, setCreatorUser } = useAuth();
+  const { creatorUser, uploadProfilePicture, updateUserProfile, setCreatorUser } = useAuth();
   const { showAlert } = useAlert();
   const fileInputRef = useRef(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [name, setName] = useState(creatorUser.name || 'unknown');
   const [channel, setChannel] = useState(creatorUser.channel || 'unknown');
@@ -43,27 +45,34 @@ export const CreatorEditProfile = () => {
     }
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    setCreatorUser(prev => ({
-      ...prev,
-      name,
-      channel,
-      email,
-      bio,
-      profileImage: avatar,
-      avatar,
-    }));
-    setSavedSuccess(true);
-    showAlert('Profile details saved successfully!', 'success');
-    setTimeout(() => {
-      setSavedSuccess(false);
-      navigate('/creator/profile');
-    }, 1200);
+    setIsSaving(true);
+    try {
+      await updateUserProfile({
+        name: name.trim(),
+        bio: bio.trim(),
+      });
+      setSavedSuccess(true);
+      showAlert('Profile details saved to backend successfully!', 'success');
+      setTimeout(() => {
+        setSavedSuccess(false);
+        navigate('/creator/profile');
+      }, 1000);
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to save profile changes', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-7 pb-16 animate-fade-in">
+      <SEO
+        title="Edit Profile"
+        description="Update your creator account settings, channel branding, and contact details."
+      />
+
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -90,7 +99,8 @@ export const CreatorEditProfile = () => {
           <div className="relative group">
             <img
               src={avatar || DEFAULT_PFP}
-              alt={name || 'unknown'}
+              alt={name ? `${name} avatar preview` : 'Creator avatar preview'}
+              loading="lazy"
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;

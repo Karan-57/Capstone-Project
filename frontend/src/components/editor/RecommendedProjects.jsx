@@ -42,7 +42,8 @@ export const RecommendedProjects = ({ projects = [] }) => {
                   <div className="flex items-start gap-3 min-w-0">
                     <img
                       src={gig.creatorAvatar || DEFAULT_PFP}
-                      alt={gig.creator}
+                      alt={gig.creator || 'Creator avatar'}
+                      loading="lazy"
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
                       className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0"
                     />

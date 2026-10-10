@@ -28,12 +28,20 @@ class ErrorBoundary extends React.Component {
             <p className="text-xs text-slate-400 mb-4">
               {this.state.error?.message || 'An unexpected rendering error occurred.'}
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold"
-            >
-              Reload Page
-            </button>
+            <div className="flex items-center justify-center gap-2.5">
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Reload Page
+              </button>
+              <button
+                onClick={() => window.location.href = '/'}
+                className="px-4 py-2 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Return Home
+              </button>
+            </div>
           </div>
         </div>
       );

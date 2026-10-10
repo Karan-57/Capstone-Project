@@ -11,7 +11,8 @@ export const MessageCard = ({ message, onClick }) => {
         <div className="relative shrink-0">
           <img
             src={message.avatar || DEFAULT_PFP}
-            alt={message.sender}
+            alt={message.sender || 'Message sender'}
+            loading="lazy"
             onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
             className="w-10 h-10 rounded-full object-cover border border-white/10"
           />

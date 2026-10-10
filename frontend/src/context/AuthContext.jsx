@@ -224,6 +224,29 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUserProfile = async (updates) => {
+    try {
+      const res = await api.patch('/api/users/me', updates);
+      const updatedUser = res.data?.user;
+      if (updatedUser) {
+        const userWithAvatar = {
+          ...updatedUser,
+          avatar: resolveAvatar(updatedUser),
+        };
+        if (role === 'creator') {
+          setCreatorUser((prev) => ({ ...prev, ...userWithAvatar }));
+        } else {
+          setEditorUser((prev) => ({ ...prev, ...userWithAvatar }));
+        }
+        localStorage.setItem('collabo_user', JSON.stringify(userWithAvatar));
+        return userWithAvatar;
+      }
+    } catch (err) {
+      console.warn('[AuthContext] Update user profile error:', err.message);
+      throw err;
+    }
+  };
+
   const currentUser = role === 'creator' ? creatorUser : editorUser;
 
   return (
@@ -245,6 +268,7 @@ export const AuthProvider = ({ children }) => {
         editorUser,
         setEditorUser,
         uploadProfilePicture,
+        updateUserProfile,
       }}
     >
       {children}

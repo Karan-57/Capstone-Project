@@ -12,15 +12,20 @@ const workspaceRouter = require("./routes/workspace.routes");
 const notificationRouter = require("./routes/notification.routes");
 const conversationRouter = require("./routes/conversation.routes");
 const storageRouter = require("./routes/storage.routes");
+const aiRouter = require("./routes/ai.routes");
+
+const { securityHeaders, preventNoSqlAndXss } = require("./middleware/security.middleware");
 
 const app = express();
 
+app.use(securityHeaders);
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
+app.use(preventNoSqlAndXss);
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter); 
@@ -32,6 +37,7 @@ app.use(["/api/workspace", "/api/workspaces"], workspaceRouter);
 app.use("/api/notifications", notificationRouter);
 app.use(["/api/conversation", "/api/conversations"], conversationRouter);
 app.use("/api/storage", storageRouter);
+app.use("/api/ai", aiRouter);
 
 //for testing only not for real project
 // Global error handler (handles Multer errors, file type rejections, etc.)

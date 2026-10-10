@@ -63,13 +63,23 @@ export default function Footer() {
                   How It Works
                 </Link>
               </li>
+              <li>
+                <Link to="/privacy" className="text-slate-600 hover:text-purple-600 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="text-slate-600 hover:text-purple-600 transition-colors">
+                  Terms & Conditions
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Project</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Project & Contact</p>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Engineering Capstone Project. Designed for seamless freelance creative workflows and real-time review.
+              Engineering Capstone Project. For inquiries, email: <a href="mailto:support@collabo.app" className="text-purple-600 font-medium hover:underline">support@collabo.app</a>
             </p>
             <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
@@ -78,9 +88,15 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row gap-3 justify-between text-xs text-slate-400">
+        <div className="mt-12 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row gap-3 justify-between items-center text-xs text-slate-400">
           <span>© {new Date().getFullYear()} Collabo Inc. Capstone Project. All rights reserved.</span>
-          <span>DIPEX Exhibition Build</span>
+          <div className="flex items-center gap-4">
+            <Link to="/privacy" className="hover:text-slate-600 transition-colors">Privacy</Link>
+            <span>•</span>
+            <Link to="/terms" className="hover:text-slate-600 transition-colors">Terms</Link>
+            <span>•</span>
+            <span>DIPEX Exhibition Build</span>
+          </div>
         </div>
       </div>
     </footer>

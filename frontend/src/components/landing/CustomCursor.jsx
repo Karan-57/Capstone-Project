@@ -15,8 +15,12 @@ export default function CustomCursor() {
       if (!isVisible) setIsVisible(true);
 
       // Check if hovering over clickable/interactive elements
-      const target = e.target;
-      if (!target) return;
+      const target = e.target instanceof Element ? e.target : e.target?.parentElement;
+      if (!target || typeof target.closest !== 'function') {
+        setIsHovered(false);
+        return;
+      }
+
       const isInteractive =
         target.closest("button") ||
         target.closest("a") ||

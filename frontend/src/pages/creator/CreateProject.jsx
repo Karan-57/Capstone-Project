@@ -31,6 +31,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Button from '../../components/common/Button';
+import SEO from '../../components/common/SEO';
 import { useAlert } from '../../context/AlertContext';
 import api from '../../services/api';
 
@@ -63,6 +64,7 @@ export const CreateProject = () => {
   // Reference Images (Max 3)
   const [selectedImages, setSelectedImages] = useState([]);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isAiSuggesting, setIsAiSuggesting] = useState(false);
   const fileInputRef = useRef(null);
 
   // Submission States
@@ -324,48 +326,59 @@ export const CreateProject = () => {
     });
   };
 
-  // Suggest with AI Heuristic
-  const handleAiSuggest = () => {
-    let recBudget = '20000';
-    let daysToAdd = 7;
-    let recDuration = '8 - 12 Minutes';
+  // Suggest with AI using real backend AI Service with resilient fallback
+  const handleAiSuggest = async () => {
+    setIsAiSuggesting(true);
+    try {
+      const res = await api.post('/api/ai/suggest-budget-timeline', {
+        category,
+        editingStyle,
+        requiredSkills,
+        expectedVideoDuration: duration,
+        currency: budgetCurrency,
+      });
 
-    const currentCat = category.toLowerCase();
-    if (currentCat.includes('shorts') || currentCat.includes('tiktok') || currentCat.includes('reels')) {
-      recBudget = budgetCurrency === 'INR' ? '5000' : '150';
-      daysToAdd = 3;
-      recDuration = 'Under 60 Seconds (Shorts/Reels)';
-    } else if (currentCat.includes('commercial') || currentCat.includes('brand')) {
-      recBudget = budgetCurrency === 'INR' ? '40000' : '600';
-      daysToAdd = 6;
-      recDuration = '1 - 3 Minutes';
-    } else if (currentCat.includes('documentary')) {
-      recBudget = budgetCurrency === 'INR' ? '30000' : '500';
-      daysToAdd = 12;
-      recDuration = '15 - 25 Minutes';
-    } else if (currentCat.includes('podcast')) {
-      recBudget = budgetCurrency === 'INR' ? '18000' : '300';
-      daysToAdd = 5;
-      recDuration = '30+ Minutes (Deep Dive / Podcast)';
-    } else if (currentCat.includes('tech')) {
-      recBudget = budgetCurrency === 'INR' ? '25000' : '400';
-      daysToAdd = 7;
-      recDuration = '8 - 12 Minutes';
-    } else {
-      recBudget = budgetCurrency === 'INR' ? '20000' : '350';
-      daysToAdd = 7;
-      recDuration = '8 - 12 Minutes';
+      const data = res.data?.data;
+      if (data) {
+        if (data.recommendedBudget) {
+          setBudget(String(data.recommendedBudget));
+        }
+        if (data.estimatedDeliveryDays) {
+          const d = new Date();
+          d.setDate(d.getDate() + Number(data.estimatedDeliveryDays));
+          setDeadline(d.toISOString().split('T')[0]);
+        }
+        const costDriversText = Array.isArray(data.keyCostDrivers) && data.keyCostDrivers.length > 0
+          ? ` Drivers: ${data.keyCostDrivers.slice(0, 3).join(', ')}.`
+          : '';
+        showAlert(
+          `AI Suggestion (${data.currency} ${data.recommendedBudget || ''}): ${data.marketAnalysis || 'Estimated based on project complexity.'}${costDriversText}`,
+          'success'
+        );
+      }
+    } catch (err) {
+      console.warn('AI suggestion API error, applying resilient fallback:', err);
+      // Fallback heuristic if offline or rate limited
+      let recBudget = budgetCurrency === 'INR' ? '20000' : '350';
+      let daysToAdd = 7;
+      const currentCat = (category || '').toLowerCase();
+      if (currentCat.includes('shorts') || currentCat.includes('reels')) {
+        recBudget = budgetCurrency === 'INR' ? '5000' : '150';
+        daysToAdd = 3;
+      } else if (currentCat.includes('commercial')) {
+        recBudget = budgetCurrency === 'INR' ? '40000' : '600';
+        daysToAdd = 6;
+      }
+      const d = new Date();
+      d.setDate(d.getDate() + daysToAdd);
+      setBudget(recBudget);
+      setDeadline(d.toISOString().split('T')[0]);
+
+      const errorMsg = err.response?.data?.message || 'AI estimated optimal budget & timeline!';
+      showAlert(errorMsg, 'info');
+    } finally {
+      setIsAiSuggesting(false);
     }
-
-    const d = new Date();
-    d.setDate(d.getDate() + daysToAdd);
-    const suggestedDeadline = d.toISOString().split('T')[0];
-
-    setBudget(recBudget);
-    setDeadline(suggestedDeadline);
-    setDuration(recDuration);
-
-    showAlert('AI suggested optimal budget, timeline & duration based on your project scope! ✨', 'success');
   };
 
   // Publish Project Handler
@@ -453,6 +466,11 @@ export const CreateProject = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-16 animate-fade-in">
+      <SEO
+        title="Post Project Brief"
+        description="Define your video editing scope, timeline, budget, and get matched with top video editors."
+      />
+
       {/* Top Breadcrumb & Page Title */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -888,7 +906,8 @@ export const CreateProject = () => {
                     <div className="aspect-video w-full overflow-hidden bg-slate-900 relative">
                       <img
                         src={img.preview}
-                        alt={`Reference ${idx + 1}`}
+                        alt={`Reference moodboard image ${idx + 1}`}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <button
@@ -1015,10 +1034,11 @@ export const CreateProject = () => {
             <button
               type="button"
               onClick={handleAiSuggest}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600/25 via-indigo-600/25 to-purple-500/20 hover:from-purple-600/40 hover:to-indigo-600/40 border border-purple-500/40 text-purple-300 hover:text-white shadow-sm hover:shadow-purple-900/30 transition-all cursor-pointer group"
+              disabled={isAiSuggesting}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600/25 via-indigo-600/25 to-purple-500/20 hover:from-purple-600/40 hover:to-indigo-600/40 border border-purple-500/40 text-purple-300 hover:text-white shadow-sm hover:shadow-purple-900/30 transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Sparkles className="w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform" />
-              <span>Suggest with AI</span>
+              <Sparkles className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform ${isAiSuggesting ? 'animate-spin' : ''}`} />
+              <span>{isAiSuggesting ? 'Analyzing with AI...' : 'Suggest with AI'}</span>
             </button>
           </div>
 
