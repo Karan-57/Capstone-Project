@@ -64,4 +64,32 @@ creatorRouter.get('/projects/:projectId/applications', authMiddleware.authUser, 
  */
 creatorRouter.post('/projects/:projectId/disband', authMiddleware.authUser, applicationController.disbandEditorController);
 
+/**
+ * @route GET api/creator/projects/:projectId/hirings
+ * @description get all role hirings and hired freelancers for a project
+ * @access Private (Creator)
+ */
+creatorRouter.get('/projects/:projectId/hirings', authMiddleware.authUser, creatorController.getProjectHiringsController);
+
+/**
+ * @route POST api/creator/projects/:projectId/hirings
+ * @description post a new hiring position for a project
+ * @access Private (Creator)
+ */
+creatorRouter.post('/projects/:projectId/hirings', authMiddleware.authUser, creatorController.addProjectHiringController);
+
+/**
+ * @route DELETE api/creator/projects/:projectId/hirings/:hiringId
+ * @description remove a hiring position from a project
+ * @access Private (Creator)
+ */
+creatorRouter.delete('/projects/:projectId/hirings/:hiringId', authMiddleware.authUser, creatorController.deleteProjectHiringController);
+
+/**
+ * @route PATCH api/creator/projects/:projectId/hirings/:hiringId/milestones
+ * @description update milestones for a specific hiring role
+ * @access Private (Creator or Authenticated User)
+ */
+creatorRouter.patch('/projects/:projectId/hirings/:hiringId/milestones', authMiddleware.authUser, creatorController.updateRoleMilestonesController);
+
 module.exports = creatorRouter;

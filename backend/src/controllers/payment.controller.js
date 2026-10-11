@@ -220,12 +220,30 @@ async function getWalletDetails(req, res) {
         $or: [{ fromUser: req.user._id }, { toUser: req.user._id }],
       })
       .sort({ createdAt: -1 })
-      .limit(50);
+      .limit(100);
+
+    // Calculate real ledger-based figures:
+    // 1. Total settled releases paid by this creator:
+    const creatorReleases = transactions.filter(
+      (t) => t.type === 'ESCROW_RELEASE' && t.fromUser && t.fromUser.toString() === req.user._id.toString()
+    );
+    const totalSettledReleases = creatorReleases.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    const completedMilestonesCount = creatorReleases.length;
+
+    // 2. Real currently active escrow locked funds:
+    const creatorLocks = transactions.filter(
+      (t) => t.type === 'ESCROW_LOCK' && t.fromUser && t.fromUser.toString() === req.user._id.toString()
+    );
+    const totalLockedEver = creatorLocks.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    const currentEscrowLocked = Math.max(0, totalLockedEver - totalSettledReleases);
 
     return res.status(200).json({
       success: true,
       walletBalance: user?.walletBalance || 0,
       hasTransactionPin: Boolean(user?.hasTransactionPin),
+      escrowLocked: currentEscrowLocked,
+      totalSettledReleases,
+      completedMilestonesCount,
       transactions,
     });
   } catch (err) {
@@ -343,6 +361,41 @@ async function lockEscrow(req, res) {
       });
     }
 
+    // Project, Role, and Milestone Level Budget Validations
+    if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+      const projectDoc = await projectModel.findById(projectId);
+      if (projectDoc) {
+        const projectTotalBudget = Number(projectDoc.totalBudget || projectDoc.budget?.amount || projectDoc.budget?.max || (typeof projectDoc.budget === 'number' ? projectDoc.budget : 0));
+        
+        // Validation: Cannot exceed total project budget
+        if (projectTotalBudget > 0 && numericAmount > projectTotalBudget) {
+          return res.status(400).json({
+            message: `Payment amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds total project budget (₹${projectTotalBudget.toLocaleString('en-IN')}).`
+          });
+        }
+
+        // If milestone specifies an allocated role budget, verify against role budget
+        if (req.body.roleBudget) {
+          const numRoleBudget = Number(req.body.roleBudget);
+          if (numRoleBudget > 0 && numericAmount > numRoleBudget) {
+            return res.status(400).json({
+              message: `Payment amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds this role's budget (₹${numRoleBudget.toLocaleString('en-IN')}).`
+            });
+          }
+        }
+
+        // Validation against milestone amount if provided
+        if (req.body.milestoneAmount) {
+          const numMilestoneAmount = Number(req.body.milestoneAmount);
+          if (numMilestoneAmount > 0 && numericAmount > numMilestoneAmount) {
+            return res.status(400).json({
+              message: `Payment amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds milestone allocation (₹${numMilestoneAmount.toLocaleString('en-IN')}).`
+            });
+          }
+        }
+      }
+    }
+
     // Atomically debit creator
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
@@ -415,6 +468,41 @@ async function releaseEscrow(req, res) {
 
       if (!isMatch) {
         return res.status(400).json({ message: 'Invalid Transaction Security PIN' });
+      }
+    }
+
+    // Project, Role, and Milestone Level Budget Validations for Release
+    if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+      const projectDoc = await projectModel.findById(projectId);
+      if (projectDoc) {
+        const projectTotalBudget = Number(projectDoc.totalBudget || projectDoc.budget?.amount || projectDoc.budget?.max || (typeof projectDoc.budget === 'number' ? projectDoc.budget : 0));
+        
+        // Validation: Cannot exceed total project budget
+        if (projectTotalBudget > 0 && numericAmount > projectTotalBudget) {
+          return res.status(400).json({
+            message: `Payout amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds total project budget (₹${projectTotalBudget.toLocaleString('en-IN')}).`
+          });
+        }
+
+        // If release specifies an allocated role budget, verify against role budget
+        if (req.body.roleBudget) {
+          const numRoleBudget = Number(req.body.roleBudget);
+          if (numRoleBudget > 0 && numericAmount > numRoleBudget) {
+            return res.status(400).json({
+              message: `Payout amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds this role's budget (₹${numRoleBudget.toLocaleString('en-IN')}).`
+            });
+          }
+        }
+
+        // Validation against milestone amount if provided
+        if (req.body.milestoneAmount) {
+          const numMilestoneAmount = Number(req.body.milestoneAmount);
+          if (numMilestoneAmount > 0 && numericAmount > numMilestoneAmount) {
+            return res.status(400).json({
+              message: `Payout amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds milestone allocation (₹${numMilestoneAmount.toLocaleString('en-IN')}).`
+            });
+          }
+        }
       }
     }
 

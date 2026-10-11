@@ -56,7 +56,8 @@ async function updateMeController(req, res) {
             'username',
             'bio',
             'location',
-            'phone'
+            'phone',
+            'subRoles'
         ];
 
         const updates = {};

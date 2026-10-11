@@ -3,6 +3,7 @@ const workspaceModel = require('../model/workspace.model');
 const mongoose = require('mongoose');
 const { createNotification } = require('../services/notification.service');
 const { uploadToImageKit } = require('../services/imagekit.service');
+const { generateMilestonesForRole } = require('../constants/roles.constants');
 
 /**
  * Helper to get all relevant recipients for a project excluding the actor
@@ -101,6 +102,10 @@ async function createProjectController(req, res) {
         }
         finalRefImages = finalRefImages.slice(0, 3);
 
+        const numericTotalBudget = Number(req.body.totalBudget) || (budget && budget.fixed ? Number(budget.fixed) : 0);
+        const resolvedDuration = req.body.duration || req.body.projectDuration || '';
+        const resolvedExpectedVideoDuration = req.body.expectedVideoDuration || (videoDuration ? String(videoDuration) : '');
+
         const project = await projectModel.create({
             creatorId,
             title: title.trim(),
@@ -110,13 +115,18 @@ async function createProjectController(req, res) {
             requiredSkills: Array.isArray(requiredSkills) ? requiredSkills : [],
             requiredSoftware: Array.isArray(requiredSoftware) ? requiredSoftware : [],
             videoDuration: Number(videoDuration) || 0,
+            expectedVideoDuration: resolvedExpectedVideoDuration,
+            projectDuration: resolvedDuration,
+            duration: resolvedDuration,
             complexity: complexity || 'Intermediate',
-            budget: budget || {},
+            totalBudget: numericTotalBudget,
+            budget: budget || (numericTotalBudget ? { fixed: numericTotalBudget, currency: req.body.currency || 'INR' } : {}),
             deadline: deadline ? new Date(deadline) : undefined,
             referenceLinks: Array.isArray(referenceLinks) ? referenceLinks : [],
             referenceImages: finalRefImages,
             sampleFiles: Array.isArray(sampleFiles) ? sampleFiles : [],
-            additionalInstructions: additionalInstructions ? additionalInstructions.trim() : ''
+            additionalInstructions: additionalInstructions ? additionalInstructions.trim() : '',
+            hirings: []
         });
 
         return res.status(201).json({
@@ -209,7 +219,8 @@ async function getMyProjectsController(req, res) {
 
         const projects = await projectModel.find(filter)
             .sort({ createdAt: -1 })
-            .populate('selectedEditorId', 'name username profileImage');
+            .populate('selectedEditorId', 'name username profileImage')
+            .populate('hirings.hiredFreelancerId', 'name username profileImage role subRoles rating');
 
         return res.status(200).json({
             count: projects.length,
@@ -438,11 +449,290 @@ async function cancelProjectController(req, res) {
     }
 }
 
+/**
+ * @name addProjectHiringController
+ * @description Add a new role hiring to a project
+ * @route POST /api/creator/projects/:projectId/hirings
+ * @access Private (Creator)
+ */
+async function addProjectHiringController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        const { projectId } = req.params;
+
+        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ message: "Invalid project ID" });
+        }
+
+        const project = await projectModel.findOne({ _id: projectId, creatorId });
+        if (!project) {
+            return res.status(404).json({ message: "Project not found or unauthorized" });
+        }
+
+        const {
+            roleId,
+            roleTitle,
+            description,
+            requiredSkills = [],
+            requiredTools = [],
+            budget = 0,
+            currency = 'INR',
+            firstDeadline,
+            references = [],
+            additionalNotes = ''
+        } = req.body;
+
+        if (!roleId || !roleTitle) {
+            return res.status(400).json({ message: "Role ID and role title are required" });
+        }
+
+        const numericBudget = Number(budget) || 0;
+        const projectTotalBudget = Number(project.totalBudget || project.budget?.amount || project.budget?.max || 0);
+
+        // Validation: Role budget cannot exceed total project budget
+        if (projectTotalBudget > 0 && numericBudget > projectTotalBudget) {
+            return res.status(400).json({
+                message: `Role budget (${currency} ${numericBudget}) cannot exceed total project budget (${currency} ${projectTotalBudget})`
+            });
+        }
+
+        // Validation: Milestone deadline cannot exceed project turnaround duration
+        let parsedDeadline = undefined;
+        if (firstDeadline) {
+            parsedDeadline = new Date(firstDeadline);
+            if (isNaN(parsedDeadline.getTime())) {
+                return res.status(400).json({ message: "Invalid date format for firstDeadline" });
+            }
+
+            const now = new Date();
+            const durationText = String(project.projectDuration || project.duration || '').toLowerCase();
+
+            let maxDaysAllowed = null;
+            if (durationText.includes('month')) maxDaysAllowed = 30;
+            else if (durationText.includes('week')) {
+                const wMatch = durationText.match(/(\d+)\s*week/);
+                maxDaysAllowed = wMatch ? parseInt(wMatch[1], 10) * 7 : 21;
+            } else if (durationText.includes('day')) {
+                const dMatch = durationText.match(/(\d+)\s*-\s*(\d+)\s*day/);
+                if (dMatch) maxDaysAllowed = parseInt(dMatch[2], 10);
+                else {
+                    const sMatch = durationText.match(/(\d+)\s*day/);
+                    if (sMatch) maxDaysAllowed = parseInt(sMatch[1], 10);
+                }
+            }
+
+            if (maxDaysAllowed) {
+                const maxAllowedDate = new Date(now.getTime() + maxDaysAllowed * 24 * 60 * 60 * 1000);
+                // Allow a small grace margin of 12 hours
+                if (parsedDeadline.getTime() > maxAllowedDate.getTime() + 12 * 60 * 60 * 1000) {
+                    return res.status(400).json({
+                        message: `Milestone deadline exceeds project turnaround duration of ${project.projectDuration || project.duration} (${maxDaysAllowed} days)`
+                    });
+                }
+            }
+        }
+
+        // Compute or accept custom milestones for this role
+        let roleMilestones = [];
+        if (Array.isArray(req.body.milestones) && req.body.milestones.length > 0) {
+            roleMilestones = req.body.milestones;
+        } else {
+            roleMilestones = generateMilestonesForRole(
+                roleId,
+                numericBudget,
+                parsedDeadline,
+                roleTitle
+            );
+        }
+
+        const newHiring = {
+            roleId,
+            roleTitle,
+            description: description ? description.trim() : '',
+            requiredSkills: Array.isArray(requiredSkills) ? requiredSkills : [],
+            requiredTools: Array.isArray(requiredTools) ? requiredTools : [],
+            budget: numericBudget,
+            currency: currency || 'INR',
+            firstDeadline: parsedDeadline,
+            references: Array.isArray(references) ? references : [],
+            additionalNotes: additionalNotes ? additionalNotes.trim() : '',
+            milestones: roleMilestones,
+            status: 'open',
+        };
+
+        if (!Array.isArray(project.hirings)) {
+            project.hirings = [];
+        }
+
+        project.hirings.push(newHiring);
+        await project.save();
+
+        const createdHiring = project.hirings[project.hirings.length - 1];
+
+        return res.status(201).json({
+            message: "Role hiring posted successfully",
+            hiring: createdHiring,
+            hirings: project.hirings
+        });
+    } catch (err) {
+        console.error("Error in addProjectHiringController:", err);
+        return res.status(500).json({
+            message: "Internal server error while adding role hiring",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name getProjectHiringsController
+ * @description Get active hirings and hired freelancers for a project
+ * @route GET /api/creator/projects/:projectId/hirings
+ * @access Private (Creator)
+ */
+async function getProjectHiringsController(req, res) {
+    try {
+        const { projectId } = req.params;
+
+        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ message: "Invalid project ID" });
+        }
+
+        const project = await projectModel.findById(projectId)
+            .populate('hirings.hiredFreelancerId', 'name username profileImage rating role subRoles');
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+
+        const allHirings = project.hirings || [];
+        const activeHirings = allHirings.filter(h => h.status === 'open' || h.status === 'in_review');
+        const hiredFreelancers = allHirings
+            .filter(h => h.status === 'hired' && h.hiredFreelancerId)
+            .map(h => ({
+                hiringId: h._id,
+                roleTitle: h.roleTitle,
+                freelancer: h.hiredFreelancerId,
+                budget: h.budget,
+                currency: h.currency,
+                hiredAt: h.hiredAt
+            }));
+
+        return res.status(200).json({
+            hirings: allHirings,
+            activeHirings,
+            hiredFreelancers,
+            totalBudget: project.totalBudget || (project.budget && project.budget.fixed ? project.budget.fixed : 0),
+            project
+        });
+    } catch (err) {
+        console.error("Error in getProjectHiringsController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching hirings",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name deleteProjectHiringController
+ * @description Delete a hiring role from project
+ * @route DELETE /api/creator/projects/:projectId/hirings/:hiringId
+ * @access Private (Creator)
+ */
+async function deleteProjectHiringController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        const { projectId, hiringId } = req.params;
+
+        if (!projectId || !hiringId) {
+            return res.status(400).json({ message: "Project ID and hiring ID are required" });
+        }
+
+        const project = await projectModel.findOne({ _id: projectId, creatorId });
+        if (!project) {
+            return res.status(404).json({ message: "Project not found or unauthorized" });
+        }
+
+        project.hirings = (project.hirings || []).filter(h => h._id.toString() !== hiringId.toString());
+        await project.save();
+
+        return res.status(200).json({
+            message: "Hiring role removed successfully",
+            hirings: project.hirings
+        });
+    } catch (err) {
+        console.error("Error in deleteProjectHiringController:", err);
+        return res.status(500).json({
+            message: "Internal server error while removing hiring role",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name updateRoleMilestonesController
+ * @description Update milestones or a milestone status/submission for a specific hiring role
+ * @route PATCH /api/creator/projects/:projectId/hirings/:hiringId/milestones
+ * @access Private (Creator or Assigned Freelancer)
+ */
+async function updateRoleMilestonesController(req, res) {
+    try {
+        const { projectId, hiringId } = req.params;
+        const { milestones } = req.body;
+
+        if (!projectId || !hiringId) {
+            return res.status(400).json({ message: "Project ID and hiring ID are required" });
+        }
+
+        if (!Array.isArray(milestones)) {
+            return res.status(400).json({ message: "Milestones array is required" });
+        }
+
+        const project = await projectModel.findById(projectId);
+        if (!project) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+
+        const hiring = (project.hirings || []).find(h => h._id.toString() === hiringId.toString());
+        if (!hiring) {
+            return res.status(404).json({ message: "Hiring role not found on project" });
+        }
+
+        // Validate milestone sum does not exceed role budget
+        const totalMilestonesAmount = milestones.reduce((sum, m) => sum + (Number(m.amount) || 0), 0);
+        if (hiring.budget > 0 && totalMilestonesAmount > hiring.budget) {
+            return res.status(400).json({
+                message: `Sum of milestones (₹${totalMilestonesAmount.toLocaleString()}) cannot exceed the role budget (₹${hiring.budget.toLocaleString()})`
+            });
+        }
+
+        hiring.milestones = milestones;
+        await project.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Milestones updated successfully",
+            milestones: hiring.milestones,
+            hiring
+        });
+    } catch (err) {
+        console.error("Error in updateRoleMilestonesController:", err);
+        return res.status(500).json({
+            message: "Internal server error while updating role milestones",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     createProjectController,
     uploadReferenceImagesController,
     getMyProjectsController,
     updateProjectController,
     deleteProjectController,
-    cancelProjectController
+    cancelProjectController,
+    addProjectHiringController,
+    getProjectHiringsController,
+    deleteProjectHiringController,
+    updateRoleMilestonesController
 };

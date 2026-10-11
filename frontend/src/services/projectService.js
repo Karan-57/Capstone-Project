@@ -52,15 +52,20 @@ export const mapBackendProject = (p) => {
     rawStatus: p?.status || 'unknown',
     assignedEditor: p?.selectedEditorId
       ? {
-          name: p.selectedEditorId.name || 'unknown',
+          id: (p.selectedEditorId._id || p.selectedEditorId).toString(),
+          name: p.selectedEditorId.name || 'Assigned Editor',
           avatar: p.selectedEditorId.profileImage || DEFAULT_PFP,
         }
       : null,
     progress: p?.status === 'completed' ? 100 : p?.status === 'in_progress' ? 60 : p?.status === 'assigned' ? 25 : 0,
     deadline: p?.deadline ? new Date(p.deadline).toISOString().split('T')[0] : 'unknown',
-    budget: formatBudget(p?.budget),
+    budget: formatBudget(p?.totalBudget || p?.budget),
+    rawBudget: p?.totalBudget || p?.budget,
+    totalBudget: p?.totalBudget || (typeof p?.budget === 'number' ? p.budget : p?.budget?.amount || 0),
+    hirings: Array.isArray(p?.hirings) ? p.hirings : [],
     createdAt: p?.createdAt || 'unknown',
     description: p?.description || 'unknown',
+    rawProject: p,
   };
 };
 

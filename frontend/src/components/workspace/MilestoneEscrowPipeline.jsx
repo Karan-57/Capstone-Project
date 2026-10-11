@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -17,71 +17,149 @@ import { useWallet } from '../../context/WalletContext';
 import { useAuth } from '../../context/AuthContext';
 import SecurityPinModal from '../wallet/SecurityPinModal';
 
+import { FREELANCER_CONTENT_ROLES, generateMilestonesForRole } from '../../constants/roles.constants';
+
 export const MilestoneEscrowPipeline = ({
   workspaceId,
   totalBudget = 10000,
+  projectTotalBudget = null,
+  roleBudget = null,
   isCreator = true,
   editorName = 'Editor',
   editorId = null,
   projectId = null,
+  roleTitle = '',
+  roleId = '',
+  initialMilestones = null,
 }) => {
-  const { walletBalance, fundMilestone, releaseMilestone } = useWallet();
+  const { walletBalance, fundMilestone, releaseMilestone, transactions = [] } = useWallet();
   const { currentUser } = useAuth();
 
-  // Convert raw total budget into number
+  // Convert raw total budget into number (uses roleBudget if provided)
   const numericBudget =
-    typeof totalBudget === 'number'
-      ? totalBudget
-      : parseInt(String(totalBudget).replace(/[^0-9]/g, ''), 10) || 10000;
+    typeof (roleBudget || totalBudget) === 'number'
+      ? (roleBudget || totalBudget)
+      : parseInt(String(roleBudget || totalBudget).replace(/[^0-9]/g, ''), 10) || 10000;
+
+  const numericProjectTotal =
+    typeof (projectTotalBudget || totalBudget) === 'number'
+      ? (projectTotalBudget || totalBudget)
+      : parseInt(String(projectTotalBudget || totalBudget).replace(/[^0-9]/g, ''), 10) || numericBudget;
 
   // Split budget into 3 standard milestones: 30%, 40%, 30%
   const m1Amount = Math.round(numericBudget * 0.3);
   const m2Amount = Math.round(numericBudget * 0.4);
   const m3Amount = numericBudget - m1Amount - m2Amount;
 
-  // Persistent storage key per workspace
+  // Primary persistent storage key per workspace, and fallback for legacy project keys
   const STORAGE_KEY = `collabo_milestones_${workspaceId || 'default'}`;
+  const LEGACY_STORAGE_KEY = projectId ? `collabo_milestones_${projectId}` : null;
 
-  const [milestones, setMilestones] = useState(() => {
+  // Helper to load and reconcile milestone list with transactions
+  const getInitialMilestones = () => {
+    let savedList = null;
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      const saved = localStorage.getItem(STORAGE_KEY) || (LEGACY_STORAGE_KEY ? localStorage.getItem(LEGACY_STORAGE_KEY) : null);
+      if (saved) {
+        savedList = JSON.parse(saved);
+      }
     } catch (e) {
       console.warn(e);
     }
-    return [
-      {
-        id: 'm1',
-        index: 1,
-        title: 'Milestone 1: Rough Cut & Story Assembly',
-        description: 'First timeline pass, rhythm, storytelling cut, and basic clip selection.',
-        amount: m1Amount,
-        status: 'approved', // Pre-seeded as approved so demo starts with immediate visible progress!
-        submittedUrl: 'https://vimeo.com/demo-rough-cut',
-        submissionNotes: 'Completed assembly timeline with all A-roll synced and trimmed.',
-      },
-      {
-        id: 'm2',
-        index: 2,
-        title: 'Milestone 2: Sound Design & Color Grading',
-        description: 'Audio leveling, SFX, music mixing, cinematic color LUT application.',
-        amount: m2Amount,
-        status: 'submitted', // In Review: Creator can approve & release right away!
-        submittedUrl: 'https://drive.google.com/demo-color-grade',
-        submissionNotes: 'Color grade completed matching reference teal & orange tone. Cinematic sound fx added.',
-      },
-      {
-        id: 'm3',
-        index: 3,
-        title: 'Milestone 3: 4K Master Export & Short Clips',
-        description: 'High-res master deliverable, final captions, and 2 vertical shorts.',
-        amount: m3Amount,
-        status: 'pending', // Pending funding
-        submittedUrl: '',
-        submissionNotes: '',
-      },
-    ];
-  });
+
+    // Build role-tailored default list
+    let defaultList = null;
+    if (Array.isArray(initialMilestones) && initialMilestones.length > 0) {
+      defaultList = initialMilestones.map((m, idx) => ({
+        ...m,
+        id: m.id || `m${idx + 1}`,
+        index: m.index || idx + 1,
+        amount: Number(m.amount) || Math.round(numericBudget / initialMilestones.length),
+        status: m.status || (idx === 0 ? 'approved' : idx === 1 ? 'submitted' : 'pending'),
+      }));
+    } else if (roleId || roleTitle) {
+      const generated = generateMilestonesForRole(roleId, numericBudget, null, roleTitle);
+      defaultList = generated.map((m, idx) => ({
+        ...m,
+        status: idx === 0 ? 'approved' : idx === 1 ? 'submitted' : 'pending',
+      }));
+    } else {
+      defaultList = [
+        {
+          id: 'm1',
+          index: 1,
+          title: 'Milestone 1: Rough Cut & Story Assembly',
+          description: 'First timeline pass, rhythm, storytelling cut, and basic clip selection.',
+          amount: m1Amount,
+          status: 'approved',
+          submittedUrl: 'https://vimeo.com/demo-rough-cut',
+          submissionNotes: 'Completed assembly timeline with all A-roll synced and trimmed.',
+        },
+        {
+          id: 'm2',
+          index: 2,
+          title: 'Milestone 2: Sound Design & Color Grading',
+          description: 'Audio leveling, SFX, music mixing, cinematic color LUT application.',
+          amount: m2Amount,
+          status: 'submitted',
+          submittedUrl: 'https://drive.google.com/demo-color-grade',
+          submissionNotes: 'Color grade completed matching reference teal & orange tone. Cinematic sound fx added.',
+        },
+        {
+          id: 'm3',
+          index: 3,
+          title: 'Milestone 3: 4K Master Export & Short Clips',
+          description: 'High-res master deliverable, final captions, and 2 vertical shorts.',
+          amount: m3Amount,
+          status: 'pending',
+          submittedUrl: '',
+          submissionNotes: '',
+        },
+      ];
+    }
+
+    const baseList = Array.isArray(savedList) && savedList.length > 0 ? savedList : defaultList;
+
+    // Cross-check transactions: if any release transaction matches milestone title or milestone 2, ensure status is 'approved'
+    return baseList.map((m) => {
+      const isM2 = m.id === 'm2' || m.index === 2 || (m.title && m.title.includes('Milestone 2'));
+      const isM1 = m.id === 'm1' || m.index === 1 || (m.title && m.title.includes('Milestone 1'));
+      const isM3 = m.id === 'm3' || m.index === 3 || (m.title && m.title.includes('Milestone 3'));
+
+      const hasReleasedTxn = transactions.some((t) => {
+        if (t.type !== 'ESCROW_RELEASE') return false;
+        const desc = (t.description || '').toLowerCase();
+        const mTitle = (t.milestoneTitle || '').toLowerCase();
+        const thisTitle = (m.title || '').toLowerCase();
+
+        if (isM2 && (desc.includes('milestone 2') || desc.includes('sound design') || mTitle.includes('milestone 2') || mTitle.includes('sound design'))) return true;
+        if (isM1 && (desc.includes('milestone 1') || desc.includes('rough cut') || mTitle.includes('milestone 1') || mTitle.includes('rough cut'))) return true;
+        if (isM3 && (desc.includes('milestone 3') || desc.includes('4k master') || mTitle.includes('milestone 3') || mTitle.includes('4k master'))) return true;
+        return thisTitle && (desc.includes(thisTitle) || mTitle.includes(thisTitle));
+      });
+
+      if (hasReleasedTxn && m.status !== 'approved') {
+        return { ...m, status: 'approved' };
+      }
+      return m;
+    });
+  };
+
+  const [milestones, setMilestones] = useState(getInitialMilestones);
+
+  // Synchronize milestones when workspace, project, or transactions change
+  useEffect(() => {
+    const updated = getInitialMilestones();
+    setMilestones(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      if (LEGACY_STORAGE_KEY) {
+        localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(updated));
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  }, [workspaceId, projectId, transactions]);
 
   // PIN modal control
   const [pinModalConfig, setPinModalConfig] = useState({
@@ -99,6 +177,9 @@ export const MilestoneEscrowPipeline = ({
     setMilestones(updated);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      if (LEGACY_STORAGE_KEY) {
+        localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(updated));
+      }
     } catch (e) {
       console.warn(e);
     }
@@ -134,7 +215,15 @@ export const MilestoneEscrowPipeline = ({
     if (!milestone) return;
 
     if (action === 'fund') {
-      const ok = await fundMilestone(milestone.title, milestone.amount, pin, workspaceId, projectId);
+      const ok = await fundMilestone(
+        milestone.title,
+        milestone.amount,
+        pin,
+        workspaceId,
+        projectId,
+        numericBudget,
+        milestone.amount
+      );
       if (ok) {
         const updated = milestones.map((item) =>
           item.id === milestone.id ? { ...item, status: 'funded' } : item
@@ -149,7 +238,9 @@ export const MilestoneEscrowPipeline = ({
         editorName,
         editorId,
         workspaceId,
-        projectId
+        projectId,
+        numericBudget,
+        milestone.amount
       );
       if (ok) {
         const updated = milestones.map((item) =>
@@ -196,50 +287,43 @@ export const MilestoneEscrowPipeline = ({
 
   return (
     <div className="space-y-4">
-      {/* Overview Stat Header */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#0E1322] to-[#121829] border border-white/[0.08] shadow-lg">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              <h4 className="text-sm font-bold text-white tracking-tight">
-                Multi-Stage Escrow Pipeline
-              </h4>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                Bank-Grade Ledger
-              </span>
+      {/* Container showing Progress Bar, Released to Editor, Locked in Escrow */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#0E1322] border border-white/[0.08] shadow-lg space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
+            <div>
+              <span className="text-xs text-slate-400 block font-medium">Released to Editor</span>
+              <div className="text-2xl font-bold text-emerald-400 font-mono mt-1">
+                ₹{totalPaid.toLocaleString('en-IN')}
+              </div>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Funds are held safely in third-party escrow and only released milestone-by-milestone upon Creator PIN authorization.
-            </p>
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end">
-            <div className="text-left sm:text-right">
-              <span className="text-[10px] text-slate-400 block uppercase font-mono">Released to Editor</span>
-              <span className="text-sm font-bold text-emerald-400 font-mono">
-                ₹{totalPaid.toLocaleString('en-IN')}
-              </span>
-            </div>
-            <div className="h-7 w-px bg-white/10" />
-            <div className="text-left sm:text-right">
-              <span className="text-[10px] text-slate-400 block uppercase font-mono">Locked in Escrow</span>
-              <span className="text-sm font-bold text-purple-300 font-mono">
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-between">
+            <div>
+              <span className="text-xs text-slate-400 block font-medium">Locked in Escrow</span>
+              <div className="text-2xl font-bold text-purple-300 font-mono mt-1">
                 ₹{totalInEscrow.toLocaleString('en-IN')}
-              </span>
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+              <Lock className="w-5 h-5" />
             </div>
           </div>
         </div>
 
         {/* Progress Bar */}
         <div>
-          <div className="flex items-center justify-between text-[11px] mb-1.5 font-medium">
-            <span className="text-slate-300">Milestone Completion ({completedCount}/3)</span>
-            <span className="text-purple-300 font-mono">{progressPercent}%</span>
+          <div className="flex items-center justify-between text-xs mb-2 font-medium">
+            <span className="text-slate-300">Milestone Progress ({completedCount}/{milestones.length})</span>
+            <span className="text-purple-300 font-mono font-semibold">{progressPercent}%</span>
           </div>
-          <div className="w-full h-2 rounded-full bg-[#182030] overflow-hidden">
+          <div className="w-full h-2.5 rounded-full bg-[#182030] overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 transition-all duration-500 rounded-full"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -327,7 +411,7 @@ export const MilestoneEscrowPipeline = ({
                         <button
                           type="button"
                           onClick={() => handleInitiateRelease(m)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-950/40 cursor-pointer flex items-center gap-1.5 animate-pulse"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-950/40 cursor-pointer flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
                         >
                           <ShieldCheck className="w-3.5 h-3.5" />
                           Approve & Release (PIN)

@@ -13,41 +13,41 @@ export const WalletProvider = ({ children }) => {
   const userId = currentUser?._id || currentUser?.id || 'guest';
   const STORAGE_KEY = `collabo_wallet_${userId}`;
 
-  // Initial state with pre-seeded demo credits
+  // Real ledger-based wallet state (defaults to 0, synced with backend ledger)
   const [walletBalance, setWalletBalance] = useState(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_balance`);
       if (saved !== null) return Number(saved);
-      return role === 'editor' ? 3500 : 15000;
+      return 0;
     } catch {
-      return role === 'editor' ? 3500 : 15000;
+      return 0;
     }
   });
 
   const [escrowLocked, setEscrowLocked] = useState(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_escrow`);
-      return saved !== null ? Number(saved) : 4000;
+      return saved !== null ? Number(saved) : 0;
     } catch {
-      return 4000;
+      return 0;
     }
   });
 
   const [hasTransactionPin, setHasTransactionPin] = useState(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_has_pin`);
-      return saved !== null ? JSON.parse(saved) : true;
+      return saved !== null ? JSON.parse(saved) : false;
     } catch {
-      return true;
+      return false;
     }
   });
 
   const [savedPinHash, setSavedPinHash] = useState(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_pin`);
-      return saved || '1234';
+      return saved || '';
     } catch {
-      return '1234';
+      return '';
     }
   });
 
@@ -55,38 +55,14 @@ export const WalletProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_transactions`);
       if (saved) return JSON.parse(saved);
-      return [
-        {
-          id: 'TXN-984210',
-          type: 'TOPUP',
-          amount: 10000,
-          description: 'Initial Wallet Seed / Test Credit Deposit',
-          date: new Date(Date.now() - 86400000 * 2).toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          }),
-          status: 'SUCCESS',
-          gateway: 'RAZORPAY_TEST',
-        },
-        {
-          id: 'TXN-984211',
-          type: 'ESCROW_LOCK',
-          amount: 3000,
-          description: 'Milestone 1 Escrow Deposit — Cinematic Travel Cut',
-          date: new Date(Date.now() - 86400000).toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          }),
-          status: 'SUCCESS',
-          gateway: 'SYSTEM_LEDGER',
-        },
-      ];
+      return [];
     } catch {
       return [];
     }
   });
+
+  const [totalSettledReleases, setTotalSettledReleases] = useState(0);
+  const [completedMilestonesCount, setCompletedMilestonesCount] = useState(0);
 
   // Sync with backend API when user logs in
   useEffect(() => {
@@ -100,6 +76,15 @@ export const WalletProvider = ({ children }) => {
           }
           if (data.hasTransactionPin != null) {
             setHasTransactionPin(data.hasTransactionPin);
+          }
+          if (data.escrowLocked != null) {
+            setEscrowLocked(data.escrowLocked);
+          }
+          if (data.totalSettledReleases != null) {
+            setTotalSettledReleases(data.totalSettledReleases);
+          }
+          if (data.completedMilestonesCount != null) {
+            setCompletedMilestonesCount(data.completedMilestonesCount);
           }
           if (Array.isArray(data.transactions) && data.transactions.length > 0) {
             setTransactions(
@@ -115,6 +100,9 @@ export const WalletProvider = ({ children }) => {
                 }),
                 status: t.status,
                 gateway: t.gateway,
+                fromUser: t.fromUser,
+                toUser: t.toUser,
+                milestoneTitle: t.milestoneTitle,
               }))
             );
           }
@@ -237,7 +225,7 @@ export const WalletProvider = ({ children }) => {
 
   // Fund Milestone (Locks into Escrow)
   const fundMilestone = useCallback(
-    async (milestoneTitle, amount, inputPin, workspaceId = null, projectId = null) => {
+    async (milestoneTitle, amount, inputPin, workspaceId = null, projectId = null, roleBudget = null, milestoneAmount = null) => {
       const numAmount = Number(amount);
       const isPinValid = await verifySecurityPin(inputPin);
 
@@ -259,12 +247,17 @@ export const WalletProvider = ({ children }) => {
           projectId,
           milestoneTitle,
           pin: inputPin,
+          roleBudget,
+          milestoneAmount: milestoneAmount || numAmount,
         });
         if (res?.walletBalance != null) {
           newBalance = res.walletBalance;
         }
       } catch (err) {
         console.warn('[WalletContext] Lock escrow backend sync:', err.message);
+        const errMsg = err.response?.data?.message || err.message;
+        showAlert(errMsg, 'error');
+        return false;
       }
 
       setWalletBalance(newBalance);
@@ -296,7 +289,7 @@ export const WalletProvider = ({ children }) => {
 
   // Release Milestone Escrow to Editor
   const releaseMilestone = useCallback(
-    async (milestoneTitle, amount, inputPin, editorName = 'Editor', editorId = null, workspaceId = null, projectId = null) => {
+    async (milestoneTitle, amount, inputPin, editorName = 'Editor', editorId = null, workspaceId = null, projectId = null, roleBudget = null, milestoneAmount = null) => {
       const numAmount = Number(amount);
       const isPinValid = await verifySecurityPin(inputPin);
 
@@ -314,10 +307,15 @@ export const WalletProvider = ({ children }) => {
             projectId,
             milestoneTitle,
             pin: inputPin,
+            roleBudget,
+            milestoneAmount: milestoneAmount || numAmount,
           });
         }
       } catch (err) {
         console.warn('[WalletContext] Release escrow backend sync:', err.message);
+        const errMsg = err.response?.data?.message || err.message;
+        showAlert(errMsg, 'error');
+        return false;
       }
 
       setEscrowLocked((prev) => Math.max(0, prev - numAmount));
@@ -414,6 +412,8 @@ export const WalletProvider = ({ children }) => {
       value={{
         walletBalance,
         escrowLocked,
+        totalSettledReleases,
+        completedMilestonesCount,
         hasTransactionPin,
         savedPinHint: savedPinHash,
         transactions,

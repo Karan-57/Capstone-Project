@@ -14,6 +14,7 @@ const conversationRouter = require("./routes/conversation.routes");
 const storageRouter = require("./routes/storage.routes");
 const aiRouter = require("./routes/ai.routes");
 const paymentRouter = require("./routes/payment.routes");
+const roleRouter = require("./routes/role.routes");
 
 const { securityHeaders, preventNoSqlAndXss } = require("./middleware/security.middleware");
 
@@ -40,6 +41,7 @@ app.use(["/api/conversation", "/api/conversations"], conversationRouter);
 app.use("/api/storage", storageRouter);
 app.use("/api/ai", aiRouter);
 app.use(["/api/payment", "/api/payments", "/api/wallet"], paymentRouter);
+app.use(["/api/roles", "/api/role"], roleRouter);
 
 //for testing only not for real project
 // Global error handler (handles Multer errors, file type rejections, etc.)

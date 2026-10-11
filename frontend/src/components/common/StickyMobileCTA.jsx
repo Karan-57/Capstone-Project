@@ -28,10 +28,11 @@ export const StickyMobileCTA = () => {
             </div>
             <button
               onClick={() => navigate('/creator/create-project')}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-900/40 flex items-center gap-1.5 shrink-0 cursor-pointer"
+              title="Create New Project"
+              aria-label="Create New Project"
+              className="p-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-900/40 flex items-center justify-center shrink-0 cursor-pointer hover:scale-105 active:scale-95 transition-all"
             >
-              <Plus className="w-3.5 h-3.5" />
-              Post Project
+              <Plus className="w-4 h-4 stroke-[2.5]" />
             </button>
           </>
         ) : isEditor ? (

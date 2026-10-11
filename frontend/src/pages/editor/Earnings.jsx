@@ -5,6 +5,7 @@ import Button from '../../components/common/Button';
 import { applicationService } from '../../services/applicationService';
 import { useAlert } from '../../context/AlertContext';
 import { useWallet } from '../../context/WalletContext';
+import { useAuth } from '../../context/AuthContext';
 import { WithdrawModal } from '../../components/wallet/WithdrawModal';
 import api from '../../services/api';
 
@@ -12,6 +13,7 @@ export const Earnings = () => {
   const navigate = useNavigate();
   const { showAlert } = useAlert();
   const { walletBalance, escrowLocked } = useWallet();
+  const { isAuthenticated, isAuthLoading } = useAuth();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [availableBalance, setAvailableBalance] = useState(0);
@@ -20,6 +22,8 @@ export const Earnings = () => {
   const [recentPayouts, setRecentPayouts] = useState([]);
 
   useEffect(() => {
+    if (!isAuthenticated || isAuthLoading) return;
+
     const loadEarnings = async () => {
       setLoading(true);
       try {
@@ -72,7 +76,7 @@ export const Earnings = () => {
     };
 
     loadEarnings();
-  }, []);
+  }, [isAuthenticated, isAuthLoading]);
 
   return (
     <div className="space-y-6">

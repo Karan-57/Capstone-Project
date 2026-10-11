@@ -23,15 +23,17 @@ import {
   CheckCircle2,
   Star,
   Video,
-  RefreshCw,
   Play,
+  Film,
+  Link as LinkIcon,
+  Globe,
 } from 'lucide-react';
 import { DEFAULT_PFP } from '../../constants/assets';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
+import { useSearchParams } from 'react-router-dom';
 import SEO from '../../components/common/SEO';
 import api from '../../services/api';
-import MilestoneEscrowPipeline from '../../components/workspace/MilestoneEscrowPipeline';
 
 /* ─────────────────────────────────────────────────────
    HELPERS & FORMATTERS
@@ -101,8 +103,10 @@ function getStatusBadge(status) {
 
 function getWorkspaceMembers(ws) {
   const map = new Map();
+  const cid = (ws.creatorId?._id || ws.creatorId)?.toString();
+
+  // 1. Project Creator
   if (ws.creatorId && (ws.creatorId._id || ws.creatorId)) {
-    const cid = (ws.creatorId._id || ws.creatorId).toString();
     map.set(cid, {
       _id: cid,
       name: ws.creatorId.name || 'Project Creator',
@@ -110,9 +114,25 @@ function getWorkspaceMembers(ws) {
       avatar: ws.creatorId.profileImage || DEFAULT_PFP,
     });
   }
+
+  // 2. Project Selected/Hired Editor (from projectModel)
+  const projEditor = ws.projectId?.selectedEditorId;
+  if (projEditor) {
+    const peid = (projEditor._id || projEditor).toString();
+    if (peid !== cid) {
+      map.set(peid, {
+        _id: peid,
+        name: projEditor.name || 'Hired Editor',
+        role: 'Lead Video Editor',
+        avatar: projEditor.profileImage || DEFAULT_PFP,
+      });
+    }
+  }
+
+  // 3. Workspace Assigned Editor
   if (ws.editorId && (ws.editorId._id || ws.editorId)) {
     const eid = (ws.editorId._id || ws.editorId).toString();
-    if (!map.has(eid)) {
+    if (eid !== cid && !map.has(eid)) {
       map.set(eid, {
         _id: eid,
         name: ws.editorId.name || 'Lead Video Editor',
@@ -121,6 +141,8 @@ function getWorkspaceMembers(ws) {
       });
     }
   }
+
+  // 4. Structured members list
   if (Array.isArray(ws.members)) {
     ws.members.forEach((m) => {
       const u = m.user;
@@ -129,7 +151,7 @@ function getWorkspaceMembers(ws) {
         const roleLabel =
           m.projectRole === 'creator'
             ? 'Project Creator'
-            : m.projectRole === 'lead_editor'
+            : m.projectRole === 'lead_editor' || m.projectRole === 'editor'
             ? 'Lead Video Editor'
             : m.projectRole || 'Team Member';
         if (!map.has(uid)) {
@@ -215,6 +237,7 @@ function ChatPanel({
   workspaceId,
   currentUserId,
   onBack,
+  onOpenMedia,
 }) {
   const { showAlert } = useAlert();
   const { currentUser, role: userRole } = useAuth();
@@ -330,32 +353,44 @@ function ChatPanel({
   return (
     <div className="flex flex-col h-full bg-[#090C16]">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0E1322] flex items-center gap-3 shrink-0">
-        <button
-          onClick={onBack}
-          className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        {avatar ? (
-          <img
-            src={avatar || DEFAULT_PFP}
-            alt={title ? `${title} workspace` : 'Workspace avatar'}
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.src = DEFAULT_PFP;
-            }}
-            className="w-8 h-8 rounded-full object-cover border border-white/10"
-          />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-            <Users className="w-4 h-4" />
+      <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0E1322] flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onBack}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          {avatar ? (
+            <img
+              src={avatar || DEFAULT_PFP}
+              alt={title ? `${title} workspace` : 'Workspace avatar'}
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.src = DEFAULT_PFP;
+              }}
+              className="w-8 h-8 rounded-full object-cover border border-white/10"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+              <Users className="w-4 h-4" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-white truncate">{title}</p>
+            {subtitle && <p className="text-[11px] text-slate-400 truncate">{subtitle}</p>}
           </div>
-        )}
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-white truncate">{title}</p>
-          {subtitle && <p className="text-[11px] text-slate-400 truncate">{subtitle}</p>}
         </div>
+
+        {onOpenMedia && (
+          <button
+            onClick={onOpenMedia}
+            title="Media & Links"
+            className="p-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all cursor-pointer shrink-0 shadow-sm"
+          >
+            <Film className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -530,72 +565,419 @@ function ChatPanel({
 }
 
 /* ─────────────────────────────────────────────────────
-   ALL FILES MEDIA GALLERY (Real workspace files)
+   PROJECT MEDIA & LINKS SCREEN (Grid view, sorted by latest date)
 ───────────────────────────────────────────────────── */
-function MediaGallery({ files, onClose, onDelete, currentUserId, isCreator }) {
-  const typeLabel = { video: 'Videos', audio: 'Audio', image: 'Images', doc: 'Documents & Assets' };
+function ProjectMediaAndLinksScreen({
+  title,
+  subtitle,
+  files = [],
+  referenceLinks = [],
+  referenceImages = [],
+  scope = 'project', // 'project' | 'dm'
+  dmMember = null,
+  currentUserId,
+  isCreator,
+  onDeleteFile,
+  onClose,
+}) {
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const grouped = (files || []).reduce((acc, f) => {
-    const t = getFileType(f);
-    acc[t] = acc[t] || [];
-    acc[t].push(f);
-    return acc;
-  }, {});
+  // 1. Gather all items
+  const items = [];
+
+  // Filter files if dm scope
+  const targetFiles =
+    scope === 'dm' && dmMember?._id
+      ? files.filter((f) => {
+          const uploaderId = (f.uploadedBy?._id || f.uploadedBy)?.toString();
+          const myId = currentUserId?.toString();
+          const theirId = dmMember._id.toString();
+          return uploaderId === myId || uploaderId === theirId;
+        })
+      : files;
+
+  targetFiles.forEach((f) => {
+    const type = getFileType(f);
+    items.push({
+      id: f._id,
+      itemType: 'file',
+      fileType: type,
+      title: f.fileName || f.title || 'Untitled Asset',
+      url: f.fileUrl,
+      size: f.fileSize,
+      date: f.createdAt ? new Date(f.createdAt) : new Date(0),
+      uploaderName: f.uploadedBy?.name || 'Collaborator',
+      uploaderId: (f.uploadedBy?._id || f.uploadedBy)?.toString(),
+      rawFile: f,
+    });
+  });
+
+  // Reference images (for project scope)
+  if (scope === 'project' && Array.isArray(referenceImages)) {
+    referenceImages.forEach((img, idx) => {
+      const url = typeof img === 'string' ? img : img.url;
+      if (url) {
+        items.push({
+          id: `ref-img-${idx}`,
+          itemType: 'ref_image',
+          fileType: 'image',
+          title: `Project Reference #${idx + 1}`,
+          url,
+          size: 0,
+          date: new Date(),
+          uploaderName: 'Project Brief',
+          uploaderId: null,
+        });
+      }
+    });
+  }
+
+  // Reference links (for project scope)
+  if (scope === 'project' && Array.isArray(referenceLinks)) {
+    referenceLinks.forEach((link, idx) => {
+      const url = typeof link === 'string' ? link : link.url;
+      const linkTitle = typeof link === 'string' ? link : link.title || link.url;
+      if (url) {
+        let domain = 'Link';
+        try {
+          domain = new URL(url).hostname.replace('www.', '');
+        } catch {}
+        items.push({
+          id: `ref-link-${idx}`,
+          itemType: 'link',
+          fileType: 'link',
+          title: linkTitle,
+          url,
+          domain,
+          size: 0,
+          date: new Date(),
+          uploaderName: 'Project Brief',
+          uploaderId: null,
+        });
+      }
+    });
+  }
+
+  // Sort by date latest first
+  items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  // Filter by search query
+  const filteredBySearch = items.filter((item) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      item.title?.toLowerCase().includes(q) ||
+      item.url?.toLowerCase().includes(q) ||
+      item.uploaderName?.toLowerCase().includes(q)
+    );
+  });
+
+  // Filter by tab
+  const filtered = filteredBySearch.filter((item) => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'video') return item.fileType === 'video';
+    if (activeTab === 'image') return item.fileType === 'image';
+    if (activeTab === 'audio') return item.fileType === 'audio';
+    if (activeTab === 'doc') return item.fileType === 'doc';
+    if (activeTab === 'link') return item.fileType === 'link';
+    return true;
+  });
+
+  const countVideos = items.filter((i) => i.fileType === 'video').length;
+  const countImages = items.filter((i) => i.fileType === 'image').length;
+  const countAudio = items.filter((i) => i.fileType === 'audio').length;
+  const countDocs = items.filter((i) => i.fileType === 'doc').length;
+  const countLinks = items.filter((i) => i.fileType === 'link').length;
 
   return (
-    <div className="flex flex-col h-full bg-[#090C16]">
-      <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0E1322] flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col h-full bg-[#080B14] min-w-0">
+      {/* Header */}
+      <div className="px-5 py-3.5 border-b border-white/[0.08] bg-[#0C101C]/90 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white transition-all cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div className="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-            <Grid3X3 className="w-3.5 h-3.5" />
+          <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+            <Film className="w-4 h-4" />
           </div>
-          <div>
-            <p className="text-sm font-bold text-white">Project Media & Space Files</p>
-            <p className="text-[11px] text-slate-400">{files.length} total files</p>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-white truncate">{title}</h2>
+            <p className="text-[11px] text-slate-400 truncate">
+              {subtitle || `${items.length} items sorted by latest date`}
+            </p>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-        >
-          <X className="w-4 h-4" />
-        </button>
+
+        {/* Search */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search media & links..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 pr-3 py-1.5 rounded-xl bg-[#141A28] text-xs text-white placeholder-slate-500 border border-white/[0.08] focus:outline-none focus:border-purple-500 w-48 sm:w-60"
+            />
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {files.length === 0 ? (
-          <div className="py-16 text-center text-xs text-slate-500">
-            No files uploaded to Space yet.
+      {/* Tabs */}
+      <div className="px-5 py-2.5 border-b border-white/[0.06] bg-[#0A0E1A] flex items-center gap-2 overflow-x-auto shrink-0">
+        {[
+          { id: 'all', label: `All (${items.length})` },
+          { id: 'video', label: `Videos (${countVideos})` },
+          { id: 'image', label: `Images (${countImages})` },
+          { id: 'link', label: `Links (${countLinks})` },
+          { id: 'audio', label: `Audio (${countAudio})` },
+          { id: 'doc', label: `Docs (${countDocs})` },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+              activeTab === tab.id
+                ? 'bg-purple-600 text-white shadow-sm shadow-purple-900/40'
+                : 'text-slate-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Grid Content */}
+      <div className="flex-1 overflow-y-auto p-5">
+        {filtered.length === 0 ? (
+          <div className="py-20 text-center flex flex-col items-center justify-center text-slate-500">
+            <Film className="w-10 h-10 text-slate-700 mb-3" />
+            <p className="text-sm font-semibold text-slate-400">No media or links found</p>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm">
+              {searchQuery
+                ? 'No items matched your search query.'
+                : 'Files dropped in Space or links shared in this project will appear here automatically.'}
+            </p>
           </div>
         ) : (
-          Object.entries(grouped).map(([type, group]) => (
-            <div key={type}>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-                {typeLabel[type] || type} ({group.length})
-              </p>
-              <div className="grid grid-cols-1 gap-2">
-                {group.map((file) => {
-                  const uploaderId = (file.uploadedBy?._id || file.uploadedBy)?.toString();
-                  const canDelete =
-                    isCreator || (currentUserId && uploaderId === currentUserId.toString());
-                  return (
-                    <FileRow
-                      key={file._id}
-                      file={file}
-                      canDelete={canDelete}
-                      onDelete={onDelete}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          ))
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((item) => {
+              const canDelete =
+                item.itemType === 'file' &&
+                (isCreator || (currentUserId && item.uploaderId === currentUserId.toString()));
+
+              if (item.fileType === 'link') {
+                return (
+                  <div
+                    key={item.id}
+                    className="p-4 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 flex flex-col justify-between gap-3 transition-all group hover:bg-[#11182B]"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                          {item.domain || 'External Link'}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {formatTime(item.date)}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-2">
+                        {item.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-1 truncate font-mono">
+                        {item.url}
+                      </p>
+                    </div>
+
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-white/[0.04] hover:bg-purple-600 hover:text-white text-slate-300 border border-white/[0.08] transition-all cursor-pointer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open Link
+                    </a>
+                  </div>
+                );
+              }
+
+              if (item.fileType === 'image') {
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 overflow-hidden flex flex-col justify-between transition-all group hover:bg-[#11182B]"
+                  >
+                    <div className="relative aspect-video bg-[#07090F] overflow-hidden flex items-center justify-center">
+                      <img
+                        src={item.url}
+                        alt={item.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-[10px] font-mono text-white">
+                        {formatFileSize(item.size)}
+                      </span>
+                    </div>
+
+                    <div className="p-3">
+                      <h4 className="text-xs font-bold text-white truncate group-hover:text-purple-300 transition-colors">
+                        {item.title}
+                      </h4>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        {item.uploaderName} · {formatTime(item.date)}
+                      </p>
+
+                      <div className="mt-2.5 pt-2 border-t border-white/[0.04] flex items-center justify-between gap-1.5">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-1 rounded-lg text-center text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-200 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" /> View
+                        </a>
+                        <a
+                          href={item.url}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                          title="Download"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </a>
+                        {canDelete && (
+                          <button
+                            onClick={() => onDeleteFile(item.id)}
+                            className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              if (item.fileType === 'video') {
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 overflow-hidden flex flex-col justify-between transition-all group hover:bg-[#11182B]"
+                  >
+                    <div className="relative aspect-video bg-gradient-to-tr from-purple-950/40 to-[#0A0D18] flex items-center justify-center border-b border-white/[0.04]">
+                      <div className="w-12 h-12 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300 group-hover:scale-110 transition-transform">
+                        <FileVideo className="w-6 h-6 text-rose-400" />
+                      </div>
+                      <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-[10px] font-mono text-white">
+                        {formatFileSize(item.size)}
+                      </span>
+                    </div>
+
+                    <div className="p-3">
+                      <h4 className="text-xs font-bold text-white truncate group-hover:text-purple-300 transition-colors">
+                        {item.title}
+                      </h4>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        {item.uploaderName} · {formatTime(item.date)}
+                      </p>
+
+                      <div className="mt-2.5 pt-2 border-t border-white/[0.04] flex items-center justify-between gap-1.5">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-1 rounded-lg text-center text-xs font-semibold bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Play className="w-3 h-3 text-purple-400" /> Watch / Stream
+                        </a>
+                        <a
+                          href={item.url}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                          title="Download"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </a>
+                        {canDelete && (
+                          <button
+                            onClick={() => onDeleteFile(item.id)}
+                            className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Audio & Docs
+              return (
+                <div
+                  key={item.id}
+                  className="p-4 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 flex flex-col justify-between gap-3 transition-all group hover:bg-[#11182B]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#182033] border border-white/5 flex items-center justify-center shrink-0">
+                      <FileIcon type={item.fileType} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs font-bold text-white truncate group-hover:text-purple-300 transition-colors">
+                        {item.title}
+                      </h4>
+                      <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                        {formatFileSize(item.size)} · {formatTime(item.date)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/[0.04]">
+                    <span className="text-[11px] text-slate-400 truncate">
+                      {item.uploaderName}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                        title="Download / View"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </a>
+                      {canDelete && (
+                        <button
+                          onClick={() => onDeleteFile(item.id)}
+                          className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
@@ -625,26 +1007,8 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
 
   // Views: null | 'group' | 'dm'
   const [activeView, setActiveView] = useState(null);
-  const [showAllMedia, setShowAllMedia] = useState(false);
-
-  // Deliveries, Revisions & Review state
-  const [deliveries, setDeliveries] = useState([]);
-  const [loadingDeliveries, setLoadingDeliveries] = useState(true);
-  const [showDeliverModal, setShowDeliverModal] = useState(false);
-  const [deliverUrl, setDeliverUrl] = useState('');
-  const [deliverTitle, setDeliverTitle] = useState('');
-  const [deliverNotes, setDeliverNotes] = useState('');
-  const [submittingDelivery, setSubmittingDelivery] = useState(false);
-
-  const [revisionDeliveryId, setRevisionDeliveryId] = useState(null);
-  const [revisionDesc, setRevisionDesc] = useState('');
-  const [submittingRevision, setSubmittingRevision] = useState(false);
-
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [showMediaScreen, setShowMediaScreen] = useState(false);
+  const [mediaScope, setMediaScope] = useState({ type: 'project' });
 
   const isCreator =
     (workspace.creatorId?._id || workspace.creatorId)?.toString() ===
@@ -659,18 +1023,6 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
       console.warn('[Workspace] Failed to fetch files:', err.message);
     } finally {
       setLoadingFiles(false);
-    }
-  }, [workspace._id]);
-
-  // Load deliveries
-  const fetchDeliveries = useCallback(async () => {
-    try {
-      const res = await api.get(`/api/workspace/${workspace._id}/deliveries`);
-      setDeliveries(res.data?.deliveries || []);
-    } catch (err) {
-      console.warn('[Workspace] Failed to fetch deliveries:', err.message);
-    } finally {
-      setLoadingDeliveries(false);
     }
   }, [workspace._id]);
 
@@ -690,87 +1042,8 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
 
   useEffect(() => {
     fetchFiles();
-    fetchDeliveries();
     fetchGroupConv();
-  }, [fetchFiles, fetchDeliveries, fetchGroupConv]);
-
-  const handleSubmitDelivery = async (e) => {
-    e.preventDefault();
-    if (!deliverUrl.trim()) {
-      showAlert('Please provide a video URL or link to the cut.', 'warning');
-      return;
-    }
-    setSubmittingDelivery(true);
-    try {
-      await api.post(`/api/workspace/${workspace._id}/deliver`, {
-        videoUrl: deliverUrl.trim(),
-        title: deliverTitle.trim() || undefined,
-        notes: deliverNotes.trim() || undefined,
-      });
-      showAlert('Final video cut submitted for creator review! ✓', 'success');
-      setShowDeliverModal(false);
-      setDeliverUrl('');
-      setDeliverTitle('');
-      setDeliverNotes('');
-      fetchDeliveries();
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Failed to submit delivery', 'error');
-    } finally {
-      setSubmittingDelivery(false);
-    }
-  };
-
-  const handleApproveDelivery = async (deliveryId) => {
-    try {
-      await api.post(`/api/workspace/${deliveryId}/approve`);
-      showAlert('Delivery approved! Project marked as completed and escrow cleared! 🎉', 'success');
-      fetchDeliveries();
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Failed to approve delivery', 'error');
-    }
-  };
-
-  const handleSubmitRevision = async (e) => {
-    e.preventDefault();
-    if (!revisionDesc.trim() || !revisionDeliveryId) {
-      showAlert('Please enter feedback / revision description.', 'warning');
-      return;
-    }
-    setSubmittingRevision(true);
-    try {
-      await api.post(`/api/workspace/${revisionDeliveryId}/revision`, {
-        description: revisionDesc.trim(),
-      });
-      showAlert('Revision requested! The editor has been notified.', 'info');
-      setRevisionDeliveryId(null);
-      setRevisionDesc('');
-      fetchDeliveries();
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Failed to request revision', 'error');
-    } finally {
-      setSubmittingRevision(false);
-    }
-  };
-
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    const projectId = workspace.projectId?._id || workspace.projectId;
-    if (!projectId) return;
-    setSubmittingReview(true);
-    try {
-      await api.post(`/api/projects/${projectId}/reviews`, {
-        rating: reviewRating,
-        comment: reviewComment.trim() || 'Great collaboration!',
-      });
-      showAlert('Review submitted successfully! Thank you!', 'success');
-      setShowReviewModal(false);
-      setReviewSubmitted(true);
-    } catch (err) {
-      showAlert(err.response?.data?.message || 'Failed to submit review', 'error');
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
+  }, [fetchFiles, fetchGroupConv]);
 
   // Handle uploading files directly to ImageKit via backend
   const handleUploadFiles = async (fileList) => {
@@ -843,6 +1116,33 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
   );
   const recentFiles = files.slice(0, 3);
 
+  // MEDIA & LINKS GRID VIEW (Evaluated first so clicking in Group/DM chat opens immediately!)
+  if (showMediaScreen) {
+    const isDm = mediaScope.type === 'dm';
+    const dmMember = mediaScope.member;
+    return (
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        <ProjectMediaAndLinksScreen
+          title={isDm ? `Media & Links — ${dmMember?.name}` : `${projectTitle} — Media & Links`}
+          subtitle={
+            isDm
+              ? `Shared files and media between you and ${dmMember?.name}`
+              : `All project files, uploads, and reference links sorted latest first`
+          }
+          files={files}
+          referenceLinks={workspace.projectId?.referenceLinks || []}
+          referenceImages={workspace.projectId?.referenceImages || []}
+          scope={isDm ? 'dm' : 'project'}
+          dmMember={dmMember}
+          currentUserId={currentUserId}
+          isCreator={isCreator}
+          onDeleteFile={handleDeleteFile}
+          onClose={() => setShowMediaScreen(false)}
+        />
+      </div>
+    );
+  }
+
   // CHAT VIEW — Group
   if (activeView === 'group') {
     return (
@@ -857,6 +1157,10 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
           onBack={() => {
             setActiveView(null);
             fetchGroupConv();
+          }}
+          onOpenMedia={() => {
+            setMediaScope({ type: 'project' });
+            setShowMediaScreen(true);
           }}
         />
       </div>
@@ -885,23 +1189,12 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
               setActiveDmMember(null);
               setActiveDmConvId(null);
             }}
+            onOpenMedia={() => {
+              setMediaScope({ type: 'dm', member: activeDmMember });
+              setShowMediaScreen(true);
+            }}
           />
         )}
-      </div>
-    );
-  }
-
-  // MEDIA GALLERY VIEW
-  if (showAllMedia) {
-    return (
-      <div className="flex-1 flex flex-col min-w-0 h-full">
-        <MediaGallery
-          files={files}
-          currentUserId={currentUserId}
-          isCreator={isCreator}
-          onDelete={handleDeleteFile}
-          onClose={() => setShowAllMedia(false)}
-        />
       </div>
     );
   }
@@ -910,33 +1203,47 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
   return (
     <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#09090E]">
       {/* Header */}
-      <header className="px-5 py-4 border-b border-white/[0.06] bg-[#0C101C]/90 backdrop-blur-md flex items-center gap-3 shrink-0 sticky top-0 z-20">
-        <button
-          onClick={onBack}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer lg:hidden"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
-          <FolderGit2 className="w-5 h-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-sm font-bold text-white truncate">{projectTitle}</h1>
-            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${badgeInfo.className}`}>
-              {badgeInfo.label}
-            </span>
+      <header className="px-5 py-4 border-b border-white/[0.06] bg-[#0C101C]/90 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 sticky top-0 z-20">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onBack}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer lg:hidden"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+            <FolderGit2 className="w-5 h-5" />
           </div>
-          <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
-            <span>{projectCategory}</span>
-            <span>·</span>
-            <span>Due {projectDeadline}</span>
-            <span>·</span>
-            <span className="text-purple-300">
-              {members.map((m) => m.name.split(' ')[0]).join(', ')}
-            </span>
-          </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-sm font-bold text-white truncate">{projectTitle}</h1>
+              <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${badgeInfo.className}`}>
+                {badgeInfo.label}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+              <span>{projectCategory}</span>
+              <span>·</span>
+              <span>Due {projectDeadline}</span>
+              <span>·</span>
+              <span className="text-purple-300">
+                {members.map((m) => m.name.split(' ')[0]).join(', ')}
+              </span>
+            </p>
+          </div>
         </div>
+
+        {/* Media & Links Action Button */}
+        <button
+          onClick={() => {
+            setMediaScope({ type: 'project' });
+            setShowMediaScreen(true);
+          }}
+          className="p-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all cursor-pointer shrink-0 shadow-sm"
+          title="Media & Links"
+        >
+          <Film className="w-4 h-4" />
+        </button>
       </header>
 
       <div className="p-5 space-y-7">
@@ -1038,11 +1345,14 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
 
               {files.length > 3 && (
                 <button
-                  onClick={() => setShowAllMedia(true)}
+                  onClick={() => {
+                    setMediaScope({ type: 'project' });
+                    setShowMediaScreen(true);
+                  }}
                   className="w-full py-2.5 text-xs font-semibold text-purple-400 hover:text-purple-300 border border-white/[0.06] hover:border-purple-500/30 rounded-xl bg-[#0E1322] hover:bg-[#11182A] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Grid3X3 className="w-3.5 h-3.5" />
-                  View all {files.length} files in Media Gallery
+                  View all {files.length} files in Media & Links Grid
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -1145,337 +1455,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
           </div>
         </section>
 
-        {/* ── SECTION 4: MULTI-STAGE ESCROW & PRODUCTION APPROVALS ── */}
-        <section className="space-y-4">
-          <MilestoneEscrowPipeline
-            workspaceId={workspace._id}
-            totalBudget={workspace.projectId?.budget || 10000}
-            isCreator={isCreator}
-            editorName={workspace.editorId?.name || 'Assigned Editor'}
-            editorId={workspace.editorId?._id || workspace.editorId}
-            projectId={workspace.projectId?._id || workspace.projectId}
-          />
-
-          <div className="flex items-center justify-between flex-wrap gap-2 pt-2">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Video className="w-4 h-4 text-emerald-400" />
-              Final Cut Deliverables & Approvals
-            </h3>
-            <div className="flex items-center gap-2">
-              {!isCreator && (
-                <button
-                  type="button"
-                  onClick={() => setShowDeliverModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm cursor-pointer"
-                >
-                  <Video className="w-3.5 h-3.5" />
-                  Deliver Final Cut
-                </button>
-              )}
-              {(workspace.status === 'completed' || deliveries.some((d) => d.status === 'approved')) && !reviewSubmitted && (
-                <button
-                  type="button"
-                  onClick={() => setShowReviewModal(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-black font-bold transition-all shadow-sm cursor-pointer"
-                >
-                  <Star className="w-3.5 h-3.5 fill-black" />
-                  Leave Review
-                </button>
-              )}
-            </div>
-          </div>
-
-          {loadingDeliveries ? (
-            <div className="p-4 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-purple-400" /> Loading deliverables...
-            </div>
-          ) : deliveries.length === 0 ? (
-            <div className="p-4 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] text-center text-xs text-slate-500">
-              No final cuts delivered yet. When the editor submits a cut, it will appear here for review and milestone approval.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {deliveries.map((delivery) => (
-                <div
-                  key={delivery._id}
-                  className="p-4 rounded-2xl bg-[#0E1322] border border-white/[0.06] space-y-3"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                          v{delivery.version || 1}
-                        </span>
-                        <h4 className="text-sm font-bold text-white truncate">{delivery.title || `Cut v${delivery.version}`}</h4>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        Delivered by <span className="text-slate-200 font-medium">{delivery.editorId?.name || 'Editor'}</span> · {formatTime(delivery.createdAt)}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span
-                        className={`px-2.5 py-1 text-xs font-semibold rounded-lg capitalize border ${
-                          delivery.status === 'approved'
-                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                            : delivery.status === 'revision_requested'
-                            ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-                            : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                        }`}
-                      >
-                        {delivery.status?.replace('_', ' ') || 'Pending Review'}
-                      </span>
-                      {delivery.videoUrl && (
-                        <a
-                          href={delivery.videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg bg-white/10 hover:bg-white/15 text-slate-200 transition-colors"
-                        >
-                          <Play className="w-3 h-3 text-emerald-400" /> Watch
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {delivery.notes && (
-                    <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] text-xs text-slate-300 leading-relaxed">
-                      {delivery.notes}
-                    </div>
-                  )}
-
-                  {/* Creator Action Buttons for Pending Review */}
-                  {isCreator && delivery.status === 'pending_review' && (
-                    <div className="pt-2 flex items-center justify-end gap-2 border-t border-white/[0.04]">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRevisionDeliveryId(delivery._id);
-                          setRevisionDesc('');
-                        }}
-                        className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 transition-all cursor-pointer"
-                      >
-                        Request Revision
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleApproveDelivery(delivery._id)}
-                        className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm cursor-pointer"
-                      >
-                        Approve & Clear Escrow
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
       </div>
-
-      {/* ── MODAL: SUBMIT FINAL DELIVERY (Editor) ── */}
-      {showDeliverModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md glass-card p-6 border border-white/[0.1] rounded-2xl bg-[#0B0E17]/95 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Video className="w-5 h-5 text-emerald-400" />
-                Deliver Final Cut
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowDeliverModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitDelivery} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  Video Link / Stream URL <span className="text-rose-400">*</span>
-                </label>
-                <input
-                  type="url"
-                  required
-                  placeholder="https://drive.google.com/... or Vimeo/Frame.io link"
-                  value={deliverUrl}
-                  onChange={(e) => setDeliverUrl(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-semibold mb-1">Cut Title (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Master Final Cut (Color Graded)"
-                  value={deliverTitle}
-                  onChange={(e) => setDeliverTitle(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-semibold mb-1">Delivery Notes / Changeground</label>
-                <textarea
-                  rows={3}
-                  placeholder="Added cinematic sound design and corrected color at 02:15 timestamp..."
-                  value={deliverNotes}
-                  onChange={(e) => setDeliverNotes(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500 resize-none"
-                />
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowDeliverModal(false)}
-                  className="px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-white/5"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingDelivery}
-                  className="px-4 py-1.5 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
-                >
-                  {submittingDelivery ? 'Submitting...' : 'Submit Cut'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL: REQUEST REVISION (Creator) ── */}
-      {revisionDeliveryId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md glass-card p-6 border border-white/[0.1] rounded-2xl bg-[#0B0E17]/95 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <RefreshCw className="w-5 h-5 text-rose-400" />
-                Request Revision
-              </h3>
-              <button
-                type="button"
-                onClick={() => setRevisionDeliveryId(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitRevision} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  Detailed Revision Notes <span className="text-rose-400">*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  placeholder="Please increase audio volume on dialogue around 01:20 and speed up transitions between clips."
-                  value={revisionDesc}
-                  onChange={(e) => setRevisionDesc(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-rose-500 resize-none"
-                />
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRevisionDeliveryId(null)}
-                  className="px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-white/5"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingRevision}
-                  className="px-4 py-1.5 rounded-xl font-bold bg-rose-600 hover:bg-rose-500 text-white disabled:opacity-50"
-                >
-                  {submittingRevision ? 'Sending...' : 'Send Revision Request'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL: SUBMIT REVIEW (Creator or Editor) ── */}
-      {showReviewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md glass-card p-6 border border-white/[0.1] rounded-2xl bg-[#0B0E17]/95 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-                Leave Collaboration Review
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowReviewModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitReview} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-slate-300 font-semibold mb-2">Rating</label>
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setReviewRating(star)}
-                      className="p-1 cursor-pointer transition-transform hover:scale-110"
-                    >
-                      <Star
-                        className={`w-6 h-6 ${
-                          star <= reviewRating
-                            ? 'text-amber-400 fill-amber-400'
-                            : 'text-slate-600'
-                        }`}
-                      />
-                    </button>
-                  ))}
-                  <span className="text-sm font-bold text-white ml-2">{reviewRating} / 5</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-semibold mb-1">Feedback & Recommendation</label>
-                <textarea
-                  rows={3}
-                  placeholder="Great communication, delivered ahead of schedule with top-notch video editing quality!"
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-amber-500 resize-none"
-                />
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowReviewModal(false)}
-                  className="px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-white/5"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingReview}
-                  className="px-4 py-1.5 rounded-xl font-bold bg-amber-500 hover:bg-amber-400 text-black disabled:opacity-50"
-                >
-                  {submittingReview ? 'Submitting...' : 'Post Review'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </main>
   );
 }
@@ -1487,6 +1467,7 @@ export const Workspace = () => {
   const { currentUser } = useAuth();
   const currentUserId = currentUser?._id;
 
+  const [searchParams] = useSearchParams();
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(null);
@@ -1499,6 +1480,18 @@ export const Workspace = () => {
       const list = res.data?.workspaces || [];
       setWorkspaces(list);
 
+      const paramProjectId = searchParams.get('projectId');
+      if (paramProjectId && list.length > 0) {
+        const found = list.find((w) => {
+          const pid = (w.projectId?._id || w.projectId)?.toString();
+          return pid === paramProjectId;
+        });
+        if (found) {
+          setSelectedWorkspaceId(found._id);
+          return;
+        }
+      }
+
       // If user had a selected workspace that is still valid, keep it;
       // otherwise, if user has workspaces and is on desktop, can preserve selection
       setSelectedWorkspaceId((prev) => {
@@ -1510,7 +1503,7 @@ export const Workspace = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     fetchWorkspaces();

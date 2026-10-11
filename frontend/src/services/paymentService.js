@@ -165,19 +165,21 @@ export const paymentService = {
   },
 
   // 7. Lock Milestone Funds in Escrow
-  lockEscrow: async ({ amount, workspaceId, projectId, milestoneTitle, pin }) => {
+  lockEscrow: async ({ amount, workspaceId, projectId, milestoneTitle, pin, roleBudget, milestoneAmount }) => {
     const res = await api.post('/api/wallet/escrow/lock', {
       amount: Number(amount),
       workspaceId,
       projectId,
       milestoneTitle,
       pin: String(pin || ''),
+      roleBudget: roleBudget ? Number(roleBudget) : undefined,
+      milestoneAmount: milestoneAmount ? Number(milestoneAmount) : undefined,
     });
     return res.data;
   },
 
   // 8. Release Milestone Funds from Escrow
-  releaseEscrow: async ({ amount, editorId, workspaceId, projectId, milestoneTitle, pin }) => {
+  releaseEscrow: async ({ amount, editorId, workspaceId, projectId, milestoneTitle, pin, roleBudget, milestoneAmount }) => {
     const res = await api.post('/api/wallet/escrow/release', {
       amount: Number(amount),
       editorId,
@@ -185,6 +187,8 @@ export const paymentService = {
       projectId,
       milestoneTitle,
       pin: String(pin || ''),
+      roleBudget: roleBudget ? Number(roleBudget) : undefined,
+      milestoneAmount: milestoneAmount ? Number(milestoneAmount) : undefined,
     });
     return res.data;
   },

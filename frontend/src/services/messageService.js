@@ -13,21 +13,25 @@ export const messageService = {
             ? participants.find((p) => String(p._id || p.id || p) !== String(currentUserId)) || participants[0]
             : participants[0];
 
-          const projectTitle = c.projectId?.title || c.title || 'Direct Chat';
+          const projectTitle = c.projectId?.title || (c.type === 'project' ? 'Project Workspace' : null);
 
           return {
             id: c._id || 'unknown',
             sender: otherParticipant?.name || 'Collaborator',
+            senderRole: otherParticipant?.role || (c.type === 'project' ? 'Project Chat' : 'Member'),
+            senderUsername: otherParticipant?.username || '',
             senderId: otherParticipant?._id || otherParticipant?.id,
             avatar: otherParticipant?.profileImage || DEFAULT_PFP,
             lastMessage: c.lastMessage?.text || c.lastMessage?.content || 'No messages yet',
             timestamp: c.updatedAt
               ? new Date(c.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               : 'Recent',
-            unread: c.unreadCount ? c.unreadCount > 0 : false,
+            unread: c.isUnread || (c.unreadCount ? c.unreadCount > 0 : false),
             online: false,
             project: projectTitle,
+            projectId: c.projectId?._id || c.projectId?.id || null,
             type: c.type || 'private',
+            participants,
           };
         });
       }

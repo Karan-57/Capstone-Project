@@ -1,6 +1,7 @@
 const conversationModel = require('../model/conversation.model');
 const userModel = require('../model/user.model');
 const workspaceModel = require('../model/workspace.model');
+const projectModel = require('../model/project.model');
 const mongoose = require('mongoose');
 const { getOrCreateProjectConversation, verifyConversationAccess } = require('../services/chat.service');
 
@@ -128,27 +129,56 @@ async function getMyConversationsController(req, res) {
       .populate('lastMessage.sender', 'name username profileImage')
       .sort({ updatedAt: -1 });
 
-    // Compute unread status for current user
-    const formatted = conversations.map((conv) => {
-      const convObj = conv.toObject();
-      const readEntry = conv.readBy?.find(
-        (r) => r.user?.toString() === currentUserId.toString()
-      );
-      const lastReadAt = readEntry ? new Date(readEntry.readAt).getTime() : 0;
-      const lastMessageTime = conv.lastMessage?.createdAt
-        ? new Date(conv.lastMessage.createdAt).getTime()
-        : 0;
+    // Compute unread status and resolve latest shared project for each conversation
+    const formatted = await Promise.all(
+      conversations.map(async (conv) => {
+        const convObj = conv.toObject();
+        const readEntry = conv.readBy?.find(
+          (r) => r.user?.toString() === currentUserId.toString()
+        );
+        const lastReadAt = readEntry ? new Date(readEntry.readAt).getTime() : 0;
+        const lastMessageTime = conv.lastMessage?.createdAt
+          ? new Date(conv.lastMessage.createdAt).getTime()
+          : 0;
 
-      // Has unread if there's a last message sent by someone else and after lastReadAt
-      const isUnread =
-        lastMessageTime > lastReadAt &&
-        conv.lastMessage?.sender?._id?.toString() !== currentUserId.toString();
+        // Has unread if there's a last message sent by someone else and after lastReadAt
+        const isUnread =
+          lastMessageTime > lastReadAt &&
+          conv.lastMessage?.sender?._id?.toString() !== currentUserId.toString();
 
-      return {
-        ...convObj,
-        isUnread,
-      };
-    });
+        let resolvedProject = convObj.projectId;
+
+        // If private chat doesn't have an explicit projectId linked, find their latest shared project
+        if (!resolvedProject && convObj.participants?.length === 2) {
+          const otherUserId = convObj.participants.find(
+            (p) => p._id.toString() !== currentUserId.toString()
+          )?._id;
+
+          if (otherUserId) {
+            // Find latest project where creator and editor worked together
+            const sharedProject = await projectModel
+              .findOne({
+                $or: [
+                  { creatorId: currentUserId, selectedEditorId: otherUserId },
+                  { creatorId: otherUserId, selectedEditorId: currentUserId },
+                ],
+              })
+              .select('title category status budget deadline')
+              .sort({ updatedAt: -1 });
+
+            if (sharedProject) {
+              resolvedProject = sharedProject.toObject();
+            }
+          }
+        }
+
+        return {
+          ...convObj,
+          projectId: resolvedProject,
+          isUnread,
+        };
+      })
+    );
 
     return res.status(200).json({
       count: formatted.length,

@@ -22,15 +22,21 @@ aiRouter.post(
   aiController.suggestTopProposalsController
 );
 
-/**
- * @route POST /api/ai/suggest-editor-bid/:projectId?
- * @description Generate strategic bid amount, turnaround time, and tailored proposal note for an editor
- * @access Private (Editor)
- */
 aiRouter.post(
   ['/suggest-editor-bid', '/suggest-editor-bid/:projectId'],
   authUser,
   aiController.suggestEditorBidController
+);
+
+/**
+ * @route POST /api/ai/suggest-role-deadline
+ * @description Generate AI-suggested deadline, milestone title, skills and tools for a specific hiring role
+ * @access Private
+ */
+aiRouter.post(
+  '/suggest-role-deadline',
+  authUser,
+  aiController.suggestRoleDeadlineController
 );
 
 module.exports = aiRouter;

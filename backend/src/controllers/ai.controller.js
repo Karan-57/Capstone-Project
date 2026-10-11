@@ -248,8 +248,68 @@ async function suggestEditorBidController(req, res) {
   }
 }
 
+/**
+ * @name suggestRoleDeadlineController
+ * @route POST /api/ai/suggest-role-deadline
+ * @description Provides AI estimation for role turnaround deadline, skills, and tools
+ * @access Private (Authenticated User)
+ */
+async function suggestRoleDeadlineController(req, res) {
+  try {
+    const {
+      roleTitle,
+      roleCategory,
+      projectTitle,
+      projectBudget,
+      category,
+      editingStyle,
+      videoDuration,
+      expectedVideoDuration,
+      duration,
+      roleBudget,
+      skills = [],
+      tools = [],
+      currency = 'INR'
+    } = req.body;
+
+    if (!roleTitle) {
+      return res.status(400).json({
+        message: 'Please provide at least a roleTitle'
+      });
+    }
+
+    const suggestion = await aiService.suggestRoleDeadlineAndDetails({
+      roleTitle: String(roleTitle).trim(),
+      roleCategory: roleCategory ? String(roleCategory).trim() : '',
+      projectTitle: projectTitle ? String(projectTitle).trim() : '',
+      projectBudget: Number(projectBudget) || 0,
+      category: category ? String(category).trim() : '',
+      editingStyle: editingStyle ? String(editingStyle).trim() : '',
+      videoDuration: videoDuration ? String(videoDuration).trim() : '',
+      expectedVideoDuration: expectedVideoDuration ? String(expectedVideoDuration).trim() : '',
+      duration: duration ? String(duration).trim() : '',
+      roleBudget: Number(roleBudget) || 0,
+      skills: Array.isArray(skills) ? skills : [],
+      tools: Array.isArray(tools) ? tools : [],
+      currency: String(currency || 'INR')
+    });
+
+    return res.status(200).json({
+      message: 'AI role budget and deadline suggested successfully',
+      data: suggestion
+    });
+  } catch (err) {
+    console.error('Error in suggestRoleDeadlineController:', err);
+    return res.status(500).json({
+      message: 'Failed to generate AI role deadline suggestion',
+      error: err.message
+    });
+  }
+}
+
 module.exports = {
   suggestBudgetAndTimelineController,
   suggestTopProposalsController,
-  suggestEditorBidController
+  suggestEditorBidController,
+  suggestRoleDeadlineController
 };

@@ -123,7 +123,17 @@ async function getMyWorkspacesController(req, res) {
         if (userRole === 'creator') {
             const myProjects = await projectModel.find({ creatorId: userObjectId });
             for (const p of myProjects) {
-                const existingWs = await workspaceModel.findOne({ projectId: p._id });
+                // If project does not have selectedEditorId, check if an application was accepted
+                if (!p.selectedEditorId) {
+                    const acceptedApp = await applicationModel.findOne({ projectId: p._id, status: 'accepted' });
+                    if (acceptedApp) {
+                        p.selectedEditorId = acceptedApp.editorId;
+                        p.status = 'assigned';
+                        await p.save().catch(() => {});
+                    }
+                }
+
+                let existingWs = await workspaceModel.findOne({ projectId: p._id });
                 if (!existingWs) {
                     const wsMembers = [
                         { user: userObjectId, projectRole: 'creator', status: 'active' }
@@ -138,6 +148,25 @@ async function getMyWorkspacesController(req, res) {
                         status: p.status === 'completed' ? 'completed' : 'active',
                         members: wsMembers
                     }).catch(() => {});
+                } else if (p.selectedEditorId) {
+                    // Sync editorId and members in existing workspace
+                    let needsSave = false;
+                    const editorStr = p.selectedEditorId.toString();
+                    if (!existingWs.editorId || existingWs.editorId.toString() !== editorStr) {
+                        existingWs.editorId = p.selectedEditorId;
+                        needsSave = true;
+                    }
+                    if (!Array.isArray(existingWs.members)) existingWs.members = [];
+                    const hasEditor = existingWs.members.some(
+                        (m) => (m.user?._id || m.user || m).toString() === editorStr
+                    );
+                    if (!hasEditor) {
+                        existingWs.members.push({ user: p.selectedEditorId, projectRole: 'lead_editor', status: 'active' });
+                        needsSave = true;
+                    }
+                    if (needsSave) {
+                        await existingWs.save().catch(() => {});
+                    }
                 }
             }
         } else if (userRole === 'editor') {
@@ -170,7 +199,11 @@ async function getMyWorkspacesController(req, res) {
                 { 'members.user': userObjectId }
             ]
         })
-        .populate('projectId', 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks')
+        .populate({
+            path: 'projectId',
+            select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId',
+            populate: { path: 'selectedEditorId', select: 'name username email profileImage rating role' }
+        })
         .populate('creatorId', 'name username email profileImage rating role')
         .populate('editorId', 'name username email profileImage rating role')
         .populate('members.user', 'name username email profileImage rating role')
@@ -227,7 +260,11 @@ async function getWorkspaceByIdController(req, res) {
         }
 
         const workspace = await workspaceModel.findById(workspaceId)
-            .populate('projectId', 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks')
+            .populate({
+                path: 'projectId',
+                select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId',
+                populate: { path: 'selectedEditorId', select: 'name username email profileImage rating role' }
+            })
             .populate('creatorId', 'name username email profileImage rating role')
             .populate('editorId', 'name username email profileImage rating role')
             .populate('members.user', 'name username email profileImage rating role');

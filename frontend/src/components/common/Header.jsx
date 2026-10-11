@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, Plus, Film, Menu, Coins } from 'lucide-react';
+import { Search, Bell, Plus, Menu, Coins, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWallet } from '../../context/WalletContext';
 import { useNavigate } from 'react-router-dom';
 import { notificationService } from '../../services/notificationService';
+import { messageService } from '../../services/messageService';
 import { DEFAULT_PFP } from '../../constants/assets';
 import WalletTopUpModal from '../wallet/WalletTopUpModal';
 
 export const Header = ({ onSearchChange, onMenuClick }) => {
-  const { role, currentUser } = useAuth();
+  const { role, currentUser, isAuthenticated, isAuthLoading } = useAuth();
   const { walletBalance } = useWallet();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
 
   useEffect(() => {
+    if (!isAuthenticated || isAuthLoading) return;
+
     let isMounted = true;
     notificationService.getNotifications().then((res) => {
       if (isMounted && res) {
@@ -23,18 +27,23 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
     }).catch(() => {
       if (isMounted) setUnreadCount(0);
     });
+
+    const currentUserId = currentUser?._id || currentUser?.id;
+    if (currentUserId) {
+      messageService.getMessages(currentUserId).then((convs) => {
+        if (isMounted && Array.isArray(convs)) {
+          const unread = convs.filter((c) => c.unread).length;
+          setUnreadMessagesCount(unread);
+        }
+      }).catch(() => {
+        if (isMounted) setUnreadMessagesCount(0);
+      });
+    }
+
     return () => {
       isMounted = false;
     };
-  }, []);
-
-  const handleCtaClick = () => {
-    if (role === 'creator') {
-      navigate('/creator/projects');
-    } else {
-      navigate('/editor/browse');
-    }
-  };
+  }, [isAuthenticated, isAuthLoading, currentUser?._id, currentUser?.id]);
 
   return (
     <header className="flex flex-row items-center justify-between gap-4 py-4 md:py-6 px-4 md:px-8 bg-[#07090E] border-b border-white/[0.06] shrink-0">
@@ -62,26 +71,19 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
           />
         </div>
 
-        {/* Primary CTA Button */}
-        {role === 'creator' ? (
+        {/* Primary CTA Button (Creators only: Create New Project) */}
+        {role === 'creator' && (
           <button
             onClick={() => navigate('/creator/create-project')}
-            className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/40 hover:shadow-purple-700/60 border border-purple-400/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            title="Create New Project"
+            aria-label="Create New Project"
+            className="group relative inline-flex items-center justify-center p-2.5 rounded-xl text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/40 hover:shadow-purple-700/60 border border-purple-400/40 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
           >
             {/* Shimmer light bar effect */}
             <span className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
               <span className="absolute -left-[100%] top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:left-[200%] transition-all duration-1000" />
             </span>
             <Plus className="w-4 h-4 stroke-[2.5] group-hover:rotate-90 transition-transform duration-300" />
-            <span className="tracking-wide">Create New Project</span>
-          </button>
-        ) : (
-          <button
-            onClick={handleCtaClick}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md shadow-purple-900/30 active:scale-[0.98]"
-          >
-            <Film className="w-4 h-4 stroke-[2.5]" />
-            <span>Find New Gigs</span>
           </button>
         )}
 
@@ -105,6 +107,20 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
             </button>
           )}
         </div>
+
+        {/* Messages Icon */}
+        <button
+          onClick={() => navigate(role === 'creator' ? '/creator/messages' : '/editor/messages')}
+          className="relative p-2.5 rounded-xl bg-[#0F1420] text-slate-300 hover:text-white border border-white/[0.08] hover:border-purple-500/30 transition-colors"
+          title="Direct Messages"
+        >
+          <MessageSquare className="w-4 h-4" />
+          {unreadMessagesCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white shadow">
+              {unreadMessagesCount}
+            </span>
+          )}
+        </button>
 
         {/* Notification Bell */}
         <button

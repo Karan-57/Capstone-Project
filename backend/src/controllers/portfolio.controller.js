@@ -15,8 +15,8 @@ async function getMyPortfolioController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors have a portfolio" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only editors and freelancers have a portfolio" });
         }
 
         const portfolio = await portfolioModel
@@ -51,8 +51,8 @@ async function createPortfolioController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can create a portfolio" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only editors and freelancers can create a portfolio" });
         }
 
         // Check if portfolio already exists for this editor
@@ -129,8 +129,8 @@ async function updatePortfolioController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can update their portfolio" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only editors and freelancers can update their portfolio" });
         }
 
         const portfolio = await portfolioModel.findOne({ editor: editorId });
@@ -146,6 +146,7 @@ async function updatePortfolioController(req, res) {
             'experience',
             'experienceUnit',
             'specialization',
+            'subRoles',
             'portfolioItems',
             'socialLinks',
             'hourlyRate',
@@ -197,8 +198,8 @@ async function deletePortfolioController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can delete their portfolio" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only editors and freelancers can delete their portfolio" });
         }
 
         const portfolio = await portfolioModel.findOneAndDelete({ editor: editorId });

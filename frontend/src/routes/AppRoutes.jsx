@@ -43,6 +43,7 @@ const CreateProject = lazy(() => import('../pages/creator/CreateProject'));
 const CreatorApplications = lazy(() => import('../pages/creator/Applications'));
 const CreatorAnalytics = lazy(() => import('../pages/creator/Analytics'));
 const CreatorPayments = lazy(() => import('../pages/creator/Payments'));
+const CreatorHistory = lazy(() => import('../pages/creator/History'));
 const CreatorNotifications = lazy(() => import('../pages/creator/Notifications'));
 const CreatorProfile = lazy(() => import('../pages/creator/Profile'));
 const CreatorEditProfile = lazy(() => import('../pages/creator/EditProfile'));
@@ -106,6 +107,7 @@ export const AppRoutes = () => {
             <Route path="messages" element={<CreatorMessages />} />
             <Route path="analytics" element={<CreatorAnalytics />} />
             <Route path="payments" element={<CreatorPayments />} />
+            <Route path="history" element={<CreatorHistory />} />
             <Route path="notifications" element={<CreatorNotifications />} />
             <Route path="profile" element={<CreatorProfile />} />
             <Route path="edit-profile" element={<CreatorEditProfile />} />

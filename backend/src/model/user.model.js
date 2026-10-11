@@ -71,9 +71,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "User role is required"],
       enum: {
-        values: ["creator", "editor"],
-        message: "Role must be either creator or editor",
+        values: ["creator", "editor", "freelancer"],
+        message: "Role must be creator, editor, or freelancer",
       },
+    },
+
+    // Sub-roles chosen by freelancers/editors from content-creator catalog
+    subRoles: {
+      type: [String],
+      default: [],
     },
 
     // Profile Information

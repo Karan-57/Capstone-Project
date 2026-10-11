@@ -19,7 +19,7 @@ import api from '../../services/api';
 
 export const EditorProfile = () => {
   const navigate = useNavigate();
-  const { editorUser } = useAuth();
+  const { editorUser, isAuthenticated, isAuthLoading } = useAuth();
 
   const [activeTab, setActiveTab] = useState('portfolio');
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -32,6 +32,8 @@ export const EditorProfile = () => {
   const [isLoadingPortfolio, setIsLoadingPortfolio] = useState(true);
 
   React.useEffect(() => {
+    if (!isAuthenticated || isAuthLoading) return;
+
     const userId = editorUser?._id || editorUser?.id;
     if (userId) {
       api.get(`/api/users/${userId}/get-review`).then((res) => {
@@ -102,7 +104,7 @@ export const EditorProfile = () => {
       setTotalEarned(earned);
       setProductionsDone(completedCount);
     }).catch(() => {});
-  }, [editorUser?._id, editorUser?.id]);
+  }, [isAuthenticated, isAuthLoading, editorUser?._id, editorUser?.id]);
 
   const [newCutTitle, setNewCutTitle] = useState('');
   const [newCutCategory, setNewCutCategory] = useState('YouTube Longform');
@@ -176,8 +178,20 @@ export const EditorProfile = () => {
                 <CheckCircle2 className="w-4 h-4 text-purple-400 fill-purple-400/20" />
               </div>
               <p className="text-xs text-slate-300 mt-1">
-                {editorUser.title || 'Video Editor'}
+                {editorUser.title || (editorUser.role === 'freelancer' ? 'Freelancer Specialist' : 'Video Editor')}
               </p>
+              {Array.isArray(editorUser.subRoles) && editorUser.subRoles.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2 justify-center sm:justify-start">
+                  {editorUser.subRoles.map((subRole, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 tracking-wide"
+                    >
+                      {subRole}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

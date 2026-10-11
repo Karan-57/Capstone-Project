@@ -9,14 +9,10 @@ export const EarningsOverview = ({ earnings }) => {
   const { showAlert } = useAlert();
 
   const data = earnings || {
-    availableBalance: '₹64,200',
-    pendingEscrow: '₹22,000',
-    lifetimeEarned: '₹3,48,000',
-    recentPayouts: [
-      { id: 'pay-1', project: 'SaaS Walkthrough Video', client: 'CloudFlow Labs', amount: '₹28,000', date: 'Yesterday' },
-      { id: 'pay-2', project: 'Cinematic Travel Trailer', client: 'Nomad Stories', amount: '₹18,500', date: 'Aug 24, 2026' },
-      { id: 'pay-3', project: 'YouTube Tech Review', client: 'Dave Lee Studio', amount: '₹14,000', date: 'Aug 18, 2026' }
-    ]
+    availableBalance: '₹0',
+    pendingEscrow: '₹0',
+    lifetimeEarned: '₹0',
+    recentPayouts: []
   };
 
   return (
@@ -79,27 +75,34 @@ export const EarningsOverview = ({ earnings }) => {
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">
             Recent Released Payments
           </span>
-          {data.recentPayouts.map((payout) => (
-            <div
-              key={payout.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.03] gap-1"
-            >
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-white truncate">
-                  {payout.project}
-                </p>
-                <p className="text-[11px] text-slate-400">
-                  {payout.client} • {payout.date}
-                </p>
-              </div>
-              <div className="text-left sm:text-right shrink-0">
-                <span className="text-xs font-bold text-emerald-400">
-                  +{payout.amount}
-                </span>
-                <span className="inline sm:block text-[10px] text-slate-400 ml-1.5 sm:ml-0">Cleared</span>
-              </div>
+          {(!data.recentPayouts || data.recentPayouts.length === 0) ? (
+            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.03] text-center">
+              <p className="text-xs text-slate-400">No released payouts yet.</p>
+              <span className="text-[10px] text-slate-500">Payments from completed creator contracts will appear here.</span>
             </div>
-          ))}
+          ) : (
+            data.recentPayouts.map((payout) => (
+              <div
+                key={payout.id}
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.03] gap-1"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-white truncate">
+                    {payout.project}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    {payout.client} • {payout.date}
+                  </p>
+                </div>
+                <div className="text-left sm:text-right shrink-0">
+                  <span className="text-xs font-bold text-emerald-400">
+                    +{payout.amount}
+                  </span>
+                  <span className="inline sm:block text-[10px] text-slate-400 ml-1.5 sm:ml-0">Cleared</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

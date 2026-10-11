@@ -303,16 +303,191 @@ Suggest competitive bid amount, turnaround days, and tailored proposal note.`;
   }
 }
 
+const suggestRoleDeadlineSchema = z.object({
+  suggestedBudget: z.number().describe('Recommended fair market budget for this role'),
+  suggestedDeadlineDays: z.number().int().min(1).describe('Recommended delivery days from today for first cut or milestone'),
+  suggestedFirstDeadline: z.string().describe('Calculated ISO Date string for deadline'),
+  suggestedMilestoneTitle: z.string().describe('Milestone title e.g. First Cut Draft or Initial Concepts'),
+  suggestedSkills: z.array(z.string()).optional().describe('Recommended skills for this role'),
+  suggestedTools: z.array(z.string()).optional().describe('Recommended tools for this role'),
+  budgetRationale: z.string().optional().describe('Brief explanation of why this budget is recommended'),
+  timelineRationale: z.string().describe('Brief explanation of why this deadline is realistic'),
+});
+
+/**
+ * 4. Suggest Role Budget, Deadline & Skills for Project Hiring
+ */
+async function suggestRoleDeadlineAndDetails({
+  roleTitle,
+  roleCategory = '',
+  projectTitle = '',
+  projectBudget = 0,
+  category = '',
+  editingStyle = '',
+  videoDuration = '',
+  expectedVideoDuration = '',
+  duration = '',
+  skills = [],
+  tools = [],
+  currency = 'INR'
+}) {
+  const safeRole = sanitizePromptInput(roleTitle, 60) || 'Creative Role';
+  const safeProject = sanitizePromptInput(projectTitle, 80) || 'Video Project';
+  const numProjectBudget = Number(projectBudget) || 0;
+  const safeCat = sanitizePromptInput(category, 40) || 'Video Editing';
+  const safeStyle = sanitizePromptInput(editingStyle, 40) || 'Standard';
+  const safeDuration = sanitizePromptInput(expectedVideoDuration || videoDuration || duration, 40) || 'Standard';
+  const safeCurrency = currency && String(currency).toUpperCase() === 'USD' ? 'USD' : 'INR';
+  const skillsList = Array.isArray(skills) ? skills.join(', ') : '';
+  const toolsList = Array.isArray(tools) ? tools.join(', ') : '';
+
+  const systemPrompt = `Expert production scheduler and budget estimator for creator economy and freelancer production roles. Return valid JSON only:
+{"suggestedBudget":number,"suggestedDeadlineDays":number,"suggestedFirstDeadline":string,"suggestedMilestoneTitle":string,"budgetRationale":string,"timelineRationale":string,"suggestedSkills":string[],"suggestedTools":string[]}
+CRITICAL BUDGET CONSTRAINT:
+${numProjectBudget > 0 ? `- The TOTAL project budget set by the creator is ${safeCurrency} ${numProjectBudget}.
+- The suggestedBudget for this individual role MUST NEVER exceed the total project budget (${safeCurrency} ${numProjectBudget}).
+- If this is a primary video editing role, allocate an appropriate realistic portion of the total budget (typically 60% to 85% of total project budget, up to a maximum of ${numProjectBudget}).
+- For auxiliary roles (thumbnail, script, voiceover, sound, color), allocate a proportional slice (typically 15% to 40% of the total budget).` : `- suggestedBudget must be a realistic market rate in ${safeCurrency}.`}
+suggestedDeadlineDays must be an integer between 1 and 14. Keep budgetRationale under 30 words and timelineRationale under 30 words.`;
+
+  const userPrompt = `Project: "${safeProject}"
+Total Project Budget: ${numProjectBudget > 0 ? `${safeCurrency} ${numProjectBudget}` : 'Flexible'}
+Category: ${safeCat}
+Editing Style: ${safeStyle}
+Expected Video Length: ${safeDuration}
+Role to hire: "${safeRole}"
+Required Skills: ${skillsList || 'Standard'}
+Required Tools: ${toolsList || 'Standard'}
+Currency: ${safeCurrency}
+Estimate realistic hiring budget (strictly capped within total project budget of ${numProjectBudget > 0 ? numProjectBudget : 'market rate'}) and first milestone turnaround deadline for this role.`;
+
+  try {
+    const groq = getGroqClient();
+    const completion = await groq.chat.completions.create({
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      response_format: { type: 'json_object' },
+      max_tokens: 500,
+      temperature: 0.2,
+      top_p: 0.9,
+    });
+
+    const rawResponse = completion.choices?.[0]?.message?.content;
+    const parsedJson = extractAndParseJson(rawResponse);
+    const validated = suggestRoleDeadlineSchema.parse(parsedJson);
+
+    // Hard safeguard: Ensure suggested budget never exceeds total project budget if specified
+    if (numProjectBudget > 0 && validated.suggestedBudget > numProjectBudget) {
+      validated.suggestedBudget = Math.round(numProjectBudget * 0.8);
+      validated.budgetRationale = `Adjusted to fit within creator's total project budget of ${safeCurrency} ${numProjectBudget}.`;
+    }
+
+    return validated;
+  } catch (err) {
+    // Graceful fallback algorithm if AI rate limit or key unavailable
+    const lowerRole = safeRole.toLowerCase();
+    let days = 3;
+    let baseBudgetInr = 6000;
+    let milestone = 'First Cut / Draft Delivery';
+    let suggestedSkills = ['Storytelling', 'Attention to Detail', 'Pacing'];
+    let suggestedTools = ['Adobe Creative Suite'];
+
+    if (lowerRole.includes('thumbnail')) {
+      days = 1;
+      baseBudgetInr = 2000;
+      milestone = 'Initial Concept Drafts & Packaging';
+      suggestedSkills = ['High-CTR Packaging', 'Color Theory', 'Photo Manipulation'];
+      suggestedTools = ['Photoshop', 'Figma'];
+    } else if (lowerRole.includes('short') || lowerRole.includes('reel') || lowerRole.includes('tiktok')) {
+      days = 2;
+      baseBudgetInr = 3500;
+      milestone = 'Vertical Cut & Caption Hooks';
+      suggestedSkills = ['Viral Pacing', 'Animated Captions', 'Hook Creation'];
+      suggestedTools = ['Premiere Pro', 'CapCut Pro'];
+    } else if (lowerRole.includes('script') || lowerRole.includes('writer')) {
+      days = 3;
+      baseBudgetInr = 5000;
+      milestone = 'Script Outline & Full Draft';
+      suggestedSkills = ['Retention Writing', 'Content Research', 'Story Arc'];
+      suggestedTools = ['Google Docs', 'Notion'];
+    } else if (lowerRole.includes('motion') || lowerRole.includes('vfx') || lowerRole.includes('3d')) {
+      days = 5;
+      baseBudgetInr = 12000;
+      milestone = 'Animatic / Motion Rough Pass';
+      suggestedSkills = ['Kinetic Typography', '3D Modeling', 'Rotoscoping'];
+      suggestedTools = ['After Effects', 'Blender'];
+    } else if (lowerRole.includes('color') || lowerRole.includes('grade')) {
+      days = 2;
+      baseBudgetInr = 5000;
+      milestone = 'First Color Grade & Look Matching';
+      suggestedSkills = ['Shot Matching', 'LUT Application', 'Color Balancing'];
+      suggestedTools = ['DaVinci Resolve'];
+    } else if (lowerRole.includes('sound') || lowerRole.includes('audio')) {
+      days = 2;
+      baseBudgetInr = 4500;
+      milestone = 'Dialogue Cleanup & SFX Mix';
+      suggestedSkills = ['Dialogue Restoration', 'SFX Timing', 'Mastering'];
+      suggestedTools = ['Adobe Audition', 'FL Studio'];
+    } else {
+      // Longform or general editor
+      if (safeDuration.includes('15') || safeDuration.includes('25') || safeDuration.includes('30+')) {
+        baseBudgetInr = 12000;
+        days = 5;
+      } else if (safeDuration.includes('8') || safeDuration.includes('12')) {
+        baseBudgetInr = 8500;
+        days = 4;
+      } else {
+        baseBudgetInr = 6000;
+        days = 3;
+      }
+    }
+
+    let calculatedBudget = safeCurrency === 'USD' ? Math.round(baseBudgetInr / 80) : baseBudgetInr;
+    
+    // Safeguard fallback: if total project budget is provided, cap to proportional amount
+    if (numProjectBudget > 0) {
+      if (lowerRole.includes('thumbnail')) {
+        calculatedBudget = Math.min(calculatedBudget, Math.max(500, Math.round(numProjectBudget * 0.25)));
+      } else if (lowerRole.includes('script') || lowerRole.includes('writer') || lowerRole.includes('sound') || lowerRole.includes('color')) {
+        calculatedBudget = Math.min(calculatedBudget, Math.max(1000, Math.round(numProjectBudget * 0.35)));
+      } else {
+        // Main video editing role: Allocate up to 75-80% of project budget, never exceeding total
+        calculatedBudget = Math.min(calculatedBudget, Math.max(1500, Math.round(numProjectBudget * 0.8)));
+      }
+    }
+
+    const calculatedDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+    return {
+      suggestedBudget: calculatedBudget,
+      suggestedDeadlineDays: days,
+      suggestedFirstDeadline: calculatedDate,
+      suggestedMilestoneTitle: milestone,
+      suggestedSkills,
+      suggestedTools,
+      budgetRationale: numProjectBudget > 0
+        ? `Allocated proportionally within project budget of ${safeCurrency} ${numProjectBudget}.`
+        : `Benchmark market rate for ${safeRole} on ${safeCat} with ${safeStyle} style.`,
+      timelineRationale: `Calculated turnaround of ${days} days for ${safeRole} on ${safeDuration} content.`,
+    };
+  }
+}
+
 module.exports = {
   // Service Methods
   suggestBudgetAndTimeline,
   suggestTopProposals,
   suggestEditorBid,
+  suggestRoleDeadlineAndDetails,
 
   // Zod Schemas
   suggestBudgetAndTimelineSchema,
   suggestTopProposalsSchema,
   suggestEditorBidSchema,
+  suggestRoleDeadlineSchema,
 
   // Configuration
   GROQ_MODEL,
