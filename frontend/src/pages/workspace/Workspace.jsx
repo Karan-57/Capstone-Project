@@ -34,6 +34,7 @@ import { useAlert } from '../../context/AlertContext';
 import { useSearchParams } from 'react-router-dom';
 import SEO from '../../components/common/SEO';
 import api from '../../services/api';
+import { MilestoneEscrowPipeline } from '../../components/workspace/MilestoneEscrowPipeline';
 
 /* ─────────────────────────────────────────────────────
    HELPERS & FORMATTERS
@@ -1115,6 +1116,9 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
     (m) => currentUserId && m._id.toString() !== currentUserId.toString()
   );
   const recentFiles = files.slice(0, 3);
+  const assignedEditor = workspace.editorId || workspace.projectId?.selectedEditorId;
+  const assignedEditorId = (assignedEditor?._id || assignedEditor)?.toString() || null;
+  const assignedEditorName = assignedEditor?.name || 'Assigned Editor';
 
   // MEDIA & LINKS GRID VIEW (Evaluated first so clicking in Group/DM chat opens immediately!)
   if (showMediaScreen) {
@@ -1247,6 +1251,27 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
       </header>
 
       <div className="p-5 space-y-7">
+        {/* ── SECTION 0: PAYMENT MILESTONES & ESCROW PIPELINE ── */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <h3 className="text-sm font-bold text-white tracking-wide">
+              Payment Milestones <span className="text-xs font-normal text-slate-400">— Escrow Funding & Releases</span>
+            </h3>
+          </div>
+          <MilestoneEscrowPipeline
+            workspaceId={workspace._id}
+            projectId={workspace.projectId?._id || workspace.projectId}
+            totalBudget={workspace.projectId?.totalBudget || workspace.projectId?.budget || 10000}
+            isCreator={isCreator}
+            editorName={assignedEditorName}
+            editorId={assignedEditorId}
+            roleTitle={workspace.projectId?.hirings?.[0]?.roleTitle || 'Video Editor'}
+            roleBudget={workspace.projectId?.hirings?.[0]?.budget || null}
+            initialMilestones={workspace.projectId?.hirings?.[0]?.milestones || null}
+          />
+        </section>
+
         {/* ── SECTION 1: SPACE (Drop Zone & Files) ── */}
         <section>
           <div className="flex items-center gap-2 mb-3">

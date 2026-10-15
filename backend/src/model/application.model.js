@@ -37,13 +37,25 @@ const applicationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: {},
     },
+    roleId: {
+      type: String,
+      default: 'video_editor',
+    },
+    roleTitle: {
+      type: String,
+      default: 'Video Editor',
+    },
+    hiringId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-applicationSchema.index({ projectId: 1, editorId: 1 }, { unique: true });
+applicationSchema.index({ projectId: 1, editorId: 1, roleId: 1 });
 applicationSchema.index({ editorId: 1 });
 
 const applicationModel = mongoose.model('application', applicationSchema);

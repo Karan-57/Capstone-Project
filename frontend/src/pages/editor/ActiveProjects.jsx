@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, FolderGit2 } from 'lucide-react';
+import { Clock, FolderGit2, CheckCircle2, Lock } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { SkeletonCard } from '../../components/common/Skeleton';
 import SEO from '../../components/common/SEO';
@@ -91,20 +91,63 @@ export const ActiveProjects = () => {
                 </div>
               </div>
 
-              {/* Progress Slider */}
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-300 mb-1.5 gap-1">
-                  <span className="flex items-center gap-1 text-slate-400">
-                    <Clock className="w-3.5 h-3.5 shrink-0" /> Due {proj.dueDate || 'unknown'}
+              {/* Milestone-Based Progress Slider & Step Breakdown */}
+              <div className="space-y-2 bg-white/[0.02] p-3.5 rounded-xl border border-white/[0.04]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-300 gap-1">
+                  <span className="flex items-center gap-1.5 text-slate-400">
+                    <Clock className="w-3.5 h-3.5 shrink-0 text-slate-400" /> Due {proj.dueDate || 'Ongoing'}
                   </span>
-                  <span className="font-semibold text-purple-400">{proj.progress != null ? proj.progress : 0}% Completed</span>
+                  <span className="font-semibold text-purple-400 font-mono">
+                    {proj.clearedMilestones != null && proj.totalMilestones
+                      ? `${proj.clearedMilestones}/${proj.totalMilestones} Milestones Cleared · ${proj.progress}% Completed`
+                      : `${proj.progress}% Completed`}
+                  </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-600 to-indigo-500 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-purple-600 via-indigo-500 to-emerald-400 rounded-full transition-all duration-500"
                     style={{ width: `${proj.progress || 0}%` }}
                   />
                 </div>
+
+                {/* Milestone Chips */}
+                {Array.isArray(proj.milestones) && proj.milestones.length > 0 && (
+                  <div className="flex items-center gap-2 pt-1.5 overflow-x-auto flex-wrap">
+                    {proj.milestones.map((m, idx) => {
+                      const isApproved = m.status === 'approved';
+                      const isSubmitted = m.status === 'submitted';
+                      const isFunded = m.status === 'funded';
+                      return (
+                        <div
+                          key={m.id || idx}
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium border transition-colors ${
+                            isApproved
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : isSubmitted
+                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                              : isFunded
+                              ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
+                              : 'bg-white/[0.03] text-slate-400 border-white/[0.06]'
+                          }`}
+                        >
+                          {isApproved ? (
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                          ) : isSubmitted ? (
+                            <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                          ) : isFunded ? (
+                            <Lock className="w-3 h-3 text-indigo-400 shrink-0" />
+                          ) : (
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600 shrink-0" />
+                          )}
+                          <span className="truncate max-w-[140px]">{m.title || `Milestone ${idx + 1}`}</span>
+                          <span className="text-[10px] opacity-75 capitalize font-mono">
+                            ({isApproved ? 'Paid' : isSubmitted ? 'Review' : isFunded ? 'Funded' : 'Pending'})
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Action row */}

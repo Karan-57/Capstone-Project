@@ -123,10 +123,10 @@ export const Projects = () => {
           {filtered.map((proj) => (
             <div
               key={proj.id}
-              onClick={() => setSelectedProject(proj)}
+              onClick={() => navigate(`/creator/projects/${proj.id}`)}
               className="glass-card p-5 space-y-3.5 border border-white/[0.06] hover:border-purple-500/40 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-purple-950/20 relative"
             >
-              <ProjectCard project={proj} onView={() => setSelectedProject(proj)} />
+              <ProjectCard project={proj} onView={() => navigate(`/creator/projects/${proj.id}`)} />
 
               <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.04]">
                 <span className="flex items-center gap-1.5">
@@ -140,96 +140,122 @@ export const Projects = () => {
               </div>
 
               {/* Freelancers & Role Budgets Sub-List */}
-              {Array.isArray(proj.hirings) && proj.hirings.length > 0 ? (
-                <div className="space-y-1.5 pt-2 border-t border-white/[0.04]">
-                  <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Users className="w-3 h-3 text-purple-400" />
-                      Assigned Freelancers & Roles ({proj.hirings.length})
-                    </span>
-                    <span className="text-[10px] text-slate-500">Click to view escrow</span>
-                  </div>
-                  <div className="space-y-1">
-                    {proj.hirings.map((hiring, hIdx) => {
-                      const freelancer = hiring.hiredFreelancerId;
-                      const hasHired = Boolean(freelancer);
-                      return (
-                        <div
-                          key={hiring._id || hIdx}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (hasHired) {
-                              const fid = freelancer._id || freelancer.id || freelancer;
-                              navigate(`/creator/payments?projectId=${proj.id}&freelancerId=${fid}&roleId=${hiring.roleId || ''}&hiringId=${hiring._id || ''}`);
-                            } else {
-                              navigate(`/creator/create-project?step=2&projectId=${proj.id}`);
-                            }
-                          }}
-                          className="p-2 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.04] hover:border-purple-500/30 flex items-center justify-between text-xs transition-all cursor-pointer group/hiring"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            {hasHired ? (
-                              <img
-                                src={freelancer.profileImage || DEFAULT_PFP}
-                                alt={freelancer.name || 'Freelancer'}
-                                onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                                className="w-5 h-5 rounded-full object-cover border border-purple-500/40 shrink-0"
-                              />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-purple-950/60 border border-purple-800/40 flex items-center justify-center shrink-0">
-                                <Users className="w-2.5 h-2.5 text-purple-400" />
+              {(() => {
+                const hiringsList = Array.isArray(proj.hirings) ? proj.hirings : [];
+                const assignedEditor = proj.assignedEditor;
+                const isEditorInHirings = assignedEditor && hiringsList.some((h) => {
+                  const fid = h.hiredFreelancerId?._id || h.hiredFreelancerId?.id || h.hiredFreelancerId;
+                  return fid && fid.toString() === (assignedEditor.id || assignedEditor._id || '').toString();
+                });
+
+                const combinedItems = [
+                  ...hiringsList.map((hiring, hIdx) => ({
+                    key: hiring._id || `hiring_${hIdx}`,
+                    title: hiring.roleTitle,
+                    freelancer: hiring.hiredFreelancerId,
+                    budget: hiring.budget,
+                    roleId: hiring.roleId,
+                    hiringId: hiring._id,
+                    hasHired: Boolean(hiring.hiredFreelancerId),
+                    isHiring: true,
+                  })),
+                  ...(!isEditorInHirings && assignedEditor
+                    ? [
+                        {
+                          key: 'lead_editor',
+                          title: 'Lead Video Editor',
+                          freelancer: {
+                            _id: assignedEditor.id,
+                            id: assignedEditor.id,
+                            name: assignedEditor.name,
+                            username: assignedEditor.username,
+                            profileImage: assignedEditor.avatar || assignedEditor.profileImage,
+                          },
+                          budget:
+                            proj.totalBudget ||
+                            (typeof proj.rawBudget === 'number'
+                              ? proj.rawBudget
+                              : proj.rawBudget?.fixed
+                              ? proj.rawBudget.fixed
+                              : 0),
+                          roleId: 'video_editor',
+                          hiringId: null,
+                          hasHired: true,
+                          isHiring: false,
+                        },
+                      ]
+                    : []),
+                ];
+
+                if (combinedItems.length === 0) return null;
+
+                return (
+                  <div className="space-y-1.5 pt-2 border-t border-white/[0.04]">
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                      <span className="flex items-center gap-1">
+                        <Users className="w-3 h-3 text-purple-400" />
+                        Assigned Freelancers & Roles ({combinedItems.length})
+                      </span>
+                      <span className="text-[10px] text-slate-500">Click to view escrow</span>
+                    </div>
+                    <div className="space-y-1">
+                      {combinedItems.map((item) => {
+                        const freelancer = item.freelancer;
+                        const hasHired = item.hasHired && Boolean(freelancer);
+                        return (
+                          <div
+                            key={item.key}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (hasHired) {
+                                const fid = freelancer._id || freelancer.id;
+                                navigate(
+                                  `/creator/payments?projectId=${proj.id}&freelancerId=${fid}&roleId=${item.roleId || ''}&hiringId=${item.hiringId || ''}`
+                                );
+                              } else {
+                                navigate(`/creator/create-project?step=2&projectId=${proj.id}`);
+                              }
+                            }}
+                            className="p-2 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.04] hover:border-purple-500/30 flex items-center justify-between text-xs transition-all cursor-pointer group/hiring"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              {hasHired ? (
+                                <img
+                                  src={freelancer.profileImage || freelancer.avatar || DEFAULT_PFP}
+                                  alt={freelancer.name || 'Freelancer'}
+                                  onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
+                                  className="w-5 h-5 rounded-full object-cover border border-purple-500/40 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-5 h-5 rounded-full bg-purple-950/60 border border-purple-800/40 flex items-center justify-center shrink-0">
+                                  <Users className="w-2.5 h-2.5 text-purple-400" />
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <span className="font-medium text-white truncate block group-hover/hiring:text-purple-300">
+                                  {item.title}
+                                </span>
+                                <span className="text-[10px] text-slate-400 block truncate">
+                                  {hasHired ? (freelancer.name || freelancer.username || 'Assigned') : 'Open for applications'}
+                                </span>
                               </div>
-                            )}
-                            <div className="min-w-0">
-                              <span className="font-medium text-white truncate block group-hover/hiring:text-purple-300">
-                                {hiring.roleTitle}
+                            </div>
+
+                            <div className="text-right shrink-0 ml-2">
+                              <span className="font-mono font-bold text-emerald-400 block text-xs">
+                                ₹{Number(item.budget || 0).toLocaleString()}
                               </span>
-                              <span className="text-[10px] text-slate-400 block truncate">
-                                {hasHired ? (freelancer.name || freelancer.username || 'Assigned') : 'Open for applications'}
+                              <span className="text-[9px] text-purple-400/80 group-hover/hiring:text-purple-300 flex items-center justify-end gap-0.5">
+                                {hasHired ? 'Escrow →' : 'Hiring →'}
                               </span>
                             </div>
                           </div>
-
-                          <div className="text-right shrink-0 ml-2">
-                            <span className="font-mono font-bold text-emerald-400 block text-xs">
-                              ₹{Number(hiring.budget || 0).toLocaleString()}
-                            </span>
-                            <span className="text-[9px] text-purple-400/80 group-hover/hiring:text-purple-300 flex items-center justify-end gap-0.5">
-                              {hasHired ? 'Escrow →' : 'Hiring →'}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : proj.assignedEditor ? (
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/creator/payments?projectId=${proj.id}&freelancerId=${proj.assignedEditor.id}`);
-                  }}
-                  className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.04] flex items-center justify-between transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={proj.assignedEditor.avatar || DEFAULT_PFP}
-                      alt={proj.assignedEditor.name || 'Assigned Editor Avatar'}
-                      onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                      className="w-7 h-7 rounded-full object-cover border border-purple-500/30"
-                    />
-                    <div>
-                      <span className="text-xs text-slate-300 block">
-                        Editor: <strong className="text-white">{proj.assignedEditor.name}</strong>
-                      </span>
-                      <span className="text-[10px] text-purple-400">View Freelancer Escrow</span>
+                        );
+                      })}
                     </div>
                   </div>
-                  <span className="text-xs font-semibold text-purple-400">
-                    {proj.progress}% Done
-                  </span>
-                </div>
-              ) : null}
+                );
+              })()}
 
               {/* Direct Action Shortcut Row on the Project Card */}
               <div className="pt-2 border-t border-white/[0.04] grid grid-cols-3 gap-2">

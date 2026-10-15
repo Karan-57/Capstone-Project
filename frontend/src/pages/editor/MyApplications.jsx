@@ -76,14 +76,26 @@ export const MyApplications = () => {
             <div key={bid.id} className="glass-card p-4 sm:p-5 border border-white/[0.06] space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-white truncate">{bid.projectTitle || 'unknown'}</h3>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      {bid.roleTitle || 'Video Editor'}
+                    </span>
+                    {bid.projectTitle && (
+                      <span className="text-xs text-slate-400">
+                        on <strong className="text-slate-300">{bid.projectTitle}</strong>
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-bold text-white truncate">
+                    {bid.roleTitle ? `${bid.roleTitle} — ${bid.projectTitle}` : bid.projectTitle}
+                  </h3>
                   <p className="text-xs text-slate-400 mt-0.5 truncate">
-                    Client: <span className="text-slate-200">{bid.creatorName || 'unknown'}</span> • Submitted {bid.createdAt || 'unknown'}
+                    Client: <span className="text-slate-200">{bid.creatorName || 'Creator'}</span> • Submitted {bid.createdAt || 'Recently'} {bid.estimatedDeliveryDays ? `• Turnaround: ${bid.estimatedDeliveryDays} days` : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
-                  <span className="text-sm font-bold text-white">
-                    {bid.bidAmount != null && bid.bidAmount !== 999 ? `₹${bid.bidAmount}` : '999'}
+                  <span className="text-sm font-bold text-white font-mono">
+                    {bid.bidAmount != null && bid.bidAmount !== 999 ? `₹${Number(bid.bidAmount).toLocaleString('en-IN')}` : '999'}
                   </span>
                   <span className={`px-2.5 py-1 text-xs font-semibold rounded-lg border capitalize ${getStatusBadge(bid.status)}`}>
                     {bid.status || 'pending'}

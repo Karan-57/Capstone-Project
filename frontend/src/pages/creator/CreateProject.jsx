@@ -105,6 +105,8 @@ export const CreateProject = () => {
 
   // Step 1 Saving State
   const [isSavingStep1, setIsSavingStep1] = useState(false);
+  const [isAiSuggestingScope, setIsAiSuggestingScope] = useState(false);
+  const [aiScopeSuggestion, setAiScopeSuggestion] = useState(null);
 
   // STEP 2 STATE - Hirings, Hired Freelancers, and Role Form Modal
   const [hirings, setHirings] = useState([]);
@@ -293,6 +295,60 @@ export const CreateProject = () => {
 
   const removeReferenceLink = (index) => {
     setReferenceLinks(referenceLinks.filter((_, idx) => idx !== index));
+  };
+
+  // AI Suggest Budget and Turnaround Duration using current market research
+  const handleAiSuggestBudgetTimeline = async () => {
+    if (!category && !editingStyle && !expectedVideoDuration) {
+      showAlert('Please select at least a Category, Editing Style, or Expected Video Duration first.', 'warning');
+      return;
+    }
+
+    setIsAiSuggestingScope(true);
+    try {
+      const res = await api.post('/api/ai/suggest-budget-timeline', {
+        category: category || 'Video Production',
+        editingStyle: editingStyle || 'Standard Production',
+        expectedVideoDuration: expectedVideoDuration || 'Standard Duration',
+        currency: budgetCurrency,
+        requiredSkills: []
+      });
+
+      const data = res.data?.data;
+      if (data) {
+        if (data.recommendedBudget) {
+          setTotalBudget(String(data.recommendedBudget));
+        }
+
+        // Map estimatedDeliveryDays to closest projectDuration option
+        if (data.estimatedDeliveryDays) {
+          const days = Number(data.estimatedDeliveryDays);
+          if (days <= 5) {
+            setProjectDuration('3 - 5 Days (Rush)');
+          } else if (days <= 10) {
+            setProjectDuration('7 - 10 Days (Standard)');
+          } else if (days <= 21) {
+            setProjectDuration('2 - 3 Weeks (Comprehensive)');
+          } else {
+            setProjectDuration('1 Month (Long-term)');
+          }
+        }
+
+        setAiScopeSuggestion(data);
+        showAlert(
+          `AI Market Benchmark: Suggested ${budgetCurrency === 'INR' ? '₹' : '$'}${data.recommendedBudget?.toLocaleString()} (${data.complexityScore || 'Standard'} complexity, ~${data.estimatedDeliveryDays || 7} days turnaround).`,
+          'success'
+        );
+      }
+    } catch (err) {
+      console.warn('[CreateProject] AI Suggest Budget & Timeline error:', err);
+      showAlert(
+        err.response?.data?.message || 'Could not fetch live AI suggestions. Please specify budget and turnaround manually.',
+        'warning'
+      );
+    } finally {
+      setIsAiSuggestingScope(false);
+    }
   };
 
   // STEP 1 SUBMISSION: Saves Project with manual budget & transitions to Step 2
@@ -910,21 +966,109 @@ export const CreateProject = () => {
             </div>
           </div>
 
-          {/* Section 2: Total Budget (Strictly Manual Budget - NOT AI Generated) & Turnaround */}
-          <div className="glass-card p-6 md:p-7 space-y-5 border border-white/[0.08]">
+          {/* Section 2: Expected Video Duration */}
+          <div className="glass-card p-6 md:p-7 space-y-4 border border-white/[0.08]">
             <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-purple-400" />
+                <h3 className="text-base font-bold text-white">Expected Video Duration</h3>
+              </div>
+              <span className="text-[11px] text-slate-400">Target runtime of the finished video</span>
+            </div>
+
+            <div className="relative" ref={expectedDurationRef}>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                Target Length <span className="text-purple-400">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsExpectedDurationOpen(!isExpectedDurationOpen)}
+                className={`w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
+                  isExpectedDurationOpen ? 'border-purple-500 ring-2 ring-purple-500/20 text-white' : 'border-white/[0.08] text-slate-300'
+                }`}
+              >
+                <span className={expectedVideoDuration ? 'text-white font-medium' : 'text-slate-500'}>
+                  {expectedVideoDuration || 'Select Expected Duration...'}
+                </span>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isExpectedDurationOpen ? 'rotate-180 text-purple-400' : ''}`} />
+              </button>
+
+              {isExpectedDurationOpen && (
+                <div className="absolute left-0 right-0 top-full mt-2 z-30 p-1.5 rounded-2xl bg-[#0B0F19]/95 backdrop-blur-xl border border-white/10 shadow-2xl space-y-0.5 max-h-60 overflow-y-auto">
+                  {expectedVideoDurationOptions.map((opt) => (
+                    <div
+                      key={opt}
+                      onClick={() => {
+                        setExpectedVideoDuration(opt);
+                        setIsExpectedDurationOpen(false);
+                      }}
+                      className={`px-3 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                        expectedVideoDuration === opt ? 'bg-purple-600/20 text-white font-semibold' : 'hover:bg-white/[0.05] text-slate-300'
+                      }`}
+                    >
+                      <span>{opt}</span>
+                      {expectedVideoDuration === opt && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Section 3: Total Budget & Turnaround Duration with AI Market Research Suggestion */}
+          <div className="glass-card p-6 md:p-7 space-y-5 border border-white/[0.08]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.05]">
               <div className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-emerald-400" />
                 <h3 className="text-base font-bold text-white">Total Project Budget & Turnaround</h3>
               </div>
-              <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-950/50 text-emerald-300 border border-emerald-800/40 font-mono">
-                Manual Creator Budget
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleAiSuggestBudgetTimeline}
+                  disabled={isAiSuggestingScope}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600/25 via-indigo-600/25 to-purple-500/20 hover:from-purple-600/40 hover:to-indigo-600/40 border border-purple-500/40 text-purple-300 hover:text-white shadow-sm transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Estimate budget and turnaround duration based on category, editing style, and runtime"
+                >
+                  <Sparkles className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform ${isAiSuggestingScope ? 'animate-spin' : ''}`} />
+                  <span>{isAiSuggestingScope ? 'Analyzing Market...' : 'AI Market Suggest'}</span>
+                </button>
+              </div>
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Define the overall financial budget for this production. In Step 2, you will allocate portions of this budget across specific roles (e.g. Video Editor, Thumbnail Designer, Sound Engineer).
+              Define the overall financial budget for this production. Use our AI pricing engine to analyze current freelance market rates for your selected category, editing style, and duration.
             </p>
+
+            {/* AI Market Analysis Banner if suggestion is available */}
+            {aiScopeSuggestion && (
+              <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-500/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-purple-300">
+                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Live Market Benchmark ({aiScopeSuggestion.complexityScore || 'Standard'} Complexity)</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                    Range: {budgetCurrency === 'INR' ? '₹' : '$'}{aiScopeSuggestion.minBudget?.toLocaleString()} - {budgetCurrency === 'INR' ? '₹' : '$'}{aiScopeSuggestion.maxBudget?.toLocaleString()}
+                  </span>
+                </div>
+                {aiScopeSuggestion.marketAnalysis && (
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    {aiScopeSuggestion.marketAnalysis}
+                  </p>
+                )}
+                {Array.isArray(aiScopeSuggestion.keyCostDrivers) && aiScopeSuggestion.keyCostDrivers.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[10px] text-slate-400">Cost drivers:</span>
+                    {aiScopeSuggestion.keyCostDrivers.map((driver, idx) => (
+                      <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.08] text-slate-300">
+                        {driver}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Total Budget Input */}
@@ -992,55 +1136,6 @@ export const CreateProject = () => {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Section 3: Expected Video Duration */}
-          <div className="glass-card p-6 md:p-7 space-y-4 border border-white/[0.08]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-purple-400" />
-                <h3 className="text-base font-bold text-white">Expected Video Duration</h3>
-              </div>
-              <span className="text-[11px] text-slate-400">Target runtime of the finished video</span>
-            </div>
-
-            <div className="relative" ref={expectedDurationRef}>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                Target Length
-              </label>
-              <button
-                type="button"
-                onClick={() => setIsExpectedDurationOpen(!isExpectedDurationOpen)}
-                className={`w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
-                  isExpectedDurationOpen ? 'border-purple-500 ring-2 ring-purple-500/20 text-white' : 'border-white/[0.08] text-slate-300'
-                }`}
-              >
-                <span className={expectedVideoDuration ? 'text-white font-medium' : 'text-slate-500'}>
-                  {expectedVideoDuration || 'Select Expected Duration...'}
-                </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isExpectedDurationOpen ? 'rotate-180 text-purple-400' : ''}`} />
-              </button>
-
-              {isExpectedDurationOpen && (
-                <div className="absolute left-0 right-0 top-full mt-2 z-30 p-1.5 rounded-2xl bg-[#0B0F19]/95 backdrop-blur-xl border border-white/10 shadow-2xl space-y-0.5 max-h-60 overflow-y-auto">
-                  {expectedVideoDurationOptions.map((opt) => (
-                    <div
-                      key={opt}
-                      onClick={() => {
-                        setExpectedVideoDuration(opt);
-                        setIsExpectedDurationOpen(false);
-                      }}
-                      className={`px-3 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
-                        expectedVideoDuration === opt ? 'bg-purple-600/20 text-white font-semibold' : 'hover:bg-white/[0.05] text-slate-300'
-                      }`}
-                    >
-                      <span>{opt}</span>
-                      {expectedVideoDuration === opt && <Check className="w-3.5 h-3.5 text-purple-400" />}
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
 

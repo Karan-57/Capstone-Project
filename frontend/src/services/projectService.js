@@ -53,8 +53,14 @@ export const mapBackendProject = (p) => {
     assignedEditor: p?.selectedEditorId
       ? {
           id: (p.selectedEditorId._id || p.selectedEditorId).toString(),
+          _id: (p.selectedEditorId._id || p.selectedEditorId).toString(),
           name: p.selectedEditorId.name || 'Assigned Editor',
+          username: p.selectedEditorId.username || '',
           avatar: p.selectedEditorId.profileImage || DEFAULT_PFP,
+          profileImage: p.selectedEditorId.profileImage || DEFAULT_PFP,
+          email: p.selectedEditorId.email || '',
+          role: p.selectedEditorId.role || 'editor',
+          rating: p.selectedEditorId.rating || 5.0,
         }
       : null,
     progress: p?.status === 'completed' ? 100 : p?.status === 'in_progress' ? 60 : p?.status === 'assigned' ? 25 : 0,
@@ -86,28 +92,76 @@ export const projectService = {
     try {
       const res = await api.get('/api/projects');
       if (res.data?.projects && Array.isArray(res.data.projects)) {
-        return res.data.projects.map((p) => {
-          const budgetVal = typeof p.budget === 'object' 
-            ? (p.budget?.fixed ? `₹${p.budget.fixed}` : (p.budget?.min ? `₹${p.budget.min} - ₹${p.budget.max}` : '999'))
-            : (p.budget ? String(p.budget) : '999');
+        const roleGigs = [];
 
-          return {
-            id: p._id || p.id || 'unknown',
-            title: p.title || 'unknown',
-            creator: p.creatorId?.name || 'unknown',
-            creatorAvatar: p.creatorId?.profileImage || DEFAULT_PFP,
-            budget: budgetVal,
-            deadline: p.deadline ? new Date(p.deadline).toLocaleDateString() : 'unknown',
-            tags: Array.isArray(p.requiredSkills) && p.requiredSkills.length ? p.requiredSkills : [p.category || 'unknown'],
-            proposalsCount: 999,
-            difficulty: p.complexity || 'unknown',
-            verified: true,
-          };
+        res.data.projects.forEach((p) => {
+          const openHirings = Array.isArray(p.hirings) ? p.hirings.filter(h => h.status === 'open') : [];
+
+          if (openHirings.length > 0) {
+            // Expand each open hiring role into an individual gig card
+            openHirings.forEach((h) => {
+              const tags = [
+                ...(Array.isArray(h.requiredSkills) ? h.requiredSkills : []),
+                ...(Array.isArray(h.requiredTools) ? h.requiredTools : [])
+              ];
+
+              roleGigs.push({
+                id: `${p._id}_${h._id || h.roleId}`,
+                projectId: p._id,
+                hiringId: h._id,
+                roleId: h.roleId,
+                roleTitle: h.roleTitle || 'Freelance Role',
+                projectTitle: p.title || 'Untitled Project',
+                title: h.roleTitle ? `${h.roleTitle} — ${p.title}` : p.title,
+                description: h.description || p.description || '',
+                creator: p.creatorId?.name || 'Creator Client',
+                creatorAvatar: p.creatorId?.profileImage || DEFAULT_PFP,
+                budget: h.budget ? `₹${Number(h.budget).toLocaleString('en-IN')}` : '999',
+                rawBudget: Number(h.budget) || 0,
+                deadline: h.firstDeadline
+                  ? new Date(h.firstDeadline).toLocaleDateString()
+                  : (p.deadline ? new Date(p.deadline).toLocaleDateString() : 'Flexible'),
+                tags: tags.length ? tags : [p.category || 'Creative'],
+                proposalsCount: 0,
+                difficulty: p.complexity || 'Intermediate',
+                verified: true,
+                milestones: Array.isArray(h.milestones) ? h.milestones : [],
+              });
+            });
+          } else {
+            // Fallback for projects without granular hirings subdocuments
+            const budgetVal = typeof p.budget === 'object'
+              ? (p.budget?.fixed ? `₹${Number(p.budget.fixed).toLocaleString('en-IN')}` : (p.budget?.min ? `₹${Number(p.budget.min).toLocaleString('en-IN')} - ₹${Number(p.budget.max).toLocaleString('en-IN')}` : '999'))
+              : (p.budget ? `₹${Number(p.budget).toLocaleString('en-IN')}` : '999');
+
+            roleGigs.push({
+              id: p._id || p.id || 'unknown',
+              projectId: p._id,
+              hiringId: null,
+              roleId: 'video_editor',
+              roleTitle: p.category || 'Video Editor',
+              projectTitle: p.title || 'Untitled Project',
+              title: p.title || 'Untitled Project',
+              description: p.description || '',
+              creator: p.creatorId?.name || 'Creator Client',
+              creatorAvatar: p.creatorId?.profileImage || DEFAULT_PFP,
+              budget: budgetVal,
+              rawBudget: typeof p.budget === 'number' ? p.budget : (p.totalBudget || 0),
+              deadline: p.deadline ? new Date(p.deadline).toLocaleDateString() : 'Flexible',
+              tags: Array.isArray(p.requiredSkills) && p.requiredSkills.length ? p.requiredSkills : [p.category || 'Video Editing'],
+              proposalsCount: 0,
+              difficulty: p.complexity || 'Intermediate',
+              verified: true,
+              milestones: [],
+            });
+          }
         });
+
+        return roleGigs;
       }
       return [];
     } catch (err) {
-      console.warn('[projectService] Failed to fetch open projects from API:', err.message);
+      console.warn('[projectService] Failed to fetch open gigs from API:', err.message);
       return [];
     }
   },
@@ -121,17 +175,67 @@ export const projectService = {
       if (res.data?.applications && Array.isArray(res.data.applications)) {
         return res.data.applications.map((app) => {
           const p = app.projectId || {};
+          const projectId = p._id || app._id;
+          const editorId = app.editorId?._id || app.editorId;
+
+          // Milestone resolution: check role milestones or workspace cache
+          let milestones = [];
+          if (Array.isArray(p.hirings)) {
+            const matchedHiring = p.hirings.find(h => 
+              (app.hiringId && h._id?.toString() === app.hiringId.toString()) ||
+              (app.roleId && h.roleId === app.roleId)
+            );
+            if (matchedHiring && Array.isArray(matchedHiring.milestones) && matchedHiring.milestones.length > 0) {
+              milestones = matchedHiring.milestones;
+            }
+          }
+
+          // If no milestones found in hiring, check cached workspace milestones
+          if (milestones.length === 0) {
+            try {
+              const cached = localStorage.getItem(`collabo_milestones_${projectId}`) ||
+                             localStorage.getItem(`collabo_milestones_${projectId}_${editorId}`);
+              if (cached) {
+                milestones = JSON.parse(cached);
+              }
+            } catch (e) {
+              console.warn(e);
+            }
+          }
+
+          // Fallback standard 3-milestone structure
+          if (milestones.length === 0) {
+            const isCompleted = p.status === 'completed';
+            milestones = [
+              { id: 'm1', title: 'Milestone 1: Rough Cut Assembly', status: isCompleted ? 'approved' : 'approved' },
+              { id: 'm2', title: 'Milestone 2: Sound Design & Color Grade', status: isCompleted ? 'approved' : 'submitted' },
+              { id: 'm3', title: 'Milestone 3: 4K Master Export', status: isCompleted ? 'approved' : 'pending' },
+            ];
+          }
+
+          const totalCount = milestones.length;
+          const approvedCount = milestones.filter(m => m.status === 'approved').length;
+          const submittedCount = milestones.filter(m => m.status === 'submitted').length;
+          const progressPercent = p.status === 'completed'
+            ? 100
+            : Math.round(((approvedCount + (submittedCount * 0.5)) / totalCount) * 100);
+
           return {
             id: p._id || app._id || 'unknown',
-            title: p.title || 'unknown',
-            client: p.creatorId?.name || 'unknown',
+            projectId: p._id,
+            applicationId: app._id,
+            roleTitle: app.roleTitle || 'Video Editor',
+            title: p.title || 'Untitled Project',
+            client: p.creatorId?.name || 'Creator Client',
             clientAvatar: p.creatorId?.profileImage || DEFAULT_PFP,
-            progress: p.status === 'completed' ? 100 : 50,
-            dueDate: p.deadline ? new Date(p.deadline).toLocaleDateString() : 'unknown',
-            hoursRemaining: 999,
+            progress: Math.min(100, Math.max(0, progressPercent)),
+            totalMilestones: totalCount,
+            clearedMilestones: approvedCount,
+            milestones,
+            dueDate: p.deadline ? new Date(p.deadline).toLocaleDateString() : 'Ongoing',
             status: p.status === 'completed' ? 'Delivered' : 'In Production',
-            budget: app.bidAmount != null ? `₹${app.bidAmount}` : '999',
-            deliverableType: p.category || 'unknown',
+            budget: app.bidAmount != null ? `₹${Number(app.bidAmount).toLocaleString('en-IN')}` : '999',
+            deliverableType: app.roleTitle || p.category || 'Video Editing',
           };
         });
       }
@@ -139,6 +243,33 @@ export const projectService = {
     } catch (err) {
       console.warn('[projectService] Failed to fetch editor active contracts:', err.message);
       return [];
+    }
+  },
+  getProjectDetails: async (projectId) => {
+    try {
+      const res = await api.get(`/api/creator/projects/${projectId}`);
+      if (res.data?.project) {
+        const mapped = mapBackendProject(res.data.project);
+        if (res.data.workspace) {
+          mapped.workspace = res.data.workspace;
+        }
+        mapped.leadEditorHasStartedWork = Boolean(res.data.leadEditorHasStartedWork);
+        mapped.roleWorkStarted = res.data.roleWorkStarted || {};
+        return mapped;
+      }
+      return null;
+    } catch (err) {
+      console.warn('[projectService] Failed to fetch project details:', err.message);
+      throw err;
+    }
+  },
+  removeTeamMember: async (projectId, hiringId) => {
+    try {
+      const res = await api.post(`/api/creator/projects/${projectId}/hirings/${hiringId}/remove-member`);
+      return res.data;
+    } catch (err) {
+      console.error('[projectService] Failed to remove team member:', err);
+      throw err;
     }
   },
 };

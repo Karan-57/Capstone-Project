@@ -196,6 +196,24 @@ async function suggestEditorBidController(req, res) {
         return res.status(404).json({ message: 'Project not found' });
       }
 
+      // Extract role info if available
+      const hiringId = req.body.hiringId;
+      const roleId = req.body.roleId;
+      let roleSpecificBudget = req.body.roleBudget || req.body.project?.budget;
+
+      if ((!roleSpecificBudget || roleSpecificBudget === 'Flexible') && Array.isArray(project.hirings) && project.hirings.length > 0) {
+        let matchedHiring = null;
+        if (hiringId) {
+          matchedHiring = project.hirings.find(h => String(h._id) === String(hiringId));
+        }
+        if (!matchedHiring && roleId) {
+          matchedHiring = project.hirings.find(h => h.roleId === roleId || h.roleTitle === roleId);
+        }
+        if (matchedHiring && matchedHiring.budget) {
+          roleSpecificBudget = matchedHiring.budget;
+        }
+      }
+
       projectData = {
         title: project.title,
         description: project.description,
@@ -203,7 +221,7 @@ async function suggestEditorBidController(req, res) {
         editingStyle: project.editingStyle,
         requiredSkills: [...(project.requiredSkills || []), ...(project.requiredSoftware || [])],
         expectedVideoDuration: project.videoDuration ? `${project.videoDuration} mins` : 'Standard',
-        budget: project.budget?.amount || project.budget?.max || project.budget || 'Flexible',
+        budget: roleSpecificBudget || project.budget?.amount || project.budget?.max || project.budget || 'Flexible',
         currency: project.budget?.currency || req.body.currency || 'INR',
         timeline: project.deadline ? new Date(project.deadline).toISOString().split('T')[0] : 'Flexible'
       };

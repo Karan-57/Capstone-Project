@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Compass,
   FileCheck2,
-  PlaySquare,
+  Coins,
   Star,
   MessageSquare
 } from 'lucide-react';
@@ -16,10 +16,12 @@ import MessageCard from '../../components/common/MessageCard';
 import Button from '../../components/common/Button';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
+import { useWallet } from '../../context/WalletContext';
 
 export const EditorDashboard = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { walletBalance = 0 } = useWallet();
   const {
     loading,
     editorRecommended,
@@ -34,7 +36,7 @@ export const EditorDashboard = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
-      {/* Top Stats for Editor (Real dynamic counts & rating) */}
+      {/* Top Stats for Editor (Real dynamic counts, ledger credits & rating) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4.5">
         <StatsCard
           icon={Compass}
@@ -53,11 +55,11 @@ export const EditorDashboard = () => {
           isPositive={true}
         />
         <StatsCard
-          icon={PlaySquare}
+          icon={Coins}
           iconBg="bg-emerald-600/20 text-emerald-400 border border-emerald-500/25"
-          value={String(activeProjectsCount)}
-          title="Production Tracks"
-          trend="Accepted"
+          value={`₹${Number(walletBalance || 0).toLocaleString('en-IN')}`}
+          title="Wallet Credits"
+          trend="From Ledgers"
           isPositive={true}
         />
         <StatsCard

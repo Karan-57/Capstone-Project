@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const Razorpay = require('razorpay');
 const userModel = require('../model/user.model');
+const projectModel = require('../model/project.model');
+const workspaceModel = require('../model/workspace.model');
 const transactionModel = require('../model/transaction.model');
 const ledgerModel = require('../model/ledger.model');
 const { createNotification } = require('../services/notification.service');
@@ -213,7 +215,31 @@ async function demoTopup(req, res) {
  */
 async function getWalletDetails(req, res) {
   try {
-    const user = await userModel.findById(req.user._id).select('walletBalance hasTransactionPin');
+    const user = await userModel.findById(req.user._id).select('walletBalance hasTransactionPin role');
+
+    // 0. Double-entry ledger calculation (Sum CREDIT - Sum DEBIT from immutable ledgerModel):
+    const userLedgers = await ledgerModel.find({ user: req.user._id });
+    let ledgerCredits = null;
+    let totalLedgerCredits = 0;
+    let totalLedgerDebits = 0;
+
+    if (userLedgers && userLedgers.length > 0) {
+      totalLedgerCredits = userLedgers
+        .filter((e) => e.type === 'CREDIT')
+        .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      totalLedgerDebits = userLedgers
+        .filter((e) => e.type === 'DEBIT')
+        .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      ledgerCredits = Math.max(0, totalLedgerCredits - totalLedgerDebits);
+
+      // Reconcile and self-heal user.walletBalance with immutable ledger
+      if (user && user.walletBalance !== ledgerCredits) {
+        await userModel.findByIdAndUpdate(req.user._id, { walletBalance: ledgerCredits });
+        user.walletBalance = ledgerCredits;
+      }
+    }
+
+    const calculatedBalance = ledgerCredits !== null ? ledgerCredits : (user?.walletBalance || 0);
 
     const transactions = await transactionModel
       .find({
@@ -222,28 +248,66 @@ async function getWalletDetails(req, res) {
       .sort({ createdAt: -1 })
       .limit(100);
 
-    // Calculate real ledger-based figures:
-    // 1. Total settled releases paid by this creator:
+    // 1. Creator-specific calculations:
     const creatorReleases = transactions.filter(
       (t) => t.type === 'ESCROW_RELEASE' && t.fromUser && t.fromUser.toString() === req.user._id.toString()
     );
     const totalSettledReleases = creatorReleases.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
     const completedMilestonesCount = creatorReleases.length;
 
-    // 2. Real currently active escrow locked funds:
     const creatorLocks = transactions.filter(
       (t) => t.type === 'ESCROW_LOCK' && t.fromUser && t.fromUser.toString() === req.user._id.toString()
     );
     const totalLockedEver = creatorLocks.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-    const currentEscrowLocked = Math.max(0, totalLockedEver - totalSettledReleases);
+    const creatorCurrentEscrow = Math.max(0, totalLockedEver - totalSettledReleases);
+
+    // 2. Editor-specific calculations (Real Ledger Analytics):
+    const editorReleases = transactions.filter(
+      (t) => t.type === 'ESCROW_RELEASE' && t.toUser && t.toUser.toString() === req.user._id.toString()
+    );
+    const lifetimeEarned = editorReleases.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+    const editorWithdrawals = transactions.filter(
+      (t) => t.type === 'WITHDRAWAL' && t.fromUser && t.fromUser.toString() === req.user._id.toString()
+    );
+    const totalWithdrawn = editorWithdrawals.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+    // Editor escrow: find active workspaces where this user is assigned
+    let editorPendingEscrow = 0;
+    try {
+      const editorWorkspaces = await workspaceModel.find({
+        $or: [{ editorId: req.user._id }, { 'members.user': req.user._id }]
+      }).select('_id');
+      const wsIds = editorWorkspaces.map(w => w._id);
+      if (wsIds.length > 0) {
+        const wsLocks = await transactionModel.find({
+          type: 'ESCROW_LOCK',
+          referenceWorkspaceId: { $in: wsIds },
+          status: 'SUCCESS'
+        });
+        const totalWsLocked = wsLocks.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        const totalWsReleased = transactions
+          .filter(t => t.type === 'ESCROW_RELEASE' && t.toUser?.toString() === req.user._id.toString())
+          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        editorPendingEscrow = Math.max(0, totalWsLocked - totalWsReleased);
+      }
+    } catch (wsErr) {
+      console.warn('[getWalletDetails] Editor escrow calculation:', wsErr.message);
+    }
+
+    const isEditor = (req.user.role === 'editor' || user?.role === 'editor');
+    const escrowLocked = isEditor ? editorPendingEscrow : creatorCurrentEscrow;
 
     return res.status(200).json({
       success: true,
-      walletBalance: user?.walletBalance || 0,
+      walletBalance: calculatedBalance,
+      ledgerCredits: calculatedBalance,
       hasTransactionPin: Boolean(user?.hasTransactionPin),
-      escrowLocked: currentEscrowLocked,
+      escrowLocked,
       totalSettledReleases,
       completedMilestonesCount,
+      lifetimeEarned,
+      totalWithdrawn,
       transactions,
     });
   } catch (err) {

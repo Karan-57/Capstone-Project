@@ -63,63 +63,66 @@ export const WalletProvider = ({ children }) => {
 
   const [totalSettledReleases, setTotalSettledReleases] = useState(0);
   const [completedMilestonesCount, setCompletedMilestonesCount] = useState(0);
+  const [lifetimeEarned, setLifetimeEarned] = useState(0);
+  const [totalWithdrawn, setTotalWithdrawn] = useState(0);
 
-  // Sync with backend API when user logs in
-  useEffect(() => {
-    let isMounted = true;
-    const fetchBackendWallet = async () => {
-      try {
-        const data = await paymentService.getWalletDetails();
-        if (isMounted && data?.success) {
-          if (data.walletBalance != null) {
-            setWalletBalance(data.walletBalance);
-          }
-          if (data.hasTransactionPin != null) {
-            setHasTransactionPin(data.hasTransactionPin);
-          }
-          if (data.escrowLocked != null) {
-            setEscrowLocked(data.escrowLocked);
-          }
-          if (data.totalSettledReleases != null) {
-            setTotalSettledReleases(data.totalSettledReleases);
-          }
-          if (data.completedMilestonesCount != null) {
-            setCompletedMilestonesCount(data.completedMilestonesCount);
-          }
-          if (Array.isArray(data.transactions) && data.transactions.length > 0) {
-            setTransactions(
-              data.transactions.map((t) => ({
-                id: t.idempotencyKey || t._id || t.id,
-                type: t.type,
-                amount: t.amount,
-                description: t.description,
-                date: new Date(t.createdAt).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                }),
-                status: t.status,
-                gateway: t.gateway,
-                fromUser: t.fromUser,
-                toUser: t.toUser,
-                milestoneTitle: t.milestoneTitle,
-              }))
-            );
-          }
+  // Sync with backend API when user logs in or after financial action
+  const fetchBackendWallet = useCallback(async () => {
+    try {
+      const data = await paymentService.getWalletDetails();
+      if (data?.success) {
+        if (data.walletBalance != null) {
+          setWalletBalance(data.walletBalance);
         }
-      } catch (err) {
-        // Quiet fallback to client state if endpoint unavailable
+        if (data.hasTransactionPin != null) {
+          setHasTransactionPin(data.hasTransactionPin);
+        }
+        if (data.escrowLocked != null) {
+          setEscrowLocked(data.escrowLocked);
+        }
+        if (data.totalSettledReleases != null) {
+          setTotalSettledReleases(data.totalSettledReleases);
+        }
+        if (data.completedMilestonesCount != null) {
+          setCompletedMilestonesCount(data.completedMilestonesCount);
+        }
+        if (data.lifetimeEarned != null) {
+          setLifetimeEarned(data.lifetimeEarned);
+        }
+        if (data.totalWithdrawn != null) {
+          setTotalWithdrawn(data.totalWithdrawn);
+        }
+        if (Array.isArray(data.transactions) && data.transactions.length > 0) {
+          setTransactions(
+            data.transactions.map((t) => ({
+              id: t.idempotencyKey || t._id || t.id,
+              type: t.type,
+              amount: t.amount,
+              description: t.description,
+              date: new Date(t.createdAt).toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              }),
+              status: t.status,
+              gateway: t.gateway,
+              fromUser: t.fromUser,
+              toUser: t.toUser,
+              milestoneTitle: t.milestoneTitle,
+            }))
+          );
+        }
       }
-    };
+    } catch (err) {
+      // Quiet fallback to client state if endpoint unavailable
+    }
+  }, []);
 
+  useEffect(() => {
     if (isAuthenticated && !isAuthLoading && (currentUser?._id || currentUser?.id)) {
       fetchBackendWallet();
     }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isAuthenticated, isAuthLoading, currentUser?._id, currentUser?.id]);
+  }, [isAuthenticated, isAuthLoading, currentUser?._id, currentUser?.id, fetchBackendWallet]);
 
   // Persist locally for instant responsiveness
   useEffect(() => {
@@ -402,9 +405,11 @@ export const WalletProvider = ({ children }) => {
         `Payout of ₹${numAmount.toLocaleString('en-IN')} initiated! Ref: ${utrNum}`,
         'success'
       );
+      // Synchronize ledger with backend
+      fetchBackendWallet();
       return true;
     },
-    [verifySecurityPin, walletBalance, showAlert]
+    [verifySecurityPin, walletBalance, showAlert, fetchBackendWallet]
   );
 
   return (
@@ -414,6 +419,9 @@ export const WalletProvider = ({ children }) => {
         escrowLocked,
         totalSettledReleases,
         completedMilestonesCount,
+        lifetimeEarned,
+        totalWithdrawn,
+        refreshWallet: fetchBackendWallet,
         hasTransactionPin,
         savedPinHint: savedPinHash,
         transactions,

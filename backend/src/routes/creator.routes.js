@@ -65,6 +65,13 @@ creatorRouter.get('/projects/:projectId/applications', authMiddleware.authUser, 
 creatorRouter.post('/projects/:projectId/disband', authMiddleware.authUser, applicationController.disbandEditorController);
 
 /**
+ * @route GET api/creator/projects/:projectId
+ * @description get comprehensive project details by ID
+ * @access Private (Creator)
+ */
+creatorRouter.get('/projects/:projectId', authMiddleware.authUser, creatorController.getProjectByIdController);
+
+/**
  * @route GET api/creator/projects/:projectId/hirings
  * @description get all role hirings and hired freelancers for a project
  * @access Private (Creator)
@@ -84,6 +91,13 @@ creatorRouter.post('/projects/:projectId/hirings', authMiddleware.authUser, crea
  * @access Private (Creator)
  */
 creatorRouter.delete('/projects/:projectId/hirings/:hiringId', authMiddleware.authUser, creatorController.deleteProjectHiringController);
+
+/**
+ * @route POST api/creator/projects/:projectId/hirings/:hiringId/remove-member
+ * @description remove an approved team member who hasn't started work yet and reopen the role
+ * @access Private (Creator)
+ */
+creatorRouter.post('/projects/:projectId/hirings/:hiringId/remove-member', authMiddleware.authUser, creatorController.removeHiredMemberController);
 
 /**
  * @route PATCH api/creator/projects/:projectId/hirings/:hiringId/milestones

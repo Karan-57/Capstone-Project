@@ -59,58 +59,45 @@ export const paymentService = {
           available: 0,
           escrow: 0,
           lifetime: 0,
+          totalWithdrawn: 0,
           completedCount: 0,
           recentPayouts: [],
         };
       }
 
-      const [appsRes, wsRes] = await Promise.all([
-        api.get('/api/application/my').catch(() => ({ data: { applications: [] } })),
-        api.get('/api/workspace').catch(() => ({ data: { workspaces: [] } })),
-      ]);
+      // 1. Fetch real ledger and wallet details
+      const walletRes = await api.get('/api/wallet/me').catch(() => null);
+      if (walletRes?.data?.success) {
+        const d = walletRes.data;
+        const payouts = (d.transactions || [])
+          .filter(t => t.type === 'ESCROW_RELEASE' || t.type === 'WITHDRAWAL')
+          .slice(0, 8)
+          .map(t => ({
+            id: t._id || t.id,
+            project: t.milestoneTitle || (t.type === 'ESCROW_RELEASE' ? 'Milestone Cleared' : 'Bank Withdrawal'),
+            client: t.gateway || 'Collabo Safe',
+            amount: `${t.type === 'ESCROW_RELEASE' ? '+' : '-'}₹${Number(t.amount || 0).toLocaleString('en-IN')}`,
+            date: new Date(t.createdAt).toLocaleDateString(),
+            status: 'Completed',
+          }));
 
-      const applications = appsRes.data?.applications || [];
-      const workspaces = wsRes.data?.workspaces || [];
-      const completedWsProjectIds = new Set(
-        workspaces.filter(w => w.status === 'completed').map(w => (w.projectId?._id || w.projectId || '').toString())
-      );
-
-      let available = 0;
-      let escrow = 0;
-      let lifetime = 0;
-      let completedCount = 0;
-      const recentPayouts = [];
-
-      applications.forEach(app => {
-        if (app.status === 'accepted') {
-          const numericBid = Number(app.bidAmount) || 0;
-          const pId = (app.projectId?._id || app.projectId || '').toString();
-          const isCompleted = completedWsProjectIds.has(pId);
-
-          if (isCompleted) {
-            available += numericBid;
-            lifetime += numericBid;
-            completedCount += 1;
-            recentPayouts.push({
-              id: app._id,
-              project: app.projectId?.title || 'Video Editing Production',
-              client: app.projectId?.creatorId?.name || 'Client',
-              amount: `₹${numericBid.toLocaleString()}`,
-              date: app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'Settled',
-              status: 'Completed',
-            });
-          } else {
-            escrow += numericBid;
-          }
-        }
-      });
+        return {
+          availableBalance: `₹${Number(d.walletBalance || 0).toLocaleString('en-IN')}`,
+          pendingEscrow: `₹${Number(d.escrowLocked || 0).toLocaleString('en-IN')}`,
+          lifetimeEarned: `₹${Number(d.lifetimeEarned || 0).toLocaleString('en-IN')}`,
+          totalWithdrawn: `₹${Number(d.totalWithdrawn || 0).toLocaleString('en-IN')}`,
+          completedProjects: d.completedMilestonesCount || 0,
+          recentPayouts: payouts,
+        };
+      }
 
       return {
-        availableBalance: `₹${available.toLocaleString()}`,
-        pendingEscrow: `₹${escrow.toLocaleString()}`,
-        lifetimeEarned: `₹${lifetime.toLocaleString()}`,
-        completedProjects: completedCount,
-        recentPayouts: recentPayouts.slice(0, 5),
+        availableBalance: '₹0',
+        pendingEscrow: '₹0',
+        lifetimeEarned: '₹0',
+        totalWithdrawn: '₹0',
+        completedProjects: 0,
+        recentPayouts: [],
       };
     } catch (err) {
       console.warn('[paymentService] Real earnings calculation fallback:', err.message);
@@ -118,6 +105,7 @@ export const paymentService = {
         availableBalance: '₹0',
         pendingEscrow: '₹0',
         lifetimeEarned: '₹0',
+        totalWithdrawn: '₹0',
         completedProjects: 0,
         recentPayouts: [],
       };

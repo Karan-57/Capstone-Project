@@ -1,9 +1,96 @@
 const projectModel = require('../model/project.model');
 const workspaceModel = require('../model/workspace.model');
+const applicationModel = require('../model/application.model');
+const deliveryModel = require('../model/delivery.model');
+const transactionModel = require('../model/transaction.model');
+const progressUpdateModel = require('../model/progressUpdate.model');
 const mongoose = require('mongoose');
 const { createNotification } = require('../services/notification.service');
 const { uploadToImageKit } = require('../services/imagekit.service');
 const { generateMilestonesForRole } = require('../constants/roles.constants');
+
+/**
+ * Helper to check whether a freelancer / editor has started work or received payments on a project.
+ * Checks transactions (both ESCROW_RELEASE and ESCROW_LOCK), deliveries, progress updates, and milestone submissions.
+ */
+async function checkMemberWorkStarted({ projectId, workspaceId, freelancerId, creatorId, hiring = null }) {
+    if (!freelancerId) return false;
+    const fIdStr = (freelancerId._id || freelancerId.id || freelancerId).toString();
+    const pIdStr = projectId ? projectId.toString() : '';
+    const wsIdStr = workspaceId ? workspaceId.toString() : '';
+
+    const workspaceIds = [];
+    if (projectId) workspaceIds.push(projectId);
+    if (workspaceId) workspaceIds.push(workspaceId);
+
+    try {
+        // 1. Check transactions: any ESCROW_RELEASE or ESCROW_LOCK for this project/workspace or to this freelancer
+        const txConditions = [
+            { referenceWorkspaceId: { $in: workspaceIds }, status: 'SUCCESS' },
+            { referenceWorkspaceId: pIdStr, status: 'SUCCESS' },
+            { toUser: new mongoose.Types.ObjectId(fIdStr), status: 'SUCCESS' }
+        ];
+        if (wsIdStr) {
+            txConditions.push({ referenceWorkspaceId: wsIdStr, status: 'SUCCESS' });
+        }
+        if (creatorId) {
+            txConditions.push({
+                fromUser: new mongoose.Types.ObjectId(creatorId.toString()),
+                toUser: new mongoose.Types.ObjectId(fIdStr),
+                status: 'SUCCESS'
+            });
+        }
+
+        const hasTransactions = await transactionModel.exists({
+            status: 'SUCCESS',
+            $or: txConditions
+        });
+        if (hasTransactions) return true;
+    } catch (txErr) {
+        console.warn('[checkMemberWorkStarted] Transaction check warning:', txErr.message);
+    }
+
+    try {
+        // 2. Check deliveries
+        const deliveryConditions = [
+            { projectId, status: { $ne: 'rejected' } }
+        ];
+        if (workspaceId) {
+            deliveryConditions.push({ workspaceId, status: { $ne: 'rejected' } });
+        }
+        const hasDeliveries = await deliveryModel.exists({ $or: deliveryConditions });
+        if (hasDeliveries) return true;
+    } catch (delErr) {
+        console.warn('[checkMemberWorkStarted] Delivery check warning:', delErr.message);
+    }
+
+    try {
+        // 3. Check progress updates
+        const progressConditions = [
+            { projectId }
+        ];
+        if (workspaceId) {
+            progressConditions.push({ workspaceId });
+        }
+        const hasProgress = await progressUpdateModel.exists({ $or: progressConditions });
+        if (hasProgress) return true;
+    } catch (progErr) {
+        console.warn('[checkMemberWorkStarted] Progress check warning:', progErr.message);
+    }
+
+    // 4. Check hiring milestones if provided
+    if (hiring && Array.isArray(hiring.milestones)) {
+        const hasMilestoneWork = hiring.milestones.some(m =>
+            m.status === 'submitted' ||
+            m.status === 'approved' ||
+            m.status === 'funded' ||
+            Boolean(m.submittedUrl && m.submittedUrl.trim())
+        );
+        if (hasMilestoneWork) return true;
+    }
+
+    return false;
+}
 
 /**
  * Helper to get all relevant recipients for a project excluding the actor
@@ -724,15 +811,327 @@ async function updateRoleMilestonesController(req, res) {
     }
 }
 
+/**
+ * @name getProjectByIdController
+ * @description Get comprehensive project details by ID with populated team members, hirings, and applications
+ * @route GET /api/creator/projects/:projectId
+ * @access Private (Creator)
+ */
+async function getProjectByIdController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        const { projectId } = req.params;
+
+        if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+            return res.status(400).json({ message: "Invalid project ID" });
+        }
+
+        const project = await projectModel.findOne({ _id: projectId, creatorId })
+            .populate('creatorId', 'name username profileImage email')
+            .populate('selectedEditorId', 'name username profileImage email rating role subRoles')
+            .populate('hirings.hiredFreelancerId', 'name username profileImage email role subRoles rating');
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found or unauthorized" });
+        }
+
+        // Auto-heal: If project does not have selectedEditorId set but has an accepted application
+        if (!project.selectedEditorId) {
+            try {
+                const acceptedApp = await applicationModel.findOne({ projectId: project._id, status: 'accepted' })
+                    .populate('editorId', 'name username profileImage email rating role subRoles');
+                if (acceptedApp && acceptedApp.editorId) {
+                    project.selectedEditorId = acceptedApp.editorId;
+                    if (project.status === 'open') {
+                        project.status = 'assigned';
+                    }
+                    await projectModel.updateOne(
+                        { _id: project._id },
+                        { selectedEditorId: acceptedApp.editorId._id, status: project.status }
+                    ).catch(() => {});
+                }
+            } catch (healErr) {
+                console.warn('[getProjectById] Auto-heal check notice:', healErr.message);
+            }
+        }
+
+        // Fetch associated workspace with members
+        let workspace = null;
+        try {
+            workspace = await workspaceModel.findOne({ projectId: project._id })
+                .populate('members.user', 'name username email profileImage rating role subRoles');
+        } catch (wsErr) {
+            console.warn('[getProjectById] Workspace fetch notice:', wsErr.message);
+        }
+
+        // Determine if lead editor has started work or received payments
+        let leadEditorHasStartedWork = false;
+        if (project.selectedEditorId) {
+            leadEditorHasStartedWork = await checkMemberWorkStarted({
+                projectId: project._id,
+                workspaceId: workspace?._id,
+                freelancerId: project.selectedEditorId,
+                creatorId
+            });
+        }
+
+        // Determine if each role hiring has started work
+        const roleWorkStarted = {};
+        if (Array.isArray(project.hirings)) {
+            for (const h of project.hirings) {
+                if (h.hiredFreelancerId) {
+                    const hStarted = await checkMemberWorkStarted({
+                        projectId: project._id,
+                        workspaceId: workspace?._id,
+                        freelancerId: h.hiredFreelancerId,
+                        creatorId,
+                        hiring: h
+                    });
+                    roleWorkStarted[h._id.toString()] = hStarted;
+                }
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            project,
+            workspace,
+            leadEditorHasStartedWork,
+            roleWorkStarted
+        });
+    } catch (err) {
+        console.error("Error in getProjectByIdController:", err);
+        return res.status(500).json({
+            message: "Internal server error while fetching project details",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name removeHiredMemberController
+ * @description Remove an approved team member (either from a role hiring or the lead assigned editor)
+ * ONLY if work has not started (no submissions/funding/releases yet).
+ * Doing so reopens the hiring position for other freelancers.
+ * @route POST /api/creator/projects/:projectId/hirings/:hiringId/remove-member
+ * @access Private (Creator)
+ */
+async function removeHiredMemberController(req, res) {
+    try {
+        const creatorId = req.user?._id || req.user?.id;
+        const { projectId, hiringId } = req.params;
+
+        if (!creatorId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        if (!projectId || !hiringId) {
+            return res.status(400).json({ message: "Project ID and hiring ID are required" });
+        }
+
+        const project = await projectModel.findOne({ _id: projectId, creatorId })
+            .populate('hirings.hiredFreelancerId', 'name username email')
+            .populate('selectedEditorId', 'name username email');
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found or unauthorized" });
+        }
+
+        // Case 1: Member is the lead assigned editor (selectedEditorId)
+        const isRemovingSelectedEditor =
+            hiringId === 'selected_editor' ||
+            hiringId === 'lead' ||
+            (project.selectedEditorId && (project.selectedEditorId._id || project.selectedEditorId).toString() === hiringId.toString());
+
+        if (isRemovingSelectedEditor && project.selectedEditorId) {
+            const removedEditor = project.selectedEditorId;
+            const removedEditorId = removedEditor?._id || removedEditor?.id || removedEditor;
+
+            // Thorough check: check transactions, deliveries, and progress updates
+            const workspace = await workspaceModel.findOne({ projectId: project._id });
+            const hasStarted = await checkMemberWorkStarted({
+                projectId: project._id,
+                workspaceId: workspace?._id,
+                freelancerId: removedEditorId,
+                creatorId
+            });
+
+            if (hasStarted) {
+                return res.status(400).json({
+                    message: "Cannot remove editor: Milestone deliverables or escrow payments have already commenced for this member."
+                });
+            }
+
+            project.selectedEditorId = null;
+            if (project.status === 'assigned') {
+                project.status = 'open';
+            }
+            await project.save();
+
+            // Reset accepted application so other applications can be reviewed
+            try {
+                await applicationModel.updateMany(
+                    { projectId: project._id, editorId: removedEditorId, status: 'accepted' },
+                    { status: 'rejected' }
+                );
+            } catch (appErr) {
+                console.warn('[removeHiredMember] Application reset notice:', appErr.message);
+            }
+
+            // Workspace cleanup
+            try {
+                if (workspace) {
+                    if (Array.isArray(workspace.members)) {
+                        workspace.members = workspace.members.filter(m => {
+                            const mUid = m?.user?._id || m?.user || m;
+                            return mUid.toString() !== removedEditorId.toString();
+                        });
+                    }
+                    if (workspace.editorId && workspace.editorId.toString() === removedEditorId.toString()) {
+                        workspace.editorId = null;
+                    }
+                    await workspace.save();
+                }
+            } catch (wsErr) {
+                console.warn('[removeHiredMember] Workspace cleanup notice:', wsErr.message);
+            }
+
+            // Notification
+            try {
+                await createNotification({
+                    recipient: removedEditorId,
+                    type: 'PROJECT_UPDATED',
+                    title: 'Project Assignment Updated',
+                    message: `You were unassigned from "${project.title}". The position has been reopened for other editors.`,
+                    project: project._id,
+                    relatedUser: creatorId
+                });
+            } catch (notifErr) {
+                console.warn('[removeHiredMember] Notification notice:', notifErr.message);
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: `Removed ${removedEditor.name || 'Lead Video Editor'}. Project is now open again for applications!`,
+                project
+            });
+        }
+
+        // Case 2: Member is in project.hirings
+        const hiring = (project.hirings || []).find(h => h._id.toString() === hiringId.toString());
+        if (!hiring) {
+            return res.status(404).json({ message: "Hiring position not found" });
+        }
+
+        if (!hiring.hiredFreelancerId && hiring.status !== 'hired') {
+            return res.status(400).json({ message: "No approved freelancer assigned to this role" });
+        }
+
+        const removedFreelancer = hiring.hiredFreelancerId;
+        const removedFreelancerId = removedFreelancer?._id || removedFreelancer?.id || removedFreelancer;
+
+        // Restriction: Creator can only remove a member if they have just been approved and haven't started work yet
+        const workspace = await workspaceModel.findOne({ projectId: project._id });
+        const hasStarted = await checkMemberWorkStarted({
+            projectId: project._id,
+            workspaceId: workspace?._id,
+            freelancerId: removedFreelancerId,
+            creatorId,
+            hiring
+        });
+
+        if (hasStarted) {
+            return res.status(400).json({
+                message: "Cannot remove freelancer: Work, milestone deliverables, or escrow payments have already commenced for this role."
+            });
+        }
+
+        // Reset hiring position back to 'open'
+        hiring.status = 'open';
+        hiring.hiredFreelancerId = null;
+        hiring.hiredAt = null;
+
+        // Reset milestone statuses back to pending
+        if (Array.isArray(hiring.milestones)) {
+            hiring.milestones = hiring.milestones.map(m => ({
+                ...m,
+                status: 'pending',
+                submittedUrl: '',
+                submissionNotes: ''
+            }));
+        }
+
+        // If the project had selectedEditorId pointing to this freelancer, reset it
+        if (removedFreelancerId && project.selectedEditorId && (project.selectedEditorId._id || project.selectedEditorId).toString() === removedFreelancerId.toString()) {
+            project.selectedEditorId = null;
+            if (project.status === 'assigned') {
+                project.status = 'open';
+            }
+        }
+
+        await project.save();
+
+        // Also clean up member from workspace if workspace exists
+        if (removedFreelancerId) {
+            try {
+                const workspace = await workspaceModel.findOne({ projectId: project._id });
+                if (workspace) {
+                    if (Array.isArray(workspace.members)) {
+                        workspace.members = workspace.members.filter(m => {
+                            const mUid = m?.user?._id || m?.user || m;
+                            return mUid.toString() !== removedFreelancerId.toString();
+                        });
+                    }
+                    if (workspace.editorId && workspace.editorId.toString() === removedFreelancerId.toString()) {
+                        workspace.editorId = null;
+                    }
+                    await workspace.save();
+                }
+            } catch (wsErr) {
+                console.warn('[removeHiredMember] Workspace cleanup notice:', wsErr.message);
+            }
+
+            // Notify the freelancer that the role has been reopened
+            try {
+                await createNotification({
+                    recipient: removedFreelancerId,
+                    type: 'PROJECT_UPDATED',
+                    title: 'Role Assignment Updated',
+                    message: `You were unassigned from the role "${hiring.roleTitle}" on "${project.title}". The position has been reopened.`,
+                    project: project._id,
+                    relatedUser: creatorId
+                });
+            } catch (notifErr) {
+                console.warn('[removeHiredMember] Notification notice:', notifErr.message);
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `Removed ${removedFreelancer?.name || 'freelancer'} from "${hiring.roleTitle}". Hiring opening is now live again!`,
+            hiring,
+            project
+        });
+    } catch (err) {
+        console.error("Error in removeHiredMemberController:", err);
+        return res.status(500).json({
+            message: "Internal server error while removing member",
+            error: err.message
+        });
+    }
+}
+
 module.exports = {
     createProjectController,
     uploadReferenceImagesController,
     getMyProjectsController,
+    getProjectByIdController,
     updateProjectController,
     deleteProjectController,
     cancelProjectController,
     addProjectHiringController,
     getProjectHiringsController,
     deleteProjectHiringController,
-    updateRoleMilestonesController
+    updateRoleMilestonesController,
+    removeHiredMemberController
 };

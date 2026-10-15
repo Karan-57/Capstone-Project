@@ -312,7 +312,10 @@ export const Payments = () => {
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                   <User className="w-4 h-4 text-purple-400" />
-                  Assigned Team Members & Roles ({Array.isArray(selectedProject.hirings) ? selectedProject.hirings.length : (selectedProject.assignedEditor ? 1 : 0)})
+                  Assigned Team Members & Roles ({
+                    (Array.isArray(selectedProject.hirings) ? selectedProject.hirings.length : 0) +
+                    (selectedProject.assignedEditor && (!Array.isArray(selectedProject.hirings) || !selectedProject.hirings.some(h => (h.hiredFreelancerId?._id || h.hiredFreelancerId)?.toString() === (selectedProject.assignedEditor.id || selectedProject.assignedEditor._id)?.toString())) ? 1 : 0)
+                  })
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Click on any team member to open their dedicated milestone escrow pipeline.
@@ -320,155 +323,164 @@ export const Payments = () => {
               </div>
             </div>
 
-            {Array.isArray(selectedProject.hirings) && selectedProject.hirings.length > 0 ? (
-              <div className="grid grid-cols-1 gap-3">
-                {selectedProject.hirings.map((hiring, hIdx) => {
-                  const freelancer = hiring.hiredFreelancerId;
-                  const hasHired = Boolean(freelancer);
-                  const hiringBudgetNum = Number(hiring.budget || 0);
+            {(() => {
+              const hiringsList = Array.isArray(selectedProject.hirings) ? selectedProject.hirings : [];
+              const assignedEditor = selectedProject.assignedEditor;
+              const isEditorInHirings = assignedEditor && hiringsList.some((h) => {
+                const fid = h.hiredFreelancerId?._id || h.hiredFreelancerId?.id || h.hiredFreelancerId;
+                return fid && fid.toString() === (assignedEditor.id || assignedEditor._id || '').toString();
+              });
 
-                  return (
-                    <div
-                      key={hiring._id || hIdx}
-                      onClick={() => {
-                        if (hasHired) {
-                          handleSelectMember(hiring, freelancer);
-                        } else {
-                          navigate(`/creator/create-project?step=2&projectId=${selectedProject.id}`);
-                        }
-                      }}
-                      className="p-5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/50 hover:bg-[#12182B] transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg hover:shadow-purple-950/20"
+              const combinedMembers = [
+                ...hiringsList.map((hiring, hIdx) => ({
+                  key: hiring._id || `hiring_${hIdx}`,
+                  hiring,
+                  freelancer: hiring.hiredFreelancerId,
+                  hasHired: Boolean(hiring.hiredFreelancerId),
+                  budget: Number(hiring.budget || 0),
+                  title: hiring.roleTitle,
+                  description: hiring.description || `Responsible for ${hiring.roleTitle} deliverables.`,
+                  deadline: hiring.firstDeadline,
+                  isLead: false,
+                })),
+                ...(!isEditorInHirings && assignedEditor
+                  ? [
+                      {
+                        key: 'lead_editor',
+                        hiring: null,
+                        freelancer: {
+                          _id: assignedEditor.id || assignedEditor._id,
+                          id: assignedEditor.id || assignedEditor._id,
+                          name: assignedEditor.name,
+                          avatar: assignedEditor.avatar || assignedEditor.profileImage,
+                          profileImage: assignedEditor.avatar || assignedEditor.profileImage,
+                        },
+                        hasHired: true,
+                        budget:
+                          selectedProject.totalBudget ||
+                          (typeof selectedProject.rawBudget === 'number'
+                            ? selectedProject.rawBudget
+                            : selectedProject.rawBudget?.fixed
+                            ? selectedProject.rawBudget.fixed
+                            : 0),
+                        title: 'Lead Video Editor',
+                        description: 'Primary video production and editing lead.',
+                        deadline: null,
+                        isLead: true,
+                      },
+                    ]
+                  : []),
+              ];
+
+              if (combinedMembers.length === 0) {
+                return (
+                  <div className="p-8 text-center space-y-2 border border-dashed border-white/10 rounded-2xl">
+                    <p className="text-xs text-slate-400">
+                      No team members hired for this project yet.
+                    </p>
+                    <button
+                      onClick={() => navigate(`/creator/create-project?step=2&projectId=${selectedProject.id}`)}
+                      className="text-xs text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
                     >
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        {hasHired ? (
-                          <img
-                            src={freelancer.profileImage || DEFAULT_PFP}
-                            alt={freelancer.name || 'Team member'}
-                            onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                            className="w-12 h-12 rounded-2xl object-cover border-2 border-purple-500/40 shrink-0"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-2xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center shrink-0">
-                            <User className="w-6 h-6 text-purple-400" />
-                          </div>
-                        )}
+                      Post a Hiring Role →
+                    </button>
+                  </div>
+                );
+              }
 
-                        <div className="min-w-0 space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-purple-300 transition-colors truncate">
-                              {hasHired ? (freelancer.name || freelancer.username) : 'Position Open / Unassigned'}
-                            </h4>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-950/60 text-purple-300 border border-purple-800/40">
-                              {hiring.roleTitle}
-                            </span>
-                            {hasHired && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
-                                Active Team Member
+              return (
+                <div className="grid grid-cols-1 gap-3">
+                  {combinedMembers.map((item) => {
+                    const freelancer = item.freelancer;
+                    const hasHired = item.hasHired;
+                    const hiringBudgetNum = item.budget;
+
+                    return (
+                      <div
+                        key={item.key}
+                        onClick={() => {
+                          if (hasHired) {
+                            handleSelectMember(item.hiring, freelancer);
+                          } else {
+                            navigate(`/creator/create-project?step=2&projectId=${selectedProject.id}`);
+                          }
+                        }}
+                        className="p-5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/50 hover:bg-[#12182B] transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg hover:shadow-purple-950/20"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          {hasHired ? (
+                            <img
+                              src={freelancer.profileImage || freelancer.avatar || DEFAULT_PFP}
+                              alt={freelancer.name || 'Team member'}
+                              onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
+                              className="w-12 h-12 rounded-2xl object-cover border-2 border-purple-500/40 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-2xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center shrink-0">
+                              <User className="w-6 h-6 text-purple-400" />
+                            </div>
+                          )}
+
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                                {hasHired ? (freelancer.name || freelancer.username) : 'Position Open / Unassigned'}
+                              </h4>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-950/60 text-purple-300 border border-purple-800/40">
+                                {item.title}
                               </span>
+                              {hasHired && (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
+                                  Active Team Member
+                                </span>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-slate-400 line-clamp-1">
+                              {item.description}
+                            </p>
+
+                            {item.deadline && (
+                              <div className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-0.5">
+                                <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                                <span>Milestone Deadline: {new Date(item.deadline).toLocaleDateString()}</span>
+                              </div>
                             )}
                           </div>
+                        </div>
 
-                          <p className="text-xs text-slate-400 line-clamp-1">
-                            {hiring.description || `Responsible for ${hiring.roleTitle} deliverables.`}
-                          </p>
+                        <div className="flex items-center justify-between sm:justify-end gap-5 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/[0.06]">
+                          <div className="text-left sm:text-right">
+                            <span className="text-[10px] text-slate-400 uppercase font-mono block">Allocated Budget</span>
+                            <span className="text-base font-extrabold text-emerald-400 font-mono">
+                              ₹{hiringBudgetNum.toLocaleString()}
+                            </span>
+                          </div>
 
-                          {hiring.firstDeadline && (
-                            <div className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-0.5">
-                              <Calendar className="w-3.5 h-3.5 text-amber-400" />
-                              <span>Milestone Deadline: {new Date(hiring.firstDeadline).toLocaleDateString()}</span>
-                            </div>
+                          {hasHired ? (
+                            <button
+                              type="button"
+                              className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 group-hover:bg-emerald-600 text-emerald-300 group-hover:text-white border border-emerald-500/40 group-hover:border-emerald-500 transition-all flex items-center gap-1.5 shrink-0"
+                            >
+                              <span>Open Escrow</span>
+                              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600/20 group-hover:bg-purple-600 text-purple-300 group-hover:text-white border border-purple-500/40 group-hover:border-purple-500 transition-all flex items-center gap-1.5 shrink-0"
+                            >
+                              <span>Review Hiring</span>
+                              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                            </button>
                           )}
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between sm:justify-end gap-5 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/[0.06]">
-                        <div className="text-left sm:text-right">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono block">Allocated Budget</span>
-                          <span className="text-base font-extrabold text-emerald-400 font-mono">
-                            ₹{hiringBudgetNum.toLocaleString()}
-                          </span>
-                        </div>
-
-                        {hasHired ? (
-                          <button
-                            type="button"
-                            className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 group-hover:bg-emerald-600 text-emerald-300 group-hover:text-white border border-emerald-500/40 group-hover:border-emerald-500 transition-all flex items-center gap-1.5 shrink-0"
-                          >
-                            <span>Open Escrow</span>
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600/20 group-hover:bg-purple-600 text-purple-300 group-hover:text-white border border-purple-500/40 group-hover:border-purple-500 transition-all flex items-center gap-1.5 shrink-0"
-                          >
-                            <span>Review Hiring</span>
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : selectedProject.assignedEditor ? (
-              /* Fallback for projects with single lead editor */
-              <div
-                onClick={() => handleSelectMember(null, selectedProject.assignedEditor)}
-                className="p-5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/50 hover:bg-[#12182B] transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3.5">
-                  <img
-                    src={selectedProject.assignedEditor.avatar || DEFAULT_PFP}
-                    alt={selectedProject.assignedEditor.name}
-                    className="w-12 h-12 rounded-2xl object-cover border-2 border-purple-500/40 shrink-0"
-                  />
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-base font-bold text-white group-hover:text-purple-300">
-                        {selectedProject.assignedEditor.name}
-                      </h4>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-950/60 text-purple-300 border border-purple-800/40">
-                        Lead Video Editor
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400">
-                      Primary video production and editing lead.
-                    </p>
-                  </div>
+                    );
+                  })}
                 </div>
-
-                <div className="flex items-center justify-between sm:justify-end gap-5 shrink-0">
-                  <div className="text-right">
-                    <span className="text-[10px] text-slate-400 uppercase font-mono block">Budget</span>
-                    <span className="text-base font-extrabold text-emerald-400 font-mono">
-                      {selectedProject.budget}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 group-hover:bg-emerald-600 text-emerald-300 group-hover:text-white border border-emerald-500/40 transition-all flex items-center gap-1.5"
-                  >
-                    <span>Open Escrow</span>
-                    <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-8 text-center space-y-2 border border-dashed border-white/10 rounded-2xl">
-                <p className="text-xs text-slate-400">
-                  No team members hired for this project yet.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => navigate(`/creator/create-project?step=2&projectId=${selectedProject.id}`)}
-                  className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all inline-flex items-center gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Post Hiring Opening</span>
-                </button>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       ) : (

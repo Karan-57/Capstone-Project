@@ -49,7 +49,9 @@ async function applyToProjectController(req, res) {
         }
 
         // 6. Validate application body fields
-        const { proposal, bidAmount, estimatedDeliveryDays } = req.body;
+        const { proposal, bidAmount, estimatedDeliveryDays, roleId, roleTitle, hiringId } = req.body;
+        const targetRoleId = roleId || 'video_editor';
+        const targetRoleTitle = roleTitle || 'Video Editor';
 
         if (!proposal || proposal.trim() === '') {
             return res.status(400).json({ message: "Proposal is required" });
@@ -59,19 +61,45 @@ async function applyToProjectController(req, res) {
             return res.status(400).json({ message: "Valid bid amount is required and must be greater than 0" });
         }
 
+        // Validate that bidAmount does not exceed the role or project budget ceiling
+        let maxAllowedBudget = null;
+        if (Array.isArray(project.hirings) && project.hirings.length > 0) {
+            const matchedHiring = project.hirings.find(h => 
+                (hiringId && String(h._id) === String(hiringId)) || 
+                (h.roleId === targetRoleId)
+            );
+            if (matchedHiring && matchedHiring.budget) {
+                maxAllowedBudget = Number(matchedHiring.budget);
+            }
+        }
+        if (!maxAllowedBudget) {
+            if (typeof project.budget === 'number') {
+                maxAllowedBudget = project.budget;
+            } else if (project.budget?.amount || project.budget?.max || project.budget?.fixed) {
+                maxAllowedBudget = Number(project.budget.amount || project.budget.max || project.budget.fixed);
+            }
+        }
+
+        if (maxAllowedBudget && maxAllowedBudget > 0 && Number(bidAmount) > maxAllowedBudget) {
+            return res.status(400).json({
+                message: `Bid amount (₹${Number(bidAmount).toLocaleString('en-IN')}) cannot exceed the allocated role budget of ₹${maxAllowedBudget.toLocaleString('en-IN')}`
+            });
+        }
+
         if (estimatedDeliveryDays === undefined || estimatedDeliveryDays === null || isNaN(Number(estimatedDeliveryDays)) || Number(estimatedDeliveryDays) <= 0) {
             return res.status(400).json({ message: "Valid estimated delivery days is required and must be greater than 0" });
         }
 
-        // 7. Check if editor has already applied
+        // 7. Check if editor has already applied for this role
         const existingApplication = await applicationModel.findOne({
             projectId,
-            editorId
+            editorId,
+            roleId: targetRoleId,
         });
 
         if (existingApplication) {
             return res.status(409).json({
-                message: "You have already submitted an application for this project",
+                message: `You have already submitted an application for the "${targetRoleTitle}" role on this project`,
                 applicationId: existingApplication._id
             });
         }
@@ -80,6 +108,9 @@ async function applyToProjectController(req, res) {
         const application = await applicationModel.create({
             projectId,
             editorId,
+            roleId: targetRoleId,
+            roleTitle: targetRoleTitle,
+            hiringId: hiringId && mongoose.Types.ObjectId.isValid(hiringId) ? hiringId : null,
             proposal: proposal.trim(),
             bidAmount: Number(bidAmount),
             estimatedDeliveryDays: Number(estimatedDeliveryDays),
@@ -92,7 +123,7 @@ async function applyToProjectController(req, res) {
             recipient: project.creatorId,
             type: 'NEW_APPLICATION',
             title: 'New Application Received',
-            message: `${req.user?.name || 'An editor'} applied to your project "${project.title}"${bidNote}.`,
+            message: `${req.user?.name || 'A freelancer'} applied for "${targetRoleTitle}" on your project "${project.title}"${bidNote}.`,
             project: project._id,
             relatedUser: editorId
         }).catch(err => console.error("[Notification] Error:", err.message));
@@ -209,7 +240,7 @@ async function getMyApplicationsController(req, res) {
                 .find(filter)
                 .populate({
                     path: 'projectId',
-                    select: 'title description category budget deadline status creatorId',
+                    select: 'title description category budget deadline status creatorId hirings',
                     populate: {
                         path: 'creatorId',
                         select: 'name username profileImage rating'

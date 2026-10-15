@@ -51,6 +51,13 @@ export const BrowseProjects = () => {
       showAlert('Please enter a valid bid amount greater than 0.', 'warning');
       return;
     }
+
+    const maxBudget = proposalModal?.rawBudget || (typeof proposalModal?.budget === 'number' ? proposalModal.budget : parseInt(String(proposalModal?.budget || '').replace(/[^0-9]/g, ''), 10)) || null;
+    if (maxBudget && parsedBid > maxBudget) {
+      showAlert(`Your bid (₹${parsedBid.toLocaleString('en-IN')}) cannot exceed the client's role budget of ₹${maxBudget.toLocaleString('en-IN')}.`, 'error');
+      return;
+    }
+
     const parsedDays = parseInt(String(estimatedDays).replace(/[^0-9]/g, ''), 10);
     if (!parsedDays || parsedDays <= 0) {
       showAlert('Please enter valid estimated delivery days.', 'warning');
@@ -58,12 +65,15 @@ export const BrowseProjects = () => {
     }
 
     try {
-      await api.post(`/api/application/${proposalModal.id}/apply`, {
+      await api.post(`/api/application/${proposalModal.projectId || proposalModal.id}/apply`, {
         proposal: bidCover.trim(),
         bidAmount: parsedBid,
         estimatedDeliveryDays: parsedDays,
+        roleId: proposalModal.roleId,
+        roleTitle: proposalModal.roleTitle,
+        hiringId: proposalModal.hiringId,
       });
-      showAlert(`Proposal successfully submitted for ${proposalModal.title}!`, 'success');
+      showAlert(`Proposal successfully submitted for ${proposalModal.roleTitle || proposalModal.title}!`, 'success');
       setProposalModal(null);
       setBidAmount('');
       setBidCover('');
@@ -76,19 +86,27 @@ export const BrowseProjects = () => {
   const handleAiSuggestBid = async () => {
     if (!proposalModal) return;
     setIsAiSuggestingBid(true);
+    const roleBudgetNum = proposalModal.rawBudget || (typeof proposalModal.budget === 'number' ? proposalModal.budget : parseInt(String(proposalModal.budget).replace(/[^0-9]/g, ''), 10)) || null;
+
     try {
-      const res = await api.post(`/api/ai/suggest-editor-bid/${proposalModal.id}`, {
+      const res = await api.post(`/api/ai/suggest-editor-bid/${proposalModal.projectId || proposalModal.id}`, {
+        hiringId: proposalModal.hiringId,
+        roleId: proposalModal.roleId,
+        roleBudget: roleBudgetNum,
         project: {
-          title: proposalModal.title,
+          title: proposalModal.roleTitle ? `${proposalModal.roleTitle} (${proposalModal.projectTitle})` : proposalModal.title,
           category: proposalModal.category || (proposalModal.tags && proposalModal.tags[0]) || 'Video',
-          budget: proposalModal.budget,
+          budget: roleBudgetNum || proposalModal.budget,
           timeline: proposalModal.deadline
         }
       });
       const data = res.data?.data;
       if (data) {
         if (data.suggestedBidAmount) {
-          setBidAmount(String(data.suggestedBidAmount));
+          const finalBid = roleBudgetNum && Number(data.suggestedBidAmount) > roleBudgetNum
+            ? roleBudgetNum
+            : Number(data.suggestedBidAmount);
+          setBidAmount(String(finalBid));
         }
         if (data.suggestedDeliveryDays) {
           setEstimatedDays(String(data.suggestedDeliveryDays));
@@ -112,14 +130,14 @@ export const BrowseProjects = () => {
   return (
     <div className="space-y-6">
       <SEO
-        title="Browse Video Gigs"
-        description="Discover active creator editing briefs, submit bids with custom turnaround times, and get hired."
+        title="Browse Video Gigs & Roles"
+        description="Discover active creator roles, submit bids with custom turnaround times, and get hired."
       />
 
       <div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Browse Open Creator Gigs</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight">Browse Open Roles & Gigs</h2>
         <p className="text-xs text-slate-400 mt-0.5">
-          Discover active editing briefs, submit bids with custom turnaround times, and get hired
+          Discover active roles posted by creators (Video Editors, Thumbnail Designers, Colorists), submit bids, and get hired
         </p>
       </div>
 
@@ -145,7 +163,7 @@ export const BrowseProjects = () => {
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search gigs by title or creator..."
+            placeholder="Search roles by title or creator..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-[#0F1420] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-purple-500 transition-colors"
@@ -182,7 +200,19 @@ export const BrowseProjects = () => {
                       className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0 mt-0.5"
                     />
                     <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-white leading-snug truncate">{gig.title || 'unknown'}</h3>
+                      <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          {gig.roleTitle || 'Freelance Role'}
+                        </span>
+                        {gig.projectTitle && gig.projectTitle !== gig.roleTitle && (
+                          <span className="text-[11px] text-slate-400 font-medium truncate">
+                            in <strong className="text-slate-300">{gig.projectTitle}</strong>
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="text-sm font-bold text-white leading-snug truncate">
+                        {gig.roleTitle || gig.title}
+                      </h3>
                       <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <span className="truncate">{gig.creator || 'unknown'}</span>
                         <CheckCircle className="w-3 h-3 text-purple-400 shrink-0" />
@@ -195,12 +225,18 @@ export const BrowseProjects = () => {
                   </div>
 
                   <div className="text-left sm:text-right shrink-0">
-                    <div className="text-base font-bold text-white">{gig.budget || '999'}</div>
-                    <div className="text-[11px] text-slate-400 font-mono">
-                      {gig.proposalsCount === 999 ? 'Open' : `${gig.proposalsCount} proposals`}
+                    <div className="text-base font-bold text-white font-mono">{gig.budget || '999'}</div>
+                    <div className="text-[11px] text-emerald-400 font-medium">
+                      Budget Allocated
                     </div>
                   </div>
                 </div>
+
+                {gig.description && (
+                  <p className="text-xs text-slate-300/90 line-clamp-2 my-2.5 leading-relaxed">
+                    {gig.description}
+                  </p>
+                )}
 
                 <div className="flex items-center gap-1.5 flex-wrap my-3">
                   {(gig.tags || []).map((tag, idx) => (
@@ -216,15 +252,18 @@ export const BrowseProjects = () => {
 
               <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between gap-2 flex-wrap">
                 <span className="text-[11px] text-slate-400 font-medium">
-                  Difficulty: <strong className="text-slate-300">{gig.difficulty || 'unknown'}</strong>
+                  Difficulty: <strong className="text-slate-300">{gig.difficulty || 'Intermediate'}</strong>
                 </span>
 
                 <Button
                   variant="primary"
                   size="xs"
-                  onClick={() => setProposalModal(gig)}
+                  onClick={() => {
+                    setProposalModal(gig);
+                    setBidAmount(gig.rawBudget ? String(gig.rawBudget) : '');
+                  }}
                 >
-                  Apply Now
+                  Apply for this Role
                 </Button>
               </div>
             </div>
@@ -238,8 +277,12 @@ export const BrowseProjects = () => {
           <div className="w-full max-w-lg glass-card p-5 sm:p-6 border border-white/[0.1] shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between gap-3 mb-2">
               <div>
-                <h3 className="text-lg font-bold text-white">Submit Application</h3>
-                <p className="text-xs text-purple-300 mt-0.5">{proposalModal.title}</p>
+                <h3 className="text-lg font-bold text-white">
+                  Apply for {proposalModal.roleTitle || proposalModal.title}
+                </h3>
+                <p className="text-xs text-purple-300 mt-0.5">
+                  Project: <span className="font-semibold text-white">{proposalModal.projectTitle || proposalModal.title}</span> • Client: {proposalModal.creator}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -261,19 +304,46 @@ export const BrowseProjects = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSendProposal} className="space-y-4 mt-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-slate-300 block mb-1">Bid Amount (INR)</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 20000"
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
-                  />
-                </div>
+            {(() => {
+              const maxBudget = proposalModal?.rawBudget || (typeof proposalModal?.budget === 'number' ? proposalModal.budget : parseInt(String(proposalModal?.budget || '').replace(/[^0-9]/g, ''), 10)) || null;
+              const numericBid = parseInt(String(bidAmount).replace(/[^0-9]/g, ''), 10);
+              const isOverBudget = maxBudget && numericBid > maxBudget;
+
+              return (
+                <form onSubmit={handleSendProposal} className="space-y-4 mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs text-slate-300 block">Bid Amount (INR)</label>
+                        {maxBudget && (
+                          <span className="text-[11px] text-purple-400 font-medium">
+                            Max: ₹{maxBudget.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="number"
+                        min="1"
+                        max={maxBudget || undefined}
+                        required
+                        placeholder={maxBudget ? `Max ₹${maxBudget}` : 'e.g. 20000'}
+                        value={bidAmount}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setBidAmount(val);
+                        }}
+                        className={`w-full px-3 py-2 rounded-xl bg-[#141A28] border text-sm text-white focus:outline-none transition-colors ${
+                          isOverBudget
+                            ? 'border-red-500/80 focus:border-red-500'
+                            : 'border-white/[0.08] focus:border-purple-500'
+                        }`}
+                      />
+                      {isOverBudget && (
+                        <p className="text-[11px] text-red-400 mt-1 font-medium">
+                          Cannot bid more than the role budget (₹{maxBudget.toLocaleString('en-IN')})
+                        </p>
+                      )}
+                    </div>
                 <div>
                   <label className="text-xs text-slate-300 block mb-1">Delivery Time (Days)</label>
                   <input
@@ -311,11 +381,14 @@ export const BrowseProjects = () => {
                   variant="primary"
                   icon={Send}
                   className="w-full sm:w-auto"
+                  disabled={isOverBudget}
                 >
                   Submit Application
                 </Button>
               </div>
             </form>
+              );
+            })()}
           </div>
         </div>
       )}

@@ -39,6 +39,7 @@ const ResetPassword = lazy(() => import('../pages/auth/ResetPassword'));
 // Lazy-loaded Creator Pages
 const CreatorDashboard = lazy(() => import('../pages/creator/Dashboard'));
 const CreatorProjects = lazy(() => import('../pages/creator/Projects'));
+const ProjectDetails = lazy(() => import('../pages/creator/ProjectDetails'));
 const CreateProject = lazy(() => import('../pages/creator/CreateProject'));
 const CreatorApplications = lazy(() => import('../pages/creator/Applications'));
 const CreatorAnalytics = lazy(() => import('../pages/creator/Analytics'));
@@ -101,6 +102,7 @@ export const AppRoutes = () => {
             <Route index element={<Navigate to="/creator/dashboard" replace />} />
             <Route path="dashboard" element={<CreatorDashboard />} />
             <Route path="projects" element={<CreatorProjects />} />
+            <Route path="projects/:projectId" element={<ProjectDetails />} />
             <Route path="create-project" element={<CreateProject />} />
             <Route path="applications" element={<CreatorApplications />} />
             <Route path="workspace" element={<Workspace role="creator" />} />
