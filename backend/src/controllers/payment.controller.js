@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const Razorpay = require('razorpay');
@@ -120,7 +121,7 @@ async function verifyPayment(req, res) {
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
       { $inc: { walletBalance: creditsToAdd } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     // Create immutable Transaction record
@@ -173,7 +174,7 @@ async function demoTopup(req, res) {
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
       { $inc: { walletBalance: creditsToAdd } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     const transaction = await transactionModel.create({
@@ -464,7 +465,7 @@ async function lockEscrow(req, res) {
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
       { $inc: { walletBalance: -numericAmount } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     const title = milestoneTitle || 'Milestone Escrow Deposit';
@@ -574,7 +575,7 @@ async function releaseEscrow(req, res) {
     const updatedEditor = await userModel.findByIdAndUpdate(
       editorId,
       { $inc: { walletBalance: numericAmount } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     const title = milestoneTitle || 'Approved Milestone Cut';
@@ -643,7 +644,7 @@ async function releaseEscrowInternal({ creatorId, editorId, amount, workspaceId,
     const updatedEditor = await userModel.findByIdAndUpdate(
       editorId,
       { $inc: { walletBalance: numericAmount } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     const title = milestoneTitle || 'Final Delivery Cut Approval';
@@ -726,7 +727,7 @@ async function withdrawCredits(req, res) {
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
       { $inc: { walletBalance: -numericAmount } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     const utr = `UTR_${Date.now()}_${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
