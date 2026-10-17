@@ -6,6 +6,7 @@ import { useAlert } from '../../context/AlertContext';
 import { useWallet } from '../../context/WalletContext';
 import { useAuth } from '../../context/AuthContext';
 import { WithdrawModal } from '../../components/wallet/WithdrawModal';
+import { PaymentsSkeleton } from '../../components/common/Skeleton';
 import SEO from '../../components/common/SEO';
 
 export const Earnings = () => {
@@ -18,6 +19,7 @@ export const Earnings = () => {
     totalWithdrawn = 0,
     transactions = [],
     refreshWallet,
+    isWalletLoading = false,
   } = useWallet();
   const { isAuthenticated, isAuthLoading } = useAuth();
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -27,6 +29,10 @@ export const Earnings = () => {
       refreshWallet();
     }
   }, [isAuthenticated, isAuthLoading, refreshWallet]);
+
+  if (isWalletLoading && transactions.length === 0) {
+    return <PaymentsSkeleton />;
+  }
 
   // Filter relevant payout and withdrawal ledger transactions
   const payoutTransactions = transactions.filter(

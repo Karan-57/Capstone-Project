@@ -538,19 +538,33 @@ async function acceptApplicationController(req, res) {
         }
 
         // If this application belongs to a specific role hiring in the project, mark that role hired
-        if (application.hiringId && Array.isArray(project.hirings)) {
-            const hiring = project.hirings.find(h => h._id.toString() === application.hiringId.toString());
+        if (Array.isArray(project.hirings)) {
+            let hiring = null;
+            if (application.hiringId) {
+                hiring = project.hirings.find(h => h._id.toString() === application.hiringId.toString());
+            }
+            if (!hiring && application.roleId) {
+                hiring = project.hirings.find(h => h.roleId === application.roleId && h.status === 'open');
+            }
+            if (!hiring && project.hirings.length === 1 && project.hirings[0].status === 'open') {
+                hiring = project.hirings[0];
+            }
             if (hiring) {
                 hiring.hiredFreelancerId = application.editorId;
                 hiring.status = 'hired';
                 hiring.budget = agreedAmount;
                 hiring.hiredAt = new Date();
+                if (!application.hiringId) {
+                    application.hiringId = hiring._id;
+                    await application.save();
+                }
             }
         }
         await project.save();
 
         // Ensure workspace exists and add editor as an active member
         let workspace = await workspaceModel.findOne({ projectId: project._id });
+        const memberRole = application.roleTitle || 'editor';
         if (!workspace) {
             workspace = await workspaceModel.create({
                 projectId: project._id,
@@ -559,7 +573,7 @@ async function acceptApplicationController(req, res) {
                 status: 'active',
                 members: [
                     { user: project.creatorId, projectRole: 'creator', status: 'active' },
-                    { user: application.editorId, projectRole: 'lead_editor', status: 'active' }
+                    { user: application.editorId, projectRole: memberRole, status: 'active' }
                 ]
             });
         } else {
@@ -572,10 +586,11 @@ async function acceptApplicationController(req, res) {
 
             if (existingMember) {
                 existingMember.status = 'active';
+                existingMember.projectRole = memberRole;
             } else {
                 workspace.members.push({
                     user: application.editorId,
-                    projectRole: 'editor',
+                    projectRole: memberRole,
                     status: 'active'
                 });
             }

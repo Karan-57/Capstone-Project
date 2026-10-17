@@ -219,21 +219,405 @@ async function searchUsersController(req, res) {
         }
 
         const query = q.trim();
-
-        const users = await userModel.find({
+        const filter = {
             $or: [
                 { username: { $regex: query, $options: 'i' } },
                 { name: { $regex: query, $options: 'i' } }
             ]
-        })
-        .select('name username profileImage role bio location')
-        .limit(10);
+        };
+
+        if (req.user?._id) {
+            filter._id = { $ne: req.user._id };
+        }
+
+        const users = await userModel.find(filter)
+            .select('name username profileImage role bio location category title skills subRoles rating totalReviews')
+            .limit(12);
 
         return res.status(200).json({ users });
     } catch (err) {
         console.error("Error in searchUsersController:", err);
         return res.status(500).json({
             message: "Internal server error during search",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name getCollaborationStatusController
+ * @description Check if authenticated user and target user have worked together on any project
+ * @route GET /api/users/:userId/collaboration-status
+ * @access Private
+ */
+async function getCollaborationStatusController(req, res) {
+    try {
+        const currentUserId = req.user?._id || req.user?.id;
+        const { userId: targetUserId } = req.params;
+
+        if (!currentUserId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!targetUserId || !mongoose.Types.ObjectId.isValid(targetUserId)) {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+
+        if (currentUserId.toString() === targetUserId.toString()) {
+            return res.status(200).json({
+                collaborated: false,
+                canRate: false,
+                isSelf: true,
+                sharedProjects: [],
+                reason: "You cannot rate yourself"
+            });
+        }
+
+        const targetUser = await userModel.findById(targetUserId).select('name username role');
+        if (!targetUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const currentObjId = new mongoose.Types.ObjectId(currentUserId);
+        const targetObjId = new mongoose.Types.ObjectId(targetUserId);
+
+        // 1. Projects where creator is current user and target user is assigned or hired
+        const projectsAsCreator = await projectModel.find({
+            creatorId: currentObjId,
+            $or: [
+                { selectedEditorId: targetObjId },
+                { "hirings.hiredFreelancerId": targetObjId }
+            ]
+        }).select('title category status createdAt');
+
+        // 2. Projects where creator is target user and current user is assigned or hired
+        const projectsAsFreelancer = await projectModel.find({
+            creatorId: targetObjId,
+            $or: [
+                { selectedEditorId: currentObjId },
+                { "hirings.hiredFreelancerId": currentObjId }
+            ]
+        }).select('title category status createdAt');
+
+        // 3. Workspaces where both are members or creator/editor
+        const sharedWorkspaces = await workspaceModel.find({
+            $or: [
+                { creatorId: currentObjId, editorId: targetObjId },
+                { creatorId: targetObjId, editorId: currentObjId },
+                { "members.user": { $all: [currentObjId, targetObjId] } }
+            ]
+        }).populate('projectId', 'title category status createdAt');
+
+        const projectMap = new Map();
+
+        projectsAsCreator.forEach((p) => {
+            projectMap.set(p._id.toString(), {
+                _id: p._id,
+                title: p.title,
+                category: p.category,
+                status: p.status,
+                myRole: 'creator',
+                targetRole: 'freelancer'
+            });
+        });
+
+        projectsAsFreelancer.forEach((p) => {
+            projectMap.set(p._id.toString(), {
+                _id: p._id,
+                title: p.title,
+                category: p.category,
+                status: p.status,
+                myRole: 'freelancer',
+                targetRole: 'creator'
+            });
+        });
+
+        sharedWorkspaces.forEach((ws) => {
+            if (ws.projectId && ws.projectId._id) {
+                const pid = ws.projectId._id.toString();
+                if (!projectMap.has(pid)) {
+                    projectMap.set(pid, {
+                        _id: ws.projectId._id,
+                        title: ws.projectId.title,
+                        category: ws.projectId.category,
+                        status: ws.projectId.status || ws.status,
+                        myRole: ws.creatorId?.toString() === currentUserId.toString() ? 'creator' : 'freelancer',
+                        targetRole: ws.creatorId?.toString() === targetUserId.toString() ? 'creator' : 'freelancer'
+                    });
+                }
+            }
+        });
+
+        const sharedProjects = Array.from(projectMap.values());
+        const collaborated = sharedProjects.length > 0;
+
+        if (!collaborated) {
+            return res.status(200).json({
+                collaborated: false,
+                canRate: false,
+                isSelf: false,
+                sharedProjects: [],
+                reason: "You can only rate creators or freelancers you have worked with on a project."
+            });
+        }
+
+        // Check which projects already have reviews from currentUserId for targetUserId
+        const projectIds = sharedProjects.map((p) => p._id);
+        const existingReviews = await reviewModel.find({
+            projectId: { $in: projectIds },
+            reviewerId: currentObjId,
+            revieweeId: targetObjId
+        });
+
+        const enrichedProjects = sharedProjects.map((p) => {
+            const rev = existingReviews.find((r) => r.projectId.toString() === p._id.toString());
+            return {
+                ...p,
+                hasReviewed: !!rev,
+                review: rev || null
+            };
+        });
+
+        const unreviewedProject = enrichedProjects.find((p) => !p.hasReviewed);
+        const canRate = Boolean(unreviewedProject);
+
+        return res.status(200).json({
+            collaborated: true,
+            canRate,
+            isSelf: false,
+            sharedProjects: enrichedProjects,
+            eligibleProject: unreviewedProject || null,
+            existingReview: existingReviews[0] || null,
+            relationship: enrichedProjects[0]?.myRole === 'creator' ? 'creator_to_freelancer' : 'freelancer_to_creator'
+        });
+    } catch (err) {
+        console.error("Error in getCollaborationStatusController:", err);
+        return res.status(500).json({
+            message: "Internal server error while checking collaboration status",
+            error: err.message
+        });
+    }
+}
+
+/**
+ * @name rateUserController
+ * @description Submit a rating and review for a user you have collaborated with on a project
+ * @route POST /api/users/:userId/rate
+ * @access Private
+ */
+async function rateUserController(req, res) {
+    try {
+        const currentUserId = req.user?._id || req.user?.id;
+        const { userId: targetUserId } = req.params;
+        const {
+            projectId,
+            rating,
+            reviewText,
+            comment,
+            speed,
+            quality,
+            behaviour,
+            behavior,
+            responseTime,
+            response_time,
+            boundaryRespect,
+            boundary_respect
+        } = req.body;
+
+        if (!currentUserId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!targetUserId || !mongoose.Types.ObjectId.isValid(targetUserId)) {
+            return res.status(400).json({ message: "Invalid user ID" });
+        }
+
+        if (currentUserId.toString() === targetUserId.toString()) {
+            return res.status(400).json({ message: "You cannot review yourself" });
+        }
+
+        const targetUser = await userModel.findById(targetUserId);
+        if (!targetUser) {
+            return res.status(404).json({ message: "Target user not found" });
+        }
+
+        if (rating === undefined || rating === null || isNaN(Number(rating))) {
+            return res.status(400).json({ message: "Rating is required and must be a number between 1 and 5" });
+        }
+        const numRating = Number(rating);
+        if (numRating < 1 || numRating > 5) {
+            return res.status(400).json({ message: "Rating must be between 1 and 5" });
+        }
+
+        const currentObjId = new mongoose.Types.ObjectId(currentUserId);
+        const targetObjId = new mongoose.Types.ObjectId(targetUserId);
+
+        // Find all projects where they worked together
+        const projectsAsCreator = await projectModel.find({
+            creatorId: currentObjId,
+            $or: [
+                { selectedEditorId: targetObjId },
+                { "hirings.hiredFreelancerId": targetObjId }
+            ]
+        }).select('_id');
+
+        const projectsAsFreelancer = await projectModel.find({
+            creatorId: targetObjId,
+            $or: [
+                { selectedEditorId: currentObjId },
+                { "hirings.hiredFreelancerId": currentObjId }
+            ]
+        }).select('_id');
+
+        const sharedWorkspaces = await workspaceModel.find({
+            $or: [
+                { creatorId: currentObjId, editorId: targetObjId },
+                { creatorId: targetObjId, editorId: currentObjId },
+                { "members.user": { $all: [currentObjId, targetObjId] } }
+            ]
+        }).select('projectId');
+
+        const sharedProjectIds = new Set([
+            ...projectsAsCreator.map((p) => p._id.toString()),
+            ...projectsAsFreelancer.map((p) => p._id.toString()),
+            ...sharedWorkspaces.filter((w) => w.projectId).map((w) => w.projectId.toString())
+        ]);
+
+        if (sharedProjectIds.size === 0) {
+            return res.status(403).json({
+                message: "Forbidden: You can only rate users you have worked with on a project."
+            });
+        }
+
+        let targetProjectId = projectId;
+        if (targetProjectId) {
+            if (!sharedProjectIds.has(targetProjectId.toString())) {
+                return res.status(403).json({
+                    message: "Forbidden: The specified project is not a valid collaboration between you and this user."
+                });
+            }
+        } else {
+            // Find the first shared project that has not been reviewed yet
+            for (const pid of sharedProjectIds) {
+                const existing = await reviewModel.findOne({
+                    projectId: new mongoose.Types.ObjectId(pid),
+                    reviewerId: currentObjId,
+                    revieweeId: targetObjId
+                });
+                if (!existing) {
+                    targetProjectId = pid;
+                    break;
+                }
+            }
+        }
+
+        if (!targetProjectId) {
+            return res.status(400).json({
+                message: "You have already submitted reviews for all shared projects with this collaborator."
+            });
+        }
+
+        // Double check duplicate review
+        const duplicateReview = await reviewModel.findOne({
+            projectId: new mongoose.Types.ObjectId(targetProjectId),
+            reviewerId: currentObjId,
+            revieweeId: targetObjId
+        });
+
+        if (duplicateReview) {
+            return res.status(400).json({
+                message: "You have already submitted a review for this project",
+                review: duplicateReview
+            });
+        }
+
+        const text = typeof reviewText === 'string'
+            ? reviewText.trim()
+            : (typeof comment === 'string' ? comment.trim() : '');
+
+        const defaultMetric = Math.min(10, Math.max(1, Math.round(numRating * 2)));
+        const numSpeed = speed != null && !isNaN(Number(speed)) ? Number(speed) : defaultMetric;
+        const numQuality = quality != null && !isNaN(Number(quality)) ? Number(quality) : defaultMetric;
+        const rawB = behaviour !== undefined ? behaviour : behavior;
+        const numBehaviour = rawB != null && !isNaN(Number(rawB)) ? Number(rawB) : defaultMetric;
+        const rawR = responseTime !== undefined ? responseTime : response_time;
+        const numResponseTime = rawR != null && !isNaN(Number(rawR)) ? Number(rawR) : defaultMetric;
+        const rawBound = boundaryRespect !== undefined ? boundaryRespect : boundary_respect;
+        const numBoundaryRespect = rawBound != null && !isNaN(Number(rawBound)) ? Number(rawBound) : defaultMetric;
+
+        const review = await reviewModel.create({
+            projectId: new mongoose.Types.ObjectId(targetProjectId),
+            reviewerId: currentUserId,
+            revieweeId: targetUserId,
+            rating: numRating,
+            reviewText: text,
+            comment: text,
+            speed: numSpeed,
+            quality: numQuality,
+            behaviour: numBehaviour,
+            responseTime: numResponseTime,
+            boundaryRespect: numBoundaryRespect
+        });
+
+        // Calculate aggregated stats and update target user
+        const stats = await reviewModel.aggregate([
+            { $match: { revieweeId: targetObjId } },
+            {
+                $group: {
+                    _id: "$revieweeId",
+                    avgRating: { $avg: "$rating" },
+                    avgSpeed: { $avg: "$speed" },
+                    avgQuality: { $avg: "$quality" },
+                    avgBehaviour: { $avg: "$behaviour" },
+                    avgResponseTime: { $avg: "$responseTime" },
+                    avgBoundaryRespect: { $avg: "$boundaryRespect" },
+                    totalReviews: { $sum: 1 }
+                }
+            }
+        ]);
+
+        if (stats.length > 0) {
+            const s = stats[0];
+            const updateData = {
+                totalReviews: s.totalReviews || 0,
+                rating: s.avgRating != null ? Math.round(s.avgRating * 10) / 10 : 0,
+                responseTime: s.avgResponseTime != null ? Math.round(s.avgResponseTime * 10) / 10 : 0,
+                behaviour: s.avgBehaviour != null ? Math.round(s.avgBehaviour * 10) / 10 : 0
+            };
+
+            if (targetUser.role === 'creator') {
+                const avgBound = s.avgBoundaryRespect != null ? Math.round(s.avgBoundaryRespect * 10) / 10 : 0;
+                updateData.boundaryRespect = avgBound;
+                updateData.boundary = avgBound;
+            } else {
+                updateData.speed = s.avgSpeed != null ? Math.round(s.avgSpeed * 10) / 10 : 0;
+                updateData.quality = s.avgQuality != null ? Math.round(s.avgQuality * 10) / 10 : 0;
+            }
+
+            await userModel.findByIdAndUpdate(targetUserId, updateData);
+        }
+
+        await review.populate('reviewerId', 'name username profileImage role');
+        await review.populate('revieweeId', 'name username profileImage role totalReviews rating');
+        await review.populate('projectId', 'title category status');
+
+        createNotification({
+            recipient: targetUserId,
+            type: 'NEW_REVIEW',
+            title: 'New Review Received',
+            message: `${req.user?.name || 'A collaborator'} left you a ${numRating}-star review.`,
+            project: targetProjectId,
+            relatedUser: currentUserId
+        }).catch((err) => console.error("[Notification] Error:", err.message));
+
+        return res.status(201).json({
+            message: "Rating and review submitted successfully",
+            review
+        });
+    } catch (err) {
+        console.error("Error in rateUserController:", err);
+        return res.status(500).json({
+            message: "Internal server error while rating user",
             error: err.message
         });
     }
@@ -832,5 +1216,7 @@ module.exports = {
     getUserRatingsController,
     addReviewController: reviewEditorController,
     getSettingsController,
-    updateSettingsController
+    updateSettingsController,
+    getCollaborationStatusController,
+    rateUserController
 };

@@ -123,47 +123,118 @@ async function getMyWorkspacesController(req, res) {
         if (userRole === 'creator') {
             const myProjects = await projectModel.find({ creatorId: userObjectId });
             for (const p of myProjects) {
-                // If project does not have selectedEditorId, check if an application was accepted
-                if (!p.selectedEditorId) {
-                    const acceptedApp = await applicationModel.findOne({ projectId: p._id, status: 'accepted' });
-                    if (acceptedApp) {
-                        p.selectedEditorId = acceptedApp.editorId;
-                        p.status = 'assigned';
-                        await p.save().catch(() => {});
-                    }
+                // Find all accepted applications for this project
+                const acceptedApps = await applicationModel.find({ projectId: p._id, status: 'accepted' })
+                    .populate('editorId', 'name username email profileImage rating role');
+
+                // If project does not have selectedEditorId, assign first accepted editor
+                if (!p.selectedEditorId && acceptedApps.length > 0) {
+                    p.selectedEditorId = acceptedApps[0].editorId?._id || acceptedApps[0].editorId;
+                    p.status = 'assigned';
+                    await p.save().catch(() => {});
                 }
 
                 let existingWs = await workspaceModel.findOne({ projectId: p._id });
+                const leadEditorId = acceptedApps[0]?.editorId?._id || acceptedApps[0]?.editorId || p.selectedEditorId;
+
                 if (!existingWs) {
                     const wsMembers = [
                         { user: userObjectId, projectRole: 'creator', status: 'active' }
                     ];
-                    if (p.selectedEditorId) {
-                        wsMembers.push({ user: p.selectedEditorId, projectRole: 'lead_editor', status: 'active' });
+                    acceptedApps.forEach((app) => {
+                        const edId = app.editorId?._id || app.editorId;
+                        if (edId && edId.toString() !== userObjectId.toString()) {
+                            wsMembers.push({
+                                user: edId,
+                                projectRole: app.roleTitle || 'editor',
+                                status: 'active'
+                            });
+                        }
+                    });
+                    if (Array.isArray(p.hirings)) {
+                        p.hirings.forEach((h) => {
+                            if (h.hiredFreelancerId) {
+                                const hfId = (h.hiredFreelancerId?._id || h.hiredFreelancerId).toString();
+                                if (hfId !== userObjectId.toString() && !wsMembers.some(m => m.user.toString() === hfId)) {
+                                    wsMembers.push({
+                                        user: h.hiredFreelancerId,
+                                        projectRole: h.roleTitle || 'editor',
+                                        status: 'active'
+                                    });
+                                }
+                            }
+                        });
                     }
+
                     await workspaceModel.create({
                         projectId: p._id,
                         creatorId: userObjectId,
-                        editorId: p.selectedEditorId || userObjectId,
+                        editorId: leadEditorId || userObjectId,
                         status: p.status === 'completed' ? 'completed' : 'active',
                         members: wsMembers
                     }).catch(() => {});
-                } else if (p.selectedEditorId) {
-                    // Sync editorId and members in existing workspace
+                } else {
                     let needsSave = false;
-                    const editorStr = p.selectedEditorId.toString();
-                    if (!existingWs.editorId || existingWs.editorId.toString() !== editorStr) {
-                        existingWs.editorId = p.selectedEditorId;
-                        needsSave = true;
-                    }
                     if (!Array.isArray(existingWs.members)) existingWs.members = [];
-                    const hasEditor = existingWs.members.some(
-                        (m) => (m.user?._id || m.user || m).toString() === editorStr
+
+                    // Ensure creator is in members
+                    const hasCreator = existingWs.members.some(
+                        (m) => (m.user?._id || m.user || m).toString() === userObjectId.toString()
                     );
-                    if (!hasEditor) {
-                        existingWs.members.push({ user: p.selectedEditorId, projectRole: 'lead_editor', status: 'active' });
+                    if (!hasCreator) {
+                        existingWs.members.unshift({ user: userObjectId, projectRole: 'creator', status: 'active' });
                         needsSave = true;
                     }
+
+                    // Sync all accepted application editors into workspace members
+                    acceptedApps.forEach((app) => {
+                        const edId = (app.editorId?._id || app.editorId)?.toString();
+                        if (edId && edId !== userObjectId.toString()) {
+                            const existing = existingWs.members.find(
+                                (m) => (m.user?._id || m.user || m).toString() === edId
+                            );
+                            if (!existing) {
+                                existingWs.members.push({
+                                    user: app.editorId?._id || app.editorId,
+                                    projectRole: app.roleTitle || 'editor',
+                                    status: 'active'
+                                });
+                                needsSave = true;
+                            } else if (existing.status !== 'active') {
+                                existing.status = 'active';
+                                needsSave = true;
+                            }
+                        }
+                    });
+
+                    // Sync all hired freelancers from p.hirings
+                    if (Array.isArray(p.hirings)) {
+                        p.hirings.forEach((h) => {
+                            if (h.hiredFreelancerId) {
+                                const hfId = (h.hiredFreelancerId?._id || h.hiredFreelancerId).toString();
+                                if (hfId !== userObjectId.toString()) {
+                                    const existing = existingWs.members.find(
+                                        (m) => (m.user?._id || m.user || m).toString() === hfId
+                                    );
+                                    if (!existing) {
+                                        existingWs.members.push({
+                                            user: h.hiredFreelancerId,
+                                            projectRole: h.roleTitle || 'editor',
+                                            status: 'active'
+                                        });
+                                        needsSave = true;
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Ensure existingWs.editorId is set to the hired freelancer instead of creator
+                    if (leadEditorId && (existingWs.editorId?.toString() === userObjectId.toString() || !existingWs.editorId)) {
+                        existingWs.editorId = leadEditorId;
+                        needsSave = true;
+                    }
+
                     if (needsSave) {
                         await existingWs.save().catch(() => {});
                     }
@@ -174,7 +245,7 @@ async function getMyWorkspacesController(req, res) {
             for (const app of acceptedApps) {
                 const p = await projectModel.findById(app.projectId);
                 if (p) {
-                    const existingWs = await workspaceModel.findOne({ projectId: p._id });
+                    let existingWs = await workspaceModel.findOne({ projectId: p._id });
                     if (!existingWs) {
                         await workspaceModel.create({
                             projectId: p._id,
@@ -183,9 +254,30 @@ async function getMyWorkspacesController(req, res) {
                             status: p.status === 'completed' ? 'completed' : 'active',
                             members: [
                                 { user: p.creatorId, projectRole: 'creator', status: 'active' },
-                                { user: userObjectId, projectRole: 'lead_editor', status: 'active' }
+                                { user: userObjectId, projectRole: app.roleTitle || 'lead_editor', status: 'active' }
                             ]
                         }).catch(() => {});
+                    } else {
+                        let needsSave = false;
+                        if (!Array.isArray(existingWs.members)) existingWs.members = [];
+                        const hasMe = existingWs.members.some(
+                            (m) => (m.user?._id || m.user || m).toString() === userObjectId.toString()
+                        );
+                        if (!hasMe) {
+                            existingWs.members.push({
+                                user: userObjectId,
+                                projectRole: app.roleTitle || 'editor',
+                                status: 'active'
+                            });
+                            needsSave = true;
+                        }
+                        if (!existingWs.editorId || existingWs.editorId.toString() === p.creatorId.toString()) {
+                            existingWs.editorId = userObjectId;
+                            needsSave = true;
+                        }
+                        if (needsSave) {
+                            await existingWs.save().catch(() => {});
+                        }
                     }
                 }
             }
@@ -201,8 +293,11 @@ async function getMyWorkspacesController(req, res) {
         })
         .populate({
             path: 'projectId',
-            select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId',
-            populate: { path: 'selectedEditorId', select: 'name username email profileImage rating role' }
+            select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId hirings',
+            populate: [
+                { path: 'selectedEditorId', select: 'name username email profileImage rating role' },
+                { path: 'hirings.hiredFreelancerId', select: 'name username email profileImage rating role' }
+            ]
         })
         .populate('creatorId', 'name username email profileImage rating role')
         .populate('editorId', 'name username email profileImage rating role')
@@ -262,8 +357,11 @@ async function getWorkspaceByIdController(req, res) {
         const workspace = await workspaceModel.findById(workspaceId)
             .populate({
                 path: 'projectId',
-                select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId',
-                populate: { path: 'selectedEditorId', select: 'name username email profileImage rating role' }
+                select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId hirings',
+                populate: [
+                    { path: 'selectedEditorId', select: 'name username email profileImage rating role' },
+                    { path: 'hirings.hiredFreelancerId', select: 'name username email profileImage rating role' }
+                ]
             })
             .populate('creatorId', 'name username email profileImage rating role')
             .populate('editorId', 'name username email profileImage rating role')

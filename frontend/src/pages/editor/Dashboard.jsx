@@ -15,6 +15,7 @@ import UpcomingDeliveries from '../../components/editor/UpcomingDeliveries';
 import MessageCard from '../../components/common/MessageCard';
 import Button from '../../components/common/Button';
 import ProfileCompletionBanner from '../../components/common/ProfileCompletionBanner';
+import { DashboardSkeleton } from '../../components/common/Skeleton';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
 import { useWallet } from '../../context/WalletContext';
@@ -30,6 +31,10 @@ export const EditorDashboard = () => {
     editorEarnings,
     messages
   } = useDashboardData();
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   const availableProjectsCount = editorRecommended.length;
   const activeProjectsCount = editorActive.length;

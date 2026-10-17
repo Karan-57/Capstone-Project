@@ -16,17 +16,20 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import SEO from '../../components/common/SEO';
 import { useAlert } from '../../context/AlertContext';
+import { useAuth } from '../../context/AuthContext';
 import { useWallet } from '../../context/WalletContext';
 import { projectService } from '../../services/projectService';
 import WalletTopUpModal from '../../components/wallet/WalletTopUpModal';
 import SecurityPinModal from '../../components/wallet/SecurityPinModal';
 import MilestoneEscrowPipeline from '../../components/workspace/MilestoneEscrowPipeline';
 import { DEFAULT_PFP } from '../../constants/assets';
+import { PaymentsSkeleton } from '../../components/common/Skeleton';
 
 export const Payments = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { showAlert } = useAlert();
+  const { isAuthenticated, isAuthLoading } = useAuth();
   const {
     walletBalance,
     escrowLocked,
@@ -103,8 +106,9 @@ export const Payments = () => {
   };
 
   useEffect(() => {
+    if (!isAuthenticated || isAuthLoading) return;
     loadData();
-  }, []);
+  }, [isAuthenticated, isAuthLoading]);
 
   // Keep selected state in sync with URL parameters
   useEffect(() => {
@@ -203,6 +207,10 @@ export const Payments = () => {
 
   // Is a specific member selected to display Level 3 (their milestone escrow pipeline)?
   const hasMemberSelected = Boolean(selectedRoleHiring || selectedFreelancer);
+
+  if (loading) {
+    return <PaymentsSkeleton />;
+  }
 
   return (
     <div className="space-y-6 pb-12">

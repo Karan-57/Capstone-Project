@@ -86,8 +86,11 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('collabo_auth', 'true');
 
           if (data.user) {
+            const uid = data.user._id || data.user.id;
             const userWithAvatar = {
               ...data.user,
+              _id: uid,
+              id: uid,
               avatar: resolveAvatar(data.user),
             };
             if (data.user.role) {
@@ -145,8 +148,11 @@ export const AuthProvider = ({ children }) => {
     }
 
     if (userData) {
+      const uid = userData._id || userData.id;
       const userPayload = {
         ...userData,
+        _id: uid,
+        id: uid,
         avatar: resolveAvatar(userData),
       };
       if (selectedRole === 'creator') {

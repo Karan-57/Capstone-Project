@@ -90,80 +90,6 @@ export const Projects = () => {
     }
   };
 
-  // Helper to extract assigned team members & milestone 1 funded check for a project
-  const getProjectAssignedMembers = (proj) => {
-    const assigned = [];
-    if (Array.isArray(proj.hirings)) {
-      proj.hirings.forEach((h) => {
-        if (h.hiredFreelancerId || h.status === 'hired') {
-          const freelancer =
-            typeof h.hiredFreelancerId === 'object' && h.hiredFreelancerId
-              ? h.hiredFreelancerId
-              : { name: 'Assigned Freelancer', profileImage: DEFAULT_PFP, _id: h.hiredFreelancerId };
-
-          const m1 = h.milestones?.[0];
-          let isM1Funded =
-            m1 &&
-            (m1.status === 'funded' ||
-              m1.status === 'in_escrow' ||
-              m1.status === 'submitted' ||
-              m1.status === 'approved' ||
-              m1.status === 'released');
-
-          // Local storage check fallback
-          const fid = freelancer._id || freelancer.id;
-          if (!isM1Funded && fid) {
-            try {
-              const saved = localStorage.getItem(`collabo_milestones_${proj.id}_${fid}`);
-              if (saved) {
-                const parsed = JSON.parse(saved);
-                if (
-                  Array.isArray(parsed) &&
-                  parsed[0] &&
-                  (parsed[0].status === 'funded' || parsed[0].status === 'submitted' || parsed[0].status === 'approved')
-                ) {
-                  isM1Funded = true;
-                }
-              }
-            } catch (e) {}
-          }
-
-          assigned.push({
-            hiringId: h._id,
-            roleTitle: h.roleTitle || 'Freelancer',
-            freelancer,
-            isM1Funded,
-            budget: h.budget,
-          });
-        }
-      });
-    }
-
-    if (
-      proj.assignedEditor &&
-      !assigned.some((m) => (m.freelancer?._id || m.freelancer?.id) === (proj.assignedEditor._id || proj.assignedEditor.id))
-    ) {
-      const m1 = proj.rawProject?.milestones?.[0];
-      const isM1Funded =
-        m1 &&
-        (m1.status === 'funded' ||
-          m1.status === 'in_escrow' ||
-          m1.status === 'submitted' ||
-          m1.status === 'approved' ||
-          m1.status === 'released');
-
-      assigned.push({
-        hiringId: 'selected_editor',
-        roleTitle: 'Lead Video Editor',
-        freelancer: proj.assignedEditor,
-        isM1Funded,
-        budget: proj.rawBudget,
-      });
-    }
-
-    return assigned;
-  };
-
   const filtered = projects.filter((p) => {
     if (filter === 'all') return true;
     return p.status.toLowerCase().replace(' ', '-') === filter;
@@ -240,7 +166,6 @@ export const Projects = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((proj) => {
             const IconComponent = iconMap[proj.iconType] || Film;
-            const assignedMembers = getProjectAssignedMembers(proj);
 
             return (
               <div
@@ -296,71 +221,6 @@ export const Projects = () => {
                   </div>
                 </div>
 
-                {/* Assigned Freelancers Section with Milestone 1 Removal Option */}
-                <div className="pt-2 border-t border-white/[0.04] space-y-1.5">
-                  {assignedMembers.length === 0 ? (
-                    <div className="flex items-center justify-between text-[11px] px-2.5 py-1 rounded-xl bg-white/[0.02] border border-white/[0.04] text-slate-400">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                        Unassigned
-                      </span>
-                      <span className="text-purple-400 font-medium">Position open</span>
-                    </div>
-                  ) : (
-                    assignedMembers.map((m, mIdx) => (
-                      <div
-                        key={mIdx}
-                        className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-white/[0.02] border border-white/[0.04]"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <img
-                            src={m.freelancer.profileImage || m.freelancer.avatar || DEFAULT_PFP}
-                            alt={m.freelancer.name || 'Freelancer'}
-                            onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                            className="w-5 h-5 rounded-full object-cover border border-purple-500/40 shrink-0"
-                          />
-                          <span className="text-xs font-semibold text-white truncate max-w-[120px]">
-                            {m.freelancer.name || 'Assigned'}
-                          </span>
-                          <span className="text-[10px] text-purple-300 bg-purple-950/60 border border-purple-800/30 px-1.5 py-0.2 rounded font-medium truncate">
-                            {m.roleTitle}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          {m.isM1Funded ? (
-                            <span
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/25"
-                              title="Milestone 1 is funded in escrow. Member cannot be removed."
-                            >
-                              <Lock className="w-2.5 h-2.5 text-amber-400" />
-                              <span>M1 Funded</span>
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMemberToRemove({
-                                  projectId: proj.id,
-                                  hiringId: m.hiringId,
-                                  memberName: m.freelancer.name || 'Freelancer',
-                                  roleTitle: m.roleTitle,
-                                });
-                              }}
-                              className="px-2 py-0.5 text-[11px] font-semibold rounded-md text-rose-400 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 transition-all flex items-center gap-1 cursor-pointer"
-                              title="Remove assigned freelancer (M1 not funded)"
-                            >
-                              <UserMinus className="w-3 h-3" />
-                              <span>Remove</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
                 {/* Direct Action Shortcut Row on the Project Card */}
                 <div className="pt-2 border-t border-white/[0.04] grid grid-cols-3 gap-2">
                   <button
@@ -393,13 +253,13 @@ export const Projects = () => {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/creator/create-project?step=2&projectId=${proj.id}`);
+                      setSelectedProject(proj);
                     }}
                     className="px-2 py-1.5 rounded-xl bg-purple-600/10 hover:bg-purple-600/25 text-purple-300 hover:text-white border border-purple-500/30 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                    title="Manage role hirings"
+                    title="Open project details to view team & manage hirings"
                   >
                     <Briefcase className="w-3.5 h-3.5" />
-                    <span>Hirings</span>
+                    <span>Details & Team</span>
                   </button>
                 </div>
               </div>

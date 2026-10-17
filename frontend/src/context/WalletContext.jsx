@@ -65,6 +65,7 @@ export const WalletProvider = ({ children }) => {
   const [completedMilestonesCount, setCompletedMilestonesCount] = useState(0);
   const [lifetimeEarned, setLifetimeEarned] = useState(0);
   const [totalWithdrawn, setTotalWithdrawn] = useState(0);
+  const [isWalletLoading, setIsWalletLoading] = useState(true);
 
   // Sync with backend API when user logs in or after financial action
   const fetchBackendWallet = useCallback(async () => {
@@ -116,6 +117,8 @@ export const WalletProvider = ({ children }) => {
       }
     } catch (err) {
       // Quiet fallback to client state if endpoint unavailable
+    } finally {
+      setIsWalletLoading(false);
     }
   }, []);
 
@@ -435,6 +438,7 @@ export const WalletProvider = ({ children }) => {
         fundMilestone,
         releaseMilestone,
         withdrawFunds,
+        isWalletLoading,
       }}
     >
       {children}

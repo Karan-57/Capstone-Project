@@ -63,7 +63,32 @@ export const mapBackendProject = (p) => {
           rating: p.selectedEditorId.rating || 5.0,
         }
       : null,
-    progress: p?.status === 'completed' ? 100 : p?.status === 'in_progress' ? 60 : p?.status === 'assigned' ? 25 : 0,
+    progress: (() => {
+      if (p?.status === 'completed') return 100;
+      if (Array.isArray(p?.hirings) && p.hirings.length > 0) {
+        let total = 0;
+        let approved = 0;
+        p.hirings.forEach((h) => {
+          const fid = (h.hiredFreelancerId?._id || h.hiredFreelancerId?.id || h.hiredFreelancerId)?.toString();
+          let mList = null;
+          if (fid && p?._id) {
+            try {
+              const saved = localStorage.getItem(`collabo_milestones_${p._id}_${fid}`);
+              if (saved) mList = JSON.parse(saved);
+            } catch (e) {}
+          }
+          if (!mList && Array.isArray(h.milestones) && h.milestones.length > 0) {
+            mList = h.milestones;
+          }
+          if (Array.isArray(mList) && mList.length > 0) {
+            total += mList.length;
+            approved += mList.filter((m) => m.status === 'approved' || m.status === 'released').length;
+          }
+        });
+        if (total > 0) return Math.round((approved / total) * 100);
+      }
+      return 0;
+    })(),
     deadline: p?.deadline ? new Date(p.deadline).toISOString().split('T')[0] : 'unknown',
     budget: formatBudget(p?.totalBudget || p?.budget),
     rawBudget: p?.totalBudget || p?.budget,
@@ -207,18 +232,19 @@ export const projectService = {
           if (milestones.length === 0) {
             const isCompleted = p.status === 'completed';
             milestones = [
-              { id: 'm1', title: 'Milestone 1: Rough Cut Assembly', status: isCompleted ? 'approved' : 'approved' },
-              { id: 'm2', title: 'Milestone 2: Sound Design & Color Grade', status: isCompleted ? 'approved' : 'submitted' },
+              { id: 'm1', title: 'Milestone 1: Rough Cut Assembly', status: isCompleted ? 'approved' : 'pending' },
+              { id: 'm2', title: 'Milestone 2: Sound Design & Color Grade', status: isCompleted ? 'approved' : 'pending' },
               { id: 'm3', title: 'Milestone 3: 4K Master Export', status: isCompleted ? 'approved' : 'pending' },
             ];
           }
 
           const totalCount = milestones.length;
-          const approvedCount = milestones.filter(m => m.status === 'approved').length;
-          const submittedCount = milestones.filter(m => m.status === 'submitted').length;
+          const approvedCount = milestones.filter((m) => m.status === 'approved' || m.status === 'released').length;
           const progressPercent = p.status === 'completed'
             ? 100
-            : Math.round(((approvedCount + (submittedCount * 0.5)) / totalCount) * 100);
+            : totalCount > 0
+            ? Math.round((approvedCount / totalCount) * 100)
+            : 0;
 
           return {
             id: p._id || app._id || 'unknown',

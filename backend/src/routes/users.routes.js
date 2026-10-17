@@ -45,7 +45,21 @@ usersRouter.patch('/me/profile-image', authMiddleware.authUser, upload.single('p
  * @description search users by username or name
  * @access Public
  */
-usersRouter.get('/search', usersController.searchUsersController);
+usersRouter.get('/search', authMiddleware.optionalAuthMiddleware, usersController.searchUsersController);
+
+/**
+ * @route GET api/users/:userId/collaboration-status
+ * @description check if logged-in user and target user have worked together on any project
+ * @access Private
+ */
+usersRouter.get('/:userId/collaboration-status', authMiddleware.authUser, usersController.getCollaborationStatusController);
+
+/**
+ * @route POST api/users/:userId/rate
+ * @description submit rating and review for a user you have collaborated with on a project
+ * @access Private
+ */
+usersRouter.post('/:userId/rate', authMiddleware.authUser, usersController.rateUserController);
 
 /**
  * @route GET api/users/:userId/get-review

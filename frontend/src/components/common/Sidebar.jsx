@@ -132,6 +132,7 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
                 <NavLink
                   key={item.path}
                   to={item.path}
+                  end={item.path.endsWith('/profile') || item.path.endsWith('/dashboard')}
                   title={isCollapsed ? item.label : undefined}
                   className={({ isActive }) =>
                     `flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-3.5'} py-2.5 rounded-2xl text-xs font-semibold tracking-tight transition-all duration-200 group relative ${

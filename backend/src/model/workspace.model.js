@@ -28,7 +28,6 @@ const workspaceSchema = new mongoose.Schema(
         },
         projectRole: {
           type: String,
-          enum: ['creator', 'lead_editor', 'editor', 'assistant_editor', 'sound_engineer', 'colorist', 'collaborator'],
           default: 'editor',
         },
         status: {

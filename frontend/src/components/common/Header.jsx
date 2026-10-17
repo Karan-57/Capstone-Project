@@ -15,6 +15,21 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+  const handleOpenSearchPage = () => {
+    navigate(role === 'creator' ? '/creator/search' : '/editor/search');
+  };
+
+  // Keyboard shortcut Ctrl+K / Cmd+K to open user search page
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        navigate(role === 'creator' ? '/creator/search' : '/editor/search');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [role, navigate]);
 
   useEffect(() => {
     if (!isAuthenticated || isAuthLoading) return;
@@ -30,7 +45,7 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
 
     const currentUserId = currentUser?._id || currentUser?.id;
     if (currentUserId) {
-      messageService.getMessages(currentUserId).then((convs) => {
+      messageService.getDMs(currentUserId).then((convs) => {
         if (isMounted && Array.isArray(convs)) {
           const unread = convs.filter((c) => c.unread).length;
           setUnreadMessagesCount(unread);
@@ -60,16 +75,29 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
 
       {/* Right Controls */}
       <div className="flex items-center gap-3.5 flex-wrap ml-auto">
-        {/* Search input */}
-        <div className="relative hidden lg:block">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder={role === 'creator' ? "Search projects, editors..." : "Search gigs, clients..."}
-            onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
-            className="w-64 pl-9 pr-4 py-2 text-xs rounded-xl bg-[#0F1420] text-slate-200 placeholder-slate-500 border border-white/[0.08] focus:outline-none focus:border-purple-500 transition-colors"
-          />
-        </div>
+        {/* Instagram-style User Search Trigger (Desktop/Tablet) */}
+        <button
+          type="button"
+          onClick={handleOpenSearchPage}
+          className="group relative hidden sm:flex items-center justify-between w-60 md:w-72 pl-9 pr-2.5 py-2 text-xs rounded-xl bg-[#0F1420] hover:bg-[#141A28] text-slate-400 hover:text-slate-200 border border-white/[0.08] hover:border-purple-500/50 transition-all cursor-pointer shadow-sm text-left"
+          title="Search users by name or @username (Ctrl+K)"
+        >
+          <Search className="w-4 h-4 text-slate-400 group-hover:text-purple-400 absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
+          <span className="truncate">Search creators, freelancers...</span>
+          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-white/[0.06] border border-white/[0.08] rounded">
+            ⌘K
+          </kbd>
+        </button>
+
+        {/* Mobile Search Button */}
+        <button
+          type="button"
+          onClick={handleOpenSearchPage}
+          className="sm:hidden p-2.5 rounded-xl bg-[#0F1420] text-slate-300 hover:text-white border border-white/[0.08] hover:border-purple-500/30 transition-colors"
+          title="Search users"
+        >
+          <Search className="w-4 h-4" />
+        </button>
 
         {/* Primary CTA Button (Creators only: Create New Project) */}
         {role === 'creator' && (

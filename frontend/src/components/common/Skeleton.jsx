@@ -3,7 +3,7 @@ import React from 'react';
 export const Skeleton = ({ className = '', rounded = 'rounded-xl', ...props }) => {
   return (
     <div
-      className={`animate-pulse bg-gradient-to-r from-white/[0.03] via-white/[0.07] to-white/[0.03] bg-[length:200%_100%] ${rounded} ${className}`}
+      className={`animate-pulse bg-gradient-to-r from-white/[0.03] via-white/[0.08] to-white/[0.03] bg-[length:200%_100%] ${rounded} ${className}`}
       {...props}
     />
   );
@@ -24,7 +24,7 @@ export const SkeletonText = ({ lines = 2, className = '' }) => {
 
 export const SkeletonCard = ({ className = '' }) => {
   return (
-    <div className={`glass-card p-5 border border-white/[0.06] space-y-4 rounded-2xl ${className}`}>
+    <div className={`p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <Skeleton className="w-10 h-10 rounded-xl" />
         <Skeleton className="w-20 h-5 rounded-full" />
@@ -62,9 +62,9 @@ export const SkeletonProjectCard = () => {
   );
 };
 
-export const SkeletonRow = ({ count = 3 }) => {
+export const SkeletonRow = ({ count = 3, className = '' }) => {
   return (
-    <div className="space-y-2.5">
+    <div className={`space-y-2.5 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
@@ -86,7 +86,7 @@ export const SkeletonRow = ({ count = 3 }) => {
 
 export const SkeletonProfile = () => {
   return (
-    <div className="glass-card p-6 border border-white/[0.06] space-y-6">
+    <div className="p-6 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-6">
       <div className="flex items-center gap-4">
         <Skeleton className="w-20 h-20 rounded-2xl shrink-0" />
         <div className="space-y-2.5 flex-1">
@@ -102,6 +102,473 @@ export const SkeletonProfile = () => {
             <Skeleton className="w-20 h-3 mx-auto" />
           </div>
         ))}
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────
+   SIDEBAR SKELETON
+   Matches Sidebar.jsx dimensions, icons, and layout
+───────────────────────────────────────────────────── */
+export const SidebarSkeleton = ({ className = '' }) => {
+  return (
+    <aside
+      className={`h-screen w-64 bg-[#07090F]/95 md:bg-[#07090F]/80 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col justify-between p-3 shrink-0 select-none ${className}`}
+    >
+      <div>
+        {/* Brand header placeholder */}
+        <div className="flex items-center justify-between pb-4 pt-1 px-1">
+          <div className="flex items-center gap-2.5">
+            <Skeleton className="w-8 h-8 rounded-xl" />
+            <Skeleton className="w-24 h-5 rounded-lg" />
+          </div>
+          <Skeleton className="w-6 h-6 rounded-lg" />
+        </div>
+
+        {/* Nav items list placeholder */}
+        <div className="space-y-1.5 mt-2">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.015] border border-white/[0.03]"
+            >
+              <div className="flex items-center gap-3 flex-1">
+                <Skeleton className="w-4 h-4 rounded-md shrink-0" />
+                <Skeleton className={`h-3 rounded-md ${i % 3 === 0 ? 'w-24' : i % 2 === 0 ? 'w-28' : 'w-20'}`} />
+              </div>
+              {i === 3 && <Skeleton className="w-5 h-4 rounded-md" />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Footer logout placeholder */}
+      <div className="pt-3 border-t border-white/[0.05]">
+        <div className="flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-white/[0.01]">
+          <Skeleton className="w-4 h-4 rounded-md shrink-0" />
+          <Skeleton className="w-16 h-3 rounded-md" />
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+/* ─────────────────────────────────────────────────────
+   HEADER SKELETON
+   Matches Header.jsx top bar
+───────────────────────────────────────────────────── */
+export const HeaderSkeleton = () => {
+  return (
+    <header className="flex flex-row items-center justify-between gap-4 py-4 md:py-6 px-4 md:px-8 bg-[#07090E] border-b border-white/[0.06] shrink-0">
+      <div className="flex items-center gap-2 md:hidden">
+        <Skeleton className="w-9 h-9 rounded-xl" />
+      </div>
+
+      <div className="flex items-center gap-3.5 ml-auto">
+        {/* Search input placeholder */}
+        <Skeleton className="hidden lg:block w-64 h-9 rounded-xl" />
+        {/* New project / action CTA */}
+        <Skeleton className="w-9 h-9 rounded-xl" />
+        {/* Wallet pill placeholder */}
+        <Skeleton className="w-24 h-8 rounded-xl" />
+        {/* Notification bell */}
+        <Skeleton className="w-9 h-9 rounded-xl" />
+        {/* Avatar circle */}
+        <Skeleton className="w-9 h-9 rounded-full" />
+      </div>
+    </header>
+  );
+};
+
+/* ─────────────────────────────────────────────────────
+   DASHBOARD SKELETON
+   Used when dashboard data is loading or page refreshed
+───────────────────────────────────────────────────── */
+export const DashboardSkeleton = () => {
+  return (
+    <div className="space-y-6 pb-12 animate-fade-in w-full">
+      {/* Small Profile completion banner skeleton */}
+      <div className="p-3.5 rounded-2xl bg-[#0E1322]/50 border border-white/[0.05] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-7 h-7 rounded-full shrink-0" />
+          <div className="space-y-1">
+            <Skeleton className="w-36 h-3 rounded-md" />
+            <Skeleton className="w-48 h-2.5 rounded-md" />
+          </div>
+        </div>
+        <Skeleton className="w-20 h-6 rounded-lg" />
+      </div>
+
+      {/* 4 Stats Cards Grid */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="p-4 rounded-2xl bg-[#0E1322]/70 border border-white/[0.06] space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <Skeleton className="w-9 h-9 rounded-xl" />
+              <Skeleton className="w-16 h-4 rounded-full" />
+            </div>
+            <div className="space-y-1.5">
+              <Skeleton className="w-20 h-7 rounded-lg" />
+              <Skeleton className="w-28 h-3 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* Quick Actions banner skeleton */}
+      <div className="p-4 rounded-2xl bg-[#0E1322]/40 border border-white/[0.05] flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-8 h-8 rounded-xl" />
+          <Skeleton className="w-44 h-4 rounded-md" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="w-28 h-8 rounded-xl" />
+          <Skeleton className="w-28 h-8 rounded-xl" />
+        </div>
+      </div>
+
+      {/* Active Projects / Recent Projects row */}
+      <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="w-36 h-5 rounded-md" />
+          <Skeleton className="w-20 h-6 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <SkeletonProjectCard key={i} />
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom 2-col Split */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="w-32 h-5 rounded-md" />
+            <Skeleton className="w-16 h-4 rounded-md" />
+          </div>
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02]">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-8 h-8 rounded-lg" />
+                  <div className="space-y-1">
+                    <Skeleton className="w-24 h-3.5 rounded-md" />
+                    <Skeleton className="w-16 h-2.5 rounded-md" />
+                  </div>
+                </div>
+                <Skeleton className="w-12 h-4 rounded-md" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="w-36 h-5 rounded-md" />
+            <Skeleton className="w-20 h-4 rounded-md" />
+          </div>
+          <Skeleton className="w-full h-44 rounded-xl" />
+        </div>
+      </section>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────
+   WORKSPACE SKELETON
+   Left list + Right panel view for Workspace.jsx
+───────────────────────────────────────────────────── */
+export const WorkspaceSidebarSkeleton = () => {
+  return (
+    <div className="p-3 space-y-2">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#0E1322]/50 border border-white/[0.03]"
+        >
+          <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex items-center justify-between">
+              <Skeleton className="w-3/5 h-3.5 rounded-md" />
+              <Skeleton className="w-12 h-4 rounded-full" />
+            </div>
+            <Skeleton className="w-full h-1.5 rounded-full" />
+            <div className="flex items-center gap-1.5 pt-0.5">
+              <Skeleton className="w-4 h-4 rounded-full" />
+              <Skeleton className="w-4 h-4 rounded-full" />
+              <Skeleton className="w-14 h-2.5 rounded-md ml-1" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export const WorkspaceContentSkeleton = () => {
+  return (
+    <div className="flex-1 flex flex-col h-full bg-[#07090E] overflow-hidden">
+      {/* Workspace Header */}
+      <div className="p-4 md:p-5 border-b border-white/[0.06] bg-[#0A0D16]/90 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+          <div className="space-y-1.5">
+            <Skeleton className="w-40 h-4 rounded-md" />
+            <Skeleton className="w-24 h-3 rounded-md" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="w-20 h-8 rounded-xl" />
+          <Skeleton className="w-24 h-8 rounded-xl" />
+        </div>
+      </div>
+
+      {/* Tabs Row */}
+      <div className="px-5 py-2.5 border-b border-white/[0.05] bg-[#080B12] flex items-center gap-2">
+        <Skeleton className="w-20 h-7 rounded-xl" />
+        <Skeleton className="w-24 h-7 rounded-xl" />
+        <Skeleton className="w-20 h-7 rounded-xl" />
+      </div>
+
+      {/* Workspace Body / File Grid / Chat placeholder */}
+      <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+        {/* Upload dropzone skeleton */}
+        <div className="p-8 rounded-2xl border-2 border-dashed border-white/[0.08] bg-white/[0.01] flex flex-col items-center justify-center gap-3">
+          <Skeleton className="w-12 h-12 rounded-2xl" />
+          <Skeleton className="w-48 h-4 rounded-md" />
+          <Skeleton className="w-32 h-3 rounded-md" />
+        </div>
+
+        {/* Files grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="p-3.5 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] space-y-2.5"
+            >
+              <Skeleton className="w-full h-24 rounded-lg" />
+              <Skeleton className="w-3/4 h-3 rounded-md" />
+              <div className="flex justify-between items-center pt-1">
+                <Skeleton className="w-12 h-2.5 rounded-md" />
+                <Skeleton className="w-8 h-2.5 rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const WorkspaceChatSkeleton = () => {
+  return (
+    <div className="flex-1 flex flex-col h-full bg-[#07090E] p-4 space-y-4">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div
+          key={i}
+          className={`flex items-end gap-2.5 max-w-[80%] ${
+            i % 2 === 1 ? 'ml-auto flex-row-reverse' : ''
+          }`}
+        >
+          <Skeleton className="w-7 h-7 rounded-full shrink-0" />
+          <div className="space-y-1">
+            <Skeleton
+              className={`p-3 rounded-2xl ${
+                i % 2 === 1 ? 'w-48 h-12 rounded-br-none' : 'w-56 h-14 rounded-bl-none'
+              }`}
+            />
+            <Skeleton className="w-12 h-2 rounded-md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export const WorkspaceSkeleton = () => {
+  return (
+    <div className="flex h-full w-full overflow-hidden bg-[#07090E]">
+      <aside className="w-full lg:w-80 xl:w-96 border-r border-white/[0.07] bg-[#07090F] flex flex-col shrink-0">
+        <div className="p-4 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2.5">
+              <Skeleton className="w-8 h-8 rounded-xl" />
+              <Skeleton className="w-24 h-4 rounded-md" />
+            </div>
+            <Skeleton className="w-14 h-5 rounded-full" />
+          </div>
+          <Skeleton className="w-full h-8 rounded-xl" />
+        </div>
+        <WorkspaceSidebarSkeleton />
+      </aside>
+      <div className="hidden lg:flex flex-1">
+        <WorkspaceContentSkeleton />
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────
+   PAYMENTS / EARNINGS SKELETON
+   Used in Creator Payments & Freelancer Earnings
+───────────────────────────────────────────────────── */
+export const PaymentsSkeleton = () => {
+  return (
+    <div className="space-y-6 w-full animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-1.5">
+          <Skeleton className="w-48 h-6 rounded-lg" />
+          <Skeleton className="w-72 h-3.5 rounded-md" />
+        </div>
+        <Skeleton className="w-36 h-9 rounded-xl" />
+      </div>
+
+      {/* 3 Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="p-5 rounded-2xl bg-[#0E1322]/70 border border-white/[0.06] space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <Skeleton className="w-28 h-3.5 rounded-md" />
+              <Skeleton className="w-6 h-6 rounded-lg" />
+            </div>
+            <Skeleton className="w-32 h-8 rounded-xl" />
+            <Skeleton className="w-full h-3 rounded-md" />
+            {i === 0 && <Skeleton className="w-full h-9 rounded-xl mt-2" />}
+          </div>
+        ))}
+      </div>
+
+      {/* Middle Escrow / Project Pipeline container */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="w-40 h-5 rounded-md" />
+          <Skeleton className="w-24 h-4 rounded-md" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div
+              key={i}
+              className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <Skeleton className="w-36 h-4 rounded-md" />
+                <Skeleton className="w-16 h-5 rounded-full" />
+              </div>
+              <Skeleton className="w-full h-2 rounded-full" />
+              <div className="flex justify-between">
+                <Skeleton className="w-20 h-3 rounded-md" />
+                <Skeleton className="w-20 h-3 rounded-md" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Transaction History Rows */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="w-44 h-5 rounded-md" />
+          <Skeleton className="w-20 h-4 rounded-md" />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="p-3.5 rounded-xl bg-[#101524]/60 border border-white/[0.04] flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-9 h-9 rounded-xl shrink-0" />
+                <div className="space-y-1.5">
+                  <Skeleton className="w-36 h-3.5 rounded-md" />
+                  <Skeleton className="w-24 h-2.5 rounded-md" />
+                </div>
+              </div>
+              <div className="space-y-1.5 text-right">
+                <Skeleton className="w-16 h-4 rounded-md ml-auto" />
+                <Skeleton className="w-12 h-3 rounded-md ml-auto" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────
+   NOTIFICATIONS SKELETON
+   Used in Creator & Editor Notifications pages
+───────────────────────────────────────────────────── */
+export const NotificationsSkeleton = () => {
+  return (
+    <div className="space-y-6 max-w-4xl animate-fade-in w-full">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1.5">
+          <Skeleton className="w-36 h-6 rounded-lg" />
+          <Skeleton className="w-64 h-3.5 rounded-md" />
+        </div>
+        <Skeleton className="w-24 h-7 rounded-xl" />
+      </div>
+
+      <div className="space-y-2.5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className="p-4 rounded-2xl bg-[#0E1322]/60 border border-white/[0.04] flex items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-3.5 flex-1 min-w-0">
+              <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <Skeleton className="w-2/5 h-4 rounded-md" />
+                <Skeleton className="w-4/5 h-3 rounded-md" />
+              </div>
+            </div>
+            <div className="space-y-1 text-right shrink-0">
+              <Skeleton className="w-14 h-3 rounded-md ml-auto" />
+              <Skeleton className="w-4 h-4 rounded-full ml-auto" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────
+   APP SHELL SKELETON
+   Renders full layout (Sidebar + Header + Page Content)
+   Used in ProtectedRoute and AppRoutes during initial auth
+   checks and page chunk loading so the app never shows a blank screen
+───────────────────────────────────────────────────── */
+export const AppShellSkeleton = ({ children, isWorkspace = false }) => {
+  return (
+    <div className="flex h-screen bg-[#07090E] text-slate-100 overflow-hidden">
+      {/* Sidebar (Desktop visible, hidden on mobile) */}
+      <div className="hidden md:block shrink-0">
+        <SidebarSkeleton />
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <HeaderSkeleton />
+        {isWorkspace ? (
+          <main className="flex-1 overflow-hidden">
+            {children || <WorkspaceSkeleton />}
+          </main>
+        ) : (
+          <main className="flex-1 px-4 sm:px-6 md:px-8 py-6 md:py-8 overflow-y-auto max-w-7xl mx-auto w-full">
+            {children || <DashboardSkeleton />}
+          </main>
+        )}
       </div>
     </div>
   );

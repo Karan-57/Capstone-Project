@@ -2,9 +2,19 @@ import api from './api';
 import { DEFAULT_PFP } from '../constants/assets';
 
 export const messageService = {
-  getMessages: async (currentUserId = null) => {
+  getMessages: async (currentUserId = null, options = {}) => {
     try {
-      const res = await api.get('/api/conversations');
+      const params = {};
+      if (typeof options === 'string') {
+        params.type = options;
+      } else if (typeof options === 'object' && options !== null) {
+        if (options.type) params.type = options.type;
+        if (options.scope) params.scope = options.scope;
+        if (options.projectId) params.projectId = options.projectId;
+        if (options.workspaceId) params.workspaceId = options.workspaceId;
+      }
+
+      const res = await api.get('/api/conversations', { params });
       const convs = res.data?.conversations || res.data || [];
       if (Array.isArray(convs)) {
         return convs.map((c) => {
@@ -40,6 +50,15 @@ export const messageService = {
       console.warn('[messageService] Failed to fetch conversations:', err.message);
       return [];
     }
+  },
+
+  getDMs: async (currentUserId = null) => {
+    return messageService.getMessages(currentUserId, { type: 'private' });
+  },
+
+  getProjectConversations: async (currentUserId = null, filterOpts = {}) => {
+    const opts = typeof filterOpts === 'object' ? { type: 'project', ...filterOpts } : { type: 'project' };
+    return messageService.getMessages(currentUserId, opts);
   },
 
   getConversationMessages: async (conversationId, currentUserId = null) => {
@@ -83,6 +102,16 @@ export const messageService = {
       return res.data?.message;
     } catch (err) {
       console.error('[messageService] Failed to send message:', err);
+      throw err;
+    }
+  },
+
+  getOrCreatePrivateConversation: async (recipientId) => {
+    try {
+      const res = await api.post('/api/conversations', { recipientId });
+      return res.data?.conversation;
+    } catch (err) {
+      console.error('[messageService] Failed to get or create conversation:', err);
       throw err;
     }
   },

@@ -39,6 +39,12 @@ import { useSearchParams } from 'react-router-dom';
 import SEO from '../../components/common/SEO';
 import api from '../../services/api';
 import { MilestoneEscrowPipeline } from '../../components/workspace/MilestoneEscrowPipeline';
+import {
+  WorkspaceSidebarSkeleton,
+  WorkspaceContentSkeleton,
+  WorkspaceChatSkeleton,
+  SkeletonRow,
+} from '../../components/common/Skeleton';
 
 /* ─────────────────────────────────────────────────────
    HELPERS & FORMATTERS
@@ -124,7 +130,7 @@ function getWorkspaceMembers(ws) {
   const projEditor = ws.projectId?.selectedEditorId;
   if (projEditor) {
     const peid = (projEditor._id || projEditor).toString();
-    if (peid !== cid) {
+    if (peid && peid !== cid) {
       map.set(peid, {
         _id: peid,
         name: projEditor.name || 'Hired Editor',
@@ -137,7 +143,7 @@ function getWorkspaceMembers(ws) {
   // 3. Workspace Assigned Editor
   if (ws.editorId && (ws.editorId._id || ws.editorId)) {
     const eid = (ws.editorId._id || ws.editorId).toString();
-    if (eid !== cid && !map.has(eid)) {
+    if (eid && eid !== cid && !map.has(eid)) {
       map.set(eid, {
         _id: eid,
         name: ws.editorId.name || 'Lead Video Editor',
@@ -153,7 +159,7 @@ function getWorkspaceMembers(ws) {
       const freelancer = h.hiredFreelancerId;
       if (freelancer && (freelancer._id || freelancer.id || freelancer)) {
         const fid = (freelancer._id || freelancer.id || freelancer).toString();
-        if (fid !== cid) {
+        if (fid && fid !== cid) {
           const existing = map.get(fid);
           map.set(fid, {
             _id: fid,
@@ -174,26 +180,31 @@ function getWorkspaceMembers(ws) {
   // 5. Structured members list
   if (Array.isArray(ws.members)) {
     ws.members.forEach((m) => {
+      if (m.status === 'removed') return;
       const u = m.user;
-      if (u && (u._id || u)) {
-        const uid = (u._id || u).toString();
-        const roleLabel =
-          m.projectRole === 'creator'
-            ? 'Project Creator'
-            : m.projectRole === 'lead_editor' || m.projectRole === 'editor'
-            ? 'Lead Video Editor'
-            : m.projectRole || 'Team Member';
-        if (!map.has(uid)) {
-          map.set(uid, {
-            _id: uid,
-            name: u.name || 'Team Member',
-            role: roleLabel,
-            avatar: u.profileImage || DEFAULT_PFP,
-            roleTitle: roleLabel,
-            roleId: m.projectRole || 'freelancer',
-            roleBudget: 0,
-            milestones: [],
-          });
+      if (u && (u._id || u.id || u)) {
+        const uid = (u._id || u.id || u).toString();
+        if (uid && uid !== cid) {
+          const existing = map.get(uid);
+          const roleLabel =
+            m.projectRole === 'creator'
+              ? 'Project Creator'
+              : m.projectRole === 'lead_editor' || m.projectRole === 'editor'
+              ? 'Lead Video Editor'
+              : m.projectRole || 'Team Member';
+          if (!map.has(uid) || !existing?.name || existing.name === 'Hired Editor' || existing.name === 'Team Member') {
+            map.set(uid, {
+              _id: uid,
+              name: u.name || existing?.name || 'Team Member',
+              role: roleLabel || existing?.role || 'Team Member',
+              avatar: u.profileImage || existing?.avatar || DEFAULT_PFP,
+              roleTitle: roleLabel || existing?.roleTitle || 'Team Member',
+              roleId: m.projectRole || existing?.roleId || 'freelancer',
+              roleBudget: existing?.roleBudget || 0,
+              hiringId: existing?.hiringId || null,
+              milestones: existing?.milestones || [],
+            });
+          }
         }
       }
     });
@@ -444,12 +455,7 @@ function ChatPanel({
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {loading && (
-          <div className="flex items-center justify-center py-12 text-xs text-slate-500 gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-            Loading messages...
-          </div>
-        )}
+        {loading && <WorkspaceChatSkeleton />}
 
         {!loading && messages.length === 0 && (
           <div className="py-12 text-center text-xs text-slate-500">
@@ -1145,8 +1151,10 @@ function FreelancerMilestonesScreen({
 /* ─────────────────────────────────────────────────────
    PROJECT WORKSPACE (Right Panel)
 ───────────────────────────────────────────────────── */
-function ProjectWorkspace({ workspace, onBack, currentUserId }) {
+function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
   const { showAlert } = useAlert();
+  const { currentUser } = useAuth();
+  const currentUserId = (propUserId || currentUser?._id || currentUser?.id)?.toString();
   const { transactions = [] } = useWallet();
   const fileInputRef = useRef(null);
 
@@ -1179,7 +1187,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
 
   const isCreator =
     (workspace.creatorId?._id || workspace.creatorId)?.toString() ===
-    currentUserId?.toString();
+    currentUserId;
 
   // Load workspace files
   const fetchFiles = useCallback(async () => {
@@ -1279,7 +1287,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
   const badgeInfo = getStatusBadge(workspace.status || workspace.projectId?.status);
   const members = getWorkspaceMembers(workspace);
   const otherMembers = members.filter(
-    (m) => currentUserId && m._id.toString() !== currentUserId.toString()
+    (m) => (currentUserId ? m._id.toString() !== currentUserId.toString() : true)
   );
   const recentFiles = files.slice(0, 3);
   const assignedEditor = workspace.editorId || workspace.projectId?.selectedEditorId;
@@ -1342,15 +1350,19 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
         if (saved) mList = JSON.parse(saved);
       } catch (e) {}
 
+      // Fallback to real DB milestones if not in localStorage
+      if (!mList && Array.isArray(role.milestones) && role.milestones.length > 0) {
+        mList = role.milestones;
+      }
+
       let rolePaid = 0;
       let roleLocked = 0;
       let roleCompleted = 0;
-      let roleTotalCount = 3;
+      let roleTotalCount = Array.isArray(mList) ? mList.length : 0;
 
       if (Array.isArray(mList) && mList.length > 0) {
-        roleTotalCount = mList.length;
         mList.forEach((m) => {
-          if (m.status === 'approved') {
+          if (m.status === 'approved' || m.status === 'released') {
             rolePaid += Number(m.amount) || 0;
             roleCompleted += 1;
           } else if (m.status === 'funded' || m.status === 'submitted') {
@@ -1365,13 +1377,15 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
       totalCompletedMilestones += roleCompleted;
 
       const roleProgress = roleTotalCount > 0 ? (roleCompleted / roleTotalCount) * 100 : 0;
-      roleProgressList.push(roleProgress);
+      if (roleTotalCount > 0) {
+        roleProgressList.push(roleProgress);
+      }
     });
 
     const avgProgress =
       roleProgressList.length > 0
         ? Math.round(roleProgressList.reduce((acc, p) => acc + p, 0) / roleProgressList.length)
-        : 0;
+        : (workspace.projectId?.status === 'completed' || workspace.status === 'completed' ? 100 : 0);
 
     return {
       totalBudget: totalProjectBudget,
@@ -1454,9 +1468,17 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
     return (
       <div className="flex-1 flex flex-col min-w-0 h-full">
         {loadingDm ? (
-          <div className="flex-1 flex items-center justify-center text-xs text-slate-500 gap-2">
-            <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
-            Connecting chat with {activeDmMember.name}...
+          <div className="flex-1 flex flex-col h-full bg-[#07090E]">
+            <div className="p-4 border-b border-white/[0.06] bg-[#0C101C] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/[0.05] animate-pulse" />
+                <div className="space-y-1.5">
+                  <div className="w-32 h-4 bg-white/[0.06] rounded-md animate-pulse" />
+                  <div className="w-20 h-3 bg-white/[0.03] rounded-md animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <WorkspaceChatSkeleton />
           </div>
         ) : (
           <ChatPanel
@@ -1688,10 +1710,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
 
           {/* Recent Files List */}
           {loadingFiles ? (
-            <div className="mt-4 flex items-center justify-center py-6 text-xs text-slate-500 gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-              Loading Space assets...
-            </div>
+            <SkeletonRow count={3} className="mt-4" />
           ) : files.length > 0 ? (
             <div className="mt-4 space-y-2">
               {recentFiles.map((file) => {
@@ -1830,8 +1849,8 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
    MAIN WORKSPACE PAGE (Connects all views to backend)
 ───────────────────────────────────────────────────── */
 export const Workspace = () => {
-  const { currentUser } = useAuth();
-  const currentUserId = currentUser?._id;
+  const { currentUser, isAuthenticated, isAuthLoading } = useAuth();
+  const currentUserId = (currentUser?._id || currentUser?.id)?.toString();
 
   const [searchParams] = useSearchParams();
   const [workspaces, setWorkspaces] = useState([]);
@@ -1872,8 +1891,9 @@ export const Workspace = () => {
   }, [searchParams]);
 
   useEffect(() => {
+    if (!isAuthenticated || isAuthLoading) return;
     fetchWorkspaces();
-  }, [fetchWorkspaces]);
+  }, [fetchWorkspaces, isAuthenticated, isAuthLoading]);
 
   const selectedWorkspace = workspaces.find((w) => w._id === selectedWorkspaceId) || null;
 
@@ -1928,10 +1948,7 @@ export const Workspace = () => {
         {/* Workspace rows */}
         <div className="flex-1 overflow-y-auto divide-y divide-white/[0.03]">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-xs text-slate-500 gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
-              Loading workspaces...
-            </div>
+            <WorkspaceSidebarSkeleton />
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-slate-500 gap-2">
               <FolderGit2 className="w-8 h-8 text-slate-600 mb-1" />
@@ -1947,24 +1964,47 @@ export const Workspace = () => {
               const badgeInfo = getStatusBadge(ws.status || ws.projectId?.status);
               const members = getWorkspaceMembers(ws);
 
-              // Calculate workspace level progress %
+              // Calculate workspace level progress % strictly based on real approved milestones
               let wsProgress = 0;
               if (ws.projectId?.status === 'completed' || ws.status === 'completed') {
                 wsProgress = 100;
               } else {
-                try {
-                  const saved = localStorage.getItem(`collabo_milestones_${ws._id}`);
-                  if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                      const finished = parsed.filter(m => m.status === 'approved' || m.status === 'released').length;
-                      wsProgress = Math.round((finished / parsed.length) * 100);
-                    }
+                const hirings = Array.isArray(ws.projectId?.hirings) ? ws.projectId.hirings : [];
+                let totalM = 0;
+                let approvedM = 0;
+
+                hirings.forEach((h) => {
+                  const fid = (h.hiredFreelancerId?._id || h.hiredFreelancerId?.id || h.hiredFreelancerId)?.toString();
+                  let mList = null;
+                  if (fid) {
+                    try {
+                      const saved = localStorage.getItem(`collabo_milestones_${ws._id}_${fid}`);
+                      if (saved) mList = JSON.parse(saved);
+                    } catch (e) {}
                   }
-                } catch (e) {}
-                if (!wsProgress && ws.projectId?.progress != null) {
-                  wsProgress = Math.min(100, Math.max(0, Math.round(Number(ws.projectId.progress) || 0)));
+                  if (!mList && Array.isArray(h.milestones) && h.milestones.length > 0) {
+                    mList = h.milestones;
+                  }
+                  if (Array.isArray(mList) && mList.length > 0) {
+                    totalM += mList.length;
+                    approvedM += mList.filter((m) => m.status === 'approved' || m.status === 'released').length;
+                  }
+                });
+
+                if (totalM === 0) {
+                  try {
+                    const saved = localStorage.getItem(`collabo_milestones_${ws._id}`);
+                    if (saved) {
+                      const parsed = JSON.parse(saved);
+                      if (Array.isArray(parsed) && parsed.length > 0) {
+                        totalM = parsed.length;
+                        approvedM = parsed.filter((m) => m.status === 'approved' || m.status === 'released').length;
+                      }
+                    }
+                  } catch (e) {}
                 }
+
+                wsProgress = totalM > 0 ? Math.round((approvedM / totalM) * 100) : 0;
               }
 
               return (
@@ -2036,7 +2076,11 @@ export const Workspace = () => {
       </aside>
 
       {/* ── RIGHT: PROJECT WORKSPACE or EMPTY STATE ── */}
-      {selectedWorkspace ? (
+      {loading ? (
+        <div className="hidden lg:flex flex-1">
+          <WorkspaceContentSkeleton />
+        </div>
+      ) : selectedWorkspace ? (
         <ProjectWorkspace
           key={selectedWorkspace._id}
           workspace={selectedWorkspace}

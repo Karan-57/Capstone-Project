@@ -2,16 +2,36 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+import {
+  AppShellSkeleton,
+  DashboardSkeleton,
+  WorkspaceSkeleton,
+  PaymentsSkeleton,
+  NotificationsSkeleton,
+} from '../components/common/Skeleton';
+
 export const ProtectedRoute = ({ children, requiredRole }) => {
   const { isAuthenticated, isAuthLoading, role } = useAuth();
   const location = useLocation();
 
-  // While checking refresh token on initial page load / F5 refresh, show clean loading state
+  // While checking refresh token on initial page load / F5 refresh, render skeleton layout
   if (isAuthLoading) {
+    const isWorkspace = location.pathname.includes('/workspace');
+    const isPayments = location.pathname.includes('/payments') || location.pathname.includes('/earnings');
+    const isNotifications = location.pathname.includes('/notifications');
+
     return (
-      <div className="min-h-screen bg-[#07090E] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
-      </div>
+      <AppShellSkeleton isWorkspace={isWorkspace}>
+        {isWorkspace ? (
+          <WorkspaceSkeleton />
+        ) : isPayments ? (
+          <PaymentsSkeleton />
+        ) : isNotifications ? (
+          <NotificationsSkeleton />
+        ) : (
+          <DashboardSkeleton />
+        )}
+      </AppShellSkeleton>
     );
   }
 

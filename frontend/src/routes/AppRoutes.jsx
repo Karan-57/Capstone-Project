@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // Layouts
 import CreatorLayout from '../layouts/CreatorLayout';
@@ -18,18 +19,50 @@ import PrivacyPolicy from '../pages/legal/PlatformPrivacy';
 import TermsAndConditions from '../pages/legal/TermsAndConditions';
 import NotFound from '../pages/NotFound';
 
-// Page Loader Fallback
-const PageLoader = () => (
-  <div className="min-h-screen bg-[#07090E] flex flex-col items-center justify-center gap-4">
-    <div className="relative w-12 h-12 flex items-center justify-center">
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 animate-pulse blur-md opacity-40" />
-      <div className="w-10 h-10 rounded-xl bg-[#0B0E17] border border-purple-500/30 flex items-center justify-center relative">
-        <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+import {
+  AppShellSkeleton,
+  DashboardSkeleton,
+  WorkspaceSkeleton,
+  PaymentsSkeleton,
+  NotificationsSkeleton,
+} from '../components/common/Skeleton';
+
+// Page Loader Fallback (renders full AppShellSkeleton inside app routes for seamless chunk loading)
+const PageLoader = () => {
+  const path = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isProtectedApp = path.startsWith('/creator') || path.startsWith('/editor');
+
+  if (isProtectedApp) {
+    const isWorkspace = path.includes('/workspace');
+    const isPayments = path.includes('/payments') || path.includes('/earnings');
+    const isNotifications = path.includes('/notifications');
+    return (
+      <AppShellSkeleton isWorkspace={isWorkspace}>
+        {isWorkspace ? (
+          <WorkspaceSkeleton />
+        ) : isPayments ? (
+          <PaymentsSkeleton />
+        ) : isNotifications ? (
+          <NotificationsSkeleton />
+        ) : (
+          <DashboardSkeleton />
+        )}
+      </AppShellSkeleton>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#07090E] flex flex-col items-center justify-center gap-4">
+      <div className="relative w-12 h-12 flex items-center justify-center">
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 animate-pulse blur-md opacity-40" />
+        <div className="w-10 h-10 rounded-xl bg-[#0B0E17] border border-purple-500/30 flex items-center justify-center relative">
+          <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
+      <span className="text-xs font-medium text-slate-400 tracking-wider">Loading...</span>
     </div>
-    <span className="text-xs font-medium text-slate-400 tracking-wider">Loading...</span>
-  </div>
-);
+  );
+};
 
 // Lazy-loaded Auth Pages
 const Login = lazy(() => import('../pages/auth/Login'));
@@ -66,6 +99,21 @@ const EditorMessages = lazy(() => import('../pages/editor/Messages'));
 // Lazy-loaded Workspace Page
 const Workspace = lazy(() => import('../pages/workspace/Workspace'));
 
+// Lazy-loaded Search and Public Profile Pages
+const SearchPage = lazy(() => import('../pages/common/SearchPage'));
+const PublicProfilePage = lazy(() => import('../pages/common/PublicProfilePage'));
+
+const RootSearchRedirect = () => {
+  const { role } = useAuth();
+  return <Navigate to={role === 'creator' ? '/creator/search' : '/editor/search'} replace />;
+};
+
+const RootProfileRedirect = () => {
+  const { userId } = useParams();
+  const { role } = useAuth();
+  return <Navigate to={role === 'creator' ? `/creator/profile/${userId}` : `/editor/profile/${userId}`} replace />;
+};
+
 export const AppRoutes = () => {
   return (
     <>
@@ -79,6 +127,24 @@ export const AppRoutes = () => {
           <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
           <Route path="/terms" element={<TermsAndConditions />} />
           <Route path="/terms-and-conditions" element={<Navigate to="/terms" replace />} />
+
+          {/* Root Search & Profile Shortcuts */}
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <RootSearchRedirect />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:userId"
+            element={
+              <ProtectedRoute>
+                <RootProfileRedirect />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Unified Auth Routes with ?role=creator | ?role=editor */}
           <Route path="/login" element={<Login />} />
@@ -103,6 +169,7 @@ export const AppRoutes = () => {
           >
             <Route index element={<Navigate to="/creator/dashboard" replace />} />
             <Route path="dashboard" element={<CreatorDashboard />} />
+            <Route path="search" element={<SearchPage role="creator" />} />
             <Route path="projects" element={<CreatorProjects />} />
             <Route path="projects/:projectId" element={<ProjectDetails />} />
             <Route path="create-project" element={<CreateProject />} />
@@ -114,6 +181,7 @@ export const AppRoutes = () => {
             <Route path="history" element={<CreatorHistory />} />
             <Route path="notifications" element={<CreatorNotifications />} />
             <Route path="profile" element={<CreatorProfile />} />
+            <Route path="profile/:userId" element={<PublicProfilePage role="creator" />} />
             <Route path="edit-profile" element={<CreatorEditProfile />} />
             <Route path="settings" element={<CreatorSettings />} />
           </Route>
@@ -129,6 +197,7 @@ export const AppRoutes = () => {
           >
             <Route index element={<Navigate to="/editor/dashboard" replace />} />
             <Route path="dashboard" element={<EditorDashboard />} />
+            <Route path="search" element={<SearchPage role="editor" />} />
             <Route path="browse" element={<BrowseProjects />} />
             <Route path="applications" element={<MyApplications />} />
             <Route path="active-projects" element={<EditorActiveProjects />} />
@@ -137,6 +206,7 @@ export const AppRoutes = () => {
             <Route path="earnings" element={<EditorEarnings />} />
             <Route path="notifications" element={<EditorNotifications />} />
             <Route path="profile" element={<EditorProfile />} />
+            <Route path="profile/:userId" element={<PublicProfilePage role="editor" />} />
             <Route path="edit-profile" element={<EditorEditProfile />} />
             <Route path="create-showreel" element={<EditorEditProfile />} />
             <Route path="settings" element={<EditorSettings />} />

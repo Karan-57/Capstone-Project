@@ -18,6 +18,7 @@ import UploadAssetModal from '../../components/creator/UploadAssetModal';
 import MessageCard from '../../components/common/MessageCard';
 import Button from '../../components/common/Button';
 import ProfileCompletionBanner from '../../components/common/ProfileCompletionBanner';
+import { DashboardSkeleton } from '../../components/common/Skeleton';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
 
@@ -34,6 +35,10 @@ export const CreatorDashboard = () => {
     applications,
     messages
   } = useDashboardData();
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   const totalProjectsCount = creatorProjects.length;
   const activeProjectsCount = creatorProjects.filter(p => p.rawStatus === 'in_progress' || p.rawStatus === 'assigned' || p.status === 'In Progress' || p.status === 'Assigned').length;

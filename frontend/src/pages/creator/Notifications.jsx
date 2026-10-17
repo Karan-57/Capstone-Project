@@ -4,10 +4,13 @@ import { Bell, CheckCircle2, DollarSign, MessageSquare, AlertCircle, RefreshCw, 
 import Button from '../../components/common/Button';
 import { notificationService, getNotificationTargetRoute } from '../../services/notificationService';
 import { useAlert } from '../../context/AlertContext';
+import { useAuth } from '../../context/AuthContext';
+import { NotificationsSkeleton } from '../../components/common/Skeleton';
 
 export const Notifications = () => {
   const navigate = useNavigate();
   const { showAlert } = useAlert();
+  const { isAuthenticated, isAuthLoading } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,8 +22,9 @@ export const Notifications = () => {
   };
 
   useEffect(() => {
+    if (!isAuthenticated || isAuthLoading) return;
     fetchNotifications();
-  }, []);
+  }, [isAuthenticated, isAuthLoading]);
 
   const markAllRead = async () => {
     await notificationService.markAllAsRead();
@@ -64,6 +68,10 @@ export const Notifications = () => {
     }
   };
 
+  if (loading) {
+    return <NotificationsSkeleton />;
+  }
+
   return (
     <div className="space-y-6 max-w-4xl animate-fade-in">
       <div className="flex items-center justify-between">
@@ -80,9 +88,7 @@ export const Notifications = () => {
         )}
       </div>
 
-      {loading ? (
-        <div className="py-16 text-center text-xs text-slate-400">Loading notifications...</div>
-      ) : notifications.length === 0 ? (
+      {notifications.length === 0 ? (
         <div className="glass-card p-12 text-center border border-white/[0.06] rounded-2xl">
           <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mx-auto mb-3 text-slate-400">
             <Bell className="w-6 h-6" />

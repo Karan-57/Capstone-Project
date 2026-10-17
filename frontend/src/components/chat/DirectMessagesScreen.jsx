@@ -30,7 +30,7 @@ import SEO from '../common/SEO';
 import { messageService } from '../../services/messageService';
 import { useAuth } from '../../context/AuthContext';
 import { DEFAULT_PFP } from '../../constants/assets';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 
 function getFileType(nameOrUrl = '') {
@@ -59,6 +59,7 @@ function formatFileSize(bytes) {
 export const DirectMessagesScreen = ({ role: viewerRole = 'creator' }) => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUserId = currentUser?._id || currentUser?.id;
 
   const [conversations, setConversations] = useState([]);
@@ -84,11 +85,40 @@ export const DirectMessagesScreen = ({ role: viewerRole = 'creator' }) => {
   // Load conversations on mount
   useEffect(() => {
     const loadConversations = async () => {
-      const data = await messageService.getMessages(currentUserId);
-      setConversations(data || []);
+      const data = await messageService.getDMs(currentUserId);
+      const convList = data || [];
+      setConversations(convList);
+
+      const targetConvId = location.state?.conversationId;
+      const recipientUser = location.state?.recipientUser;
+      if (targetConvId) {
+        const found = convList.find((c) => String(c.id) === String(targetConvId));
+        if (found) {
+          setActiveChat(found);
+        } else if (recipientUser) {
+          const newConv = {
+            id: targetConvId,
+            sender: recipientUser.name || 'Collaborator',
+            senderRole: recipientUser.role || 'Member',
+            senderUsername: recipientUser.username || '',
+            senderId: recipientUser._id || recipientUser.id,
+            avatar: recipientUser.profileImage || DEFAULT_PFP,
+            lastMessage: 'Started new direct message',
+            timestamp: 'Just now',
+            unread: false,
+            online: false,
+            project: null,
+            projectId: null,
+            type: 'private',
+            participants: [recipientUser],
+          };
+          setConversations((prev) => [newConv, ...prev.filter((c) => String(c.id) !== String(targetConvId))]);
+          setActiveChat(newConv);
+        }
+      }
     };
     loadConversations();
-  }, [currentUserId]);
+  }, [currentUserId, location.state]);
 
   // Load messages whenever user clicks a chat
   useEffect(() => {
@@ -342,7 +372,7 @@ export const DirectMessagesScreen = ({ role: viewerRole = 'creator' }) => {
                       </span>
                     </div>
                     <p className="text-[11px] text-purple-400 font-medium truncate">
-                      {c.senderRole} · {c.project || 'Collaboration'}
+                      {c.senderRole} {c.project ? `· ${c.project}` : (c.senderUsername ? `· @${c.senderUsername}` : '')}
                     </p>
                     <p className="text-xs text-slate-400 truncate mt-0.5">
                       {c.lastMessage}
@@ -671,13 +701,25 @@ export const DirectMessagesScreen = ({ role: viewerRole = 'creator' }) => {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5 truncate">
-                  <Briefcase className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span className="text-slate-400">Latest Project:</span>
-                  <span className="text-amber-300 font-semibold truncate">
-                    {activeChat.project || 'General Direct Collaboration'}
-                  </span>
-                </div>
+                {activeChat.project ? (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5 truncate">
+                    <Briefcase className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="text-slate-400">Project:</span>
+                    <span className="text-amber-300 font-semibold truncate">
+                      {activeChat.project}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5 truncate">
+                    <MessageSquare className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <span className="text-slate-400">Direct Message</span>
+                    {activeChat.senderUsername && (
+                      <span className="text-purple-300/80 font-mono text-[11px]">
+                        @{activeChat.senderUsername}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

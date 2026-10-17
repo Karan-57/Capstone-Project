@@ -103,86 +103,87 @@ async function getMyConversationsController(req, res) {
       return res.status(401).json({ message: 'Unauthorized, user not authenticated' });
     }
 
-    // Find all workspaces where user is an active participant to keep project chats synchronized
-    const activeWorkspaces = await workspaceModel.find({
-      $or: [
-        { creatorId: currentUserId },
-        { editorId: currentUserId },
-        { 'members.user': currentUserId, 'members.status': 'active' },
-      ],
-      status: { $ne: 'cancelled' },
-    }).select('_id');
+    const { type, projectId, workspaceId, scope } = req.query;
+    const requestedType = type || (scope === 'dm' ? 'private' : (scope === 'project' || scope === 'workspace' ? 'project' : null));
 
-    // Make sure project conversation records exist for all user's active workspaces
-    for (const ws of activeWorkspaces) {
-      await getOrCreateProjectConversation(ws._id).catch(() => {});
+    // Base participant filter
+    const filter = {
+      participants: currentUserId,
+    };
+
+    if (requestedType === 'private') {
+      filter.type = 'private';
+      filter.workspaceId = null;
+    } else if (requestedType === 'project') {
+      filter.$or = [
+        { type: 'project' },
+        { projectId: { $ne: null } },
+        { workspaceId: { $ne: null } },
+      ];
     }
 
-    // Query all conversations where user is in participants
+    if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+      filter.projectId = new mongoose.Types.ObjectId(projectId);
+    }
+
+    if (workspaceId && mongoose.Types.ObjectId.isValid(workspaceId)) {
+      filter.workspaceId = new mongoose.Types.ObjectId(workspaceId);
+    }
+
+    // Only sync workspace project conversations when NOT strictly requesting private DMs
+    if (requestedType !== 'private') {
+      const activeWorkspaces = await workspaceModel.find({
+        $or: [
+          { creatorId: currentUserId },
+          { editorId: currentUserId },
+          { 'members.user': currentUserId, 'members.status': 'active' },
+        ],
+        status: { $ne: 'cancelled' },
+      }).select('_id');
+
+      for (const ws of activeWorkspaces) {
+        await getOrCreateProjectConversation(ws._id).catch(() => {});
+      }
+    }
+
+    // Query conversations with the constructed filter
     const conversations = await conversationModel
-      .find({
-        participants: currentUserId,
-      })
+      .find(filter)
       .populate('participants', 'name username email profileImage role rating')
       .populate('projectId', 'title category status budget deadline')
       .populate('workspaceId', 'status')
       .populate('lastMessage.sender', 'name username profileImage')
       .sort({ updatedAt: -1 });
 
-    // Compute unread status and resolve latest shared project for each conversation
-    const formatted = await Promise.all(
-      conversations.map(async (conv) => {
-        const convObj = conv.toObject();
-        const readEntry = conv.readBy?.find(
-          (r) => r.user?.toString() === currentUserId.toString()
-        );
-        const lastReadAt = readEntry ? new Date(readEntry.readAt).getTime() : 0;
-        const lastMessageTime = conv.lastMessage?.createdAt
-          ? new Date(conv.lastMessage.createdAt).getTime()
-          : 0;
+    // Compute unread status for each conversation
+    const formatted = conversations.map((conv) => {
+      const convObj = conv.toObject();
+      const readEntry = conv.readBy?.find(
+        (r) => r.user?.toString() === currentUserId.toString()
+      );
+      const lastReadAt = readEntry ? new Date(readEntry.readAt).getTime() : 0;
+      const lastMessageTime = conv.lastMessage?.createdAt
+        ? new Date(conv.lastMessage.createdAt).getTime()
+        : 0;
 
-        // Has unread if there's a last message sent by someone else and after lastReadAt
-        const isUnread =
-          lastMessageTime > lastReadAt &&
-          conv.lastMessage?.sender?._id?.toString() !== currentUserId.toString();
+      const isUnread =
+        lastMessageTime > lastReadAt &&
+        conv.lastMessage?.sender?._id?.toString() !== currentUserId.toString();
 
-        let resolvedProject = convObj.projectId;
-
-        // If private chat doesn't have an explicit projectId linked, find their latest shared project
-        if (!resolvedProject && convObj.participants?.length === 2) {
-          const otherUserId = convObj.participants.find(
-            (p) => p._id.toString() !== currentUserId.toString()
-          )?._id;
-
-          if (otherUserId) {
-            // Find latest project where creator and editor worked together
-            const sharedProject = await projectModel
-              .findOne({
-                $or: [
-                  { creatorId: currentUserId, selectedEditorId: otherUserId },
-                  { creatorId: otherUserId, selectedEditorId: currentUserId },
-                ],
-              })
-              .select('title category status budget deadline')
-              .sort({ updatedAt: -1 });
-
-            if (sharedProject) {
-              resolvedProject = sharedProject.toObject();
-            }
-          }
-        }
-
-        return {
-          ...convObj,
-          projectId: resolvedProject,
-          isUnread,
-        };
-      })
-    );
+      return {
+        ...convObj,
+        isUnread,
+      };
+    });
 
     return res.status(200).json({
       count: formatted.length,
       conversations: formatted,
+      filter: {
+        type: requestedType || 'all',
+        projectId: projectId || null,
+        workspaceId: workspaceId || null,
+      },
     });
   } catch (err) {
     console.error('Error in getMyConversationsController:', err);

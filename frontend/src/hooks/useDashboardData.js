@@ -7,7 +7,7 @@ import { messageService } from '../services/messageService';
 import api from '../services/api';
 
 export const useDashboardData = () => {
-  const { role, isAuthLoading } = useAuth();
+  const { role, isAuthenticated, isAuthLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [creatorProjects, setCreatorProjects] = useState([]);
   const [editorRecommended, setEditorRecommended] = useState([]);
@@ -18,7 +18,12 @@ export const useDashboardData = () => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    if (isAuthLoading) return;
+    if (isAuthLoading || !isAuthenticated) {
+      if (!isAuthLoading && !isAuthenticated) {
+        setLoading(false);
+      }
+      return;
+    }
 
     let isMounted = true;
     const fetchData = async () => {
@@ -29,7 +34,7 @@ export const useDashboardData = () => {
             projectService.getCreatorProjects().catch(() => []),
             applicationService.getApplications().catch(() => []),
             paymentService.getEarningsChart('thisMonth').catch(() => null),
-            messageService.getMessages().catch(() => []),
+            messageService.getDMs().catch(() => []),
           ]);
           if (isMounted) {
             setCreatorProjects(cProj || []);
@@ -42,7 +47,7 @@ export const useDashboardData = () => {
             projectService.getEditorRecommended().catch(() => []),
             projectService.getEditorActive().catch(() => []),
             paymentService.getEditorEarnings().catch(() => null),
-            messageService.getMessages().catch(() => []),
+            messageService.getDMs().catch(() => []),
           ]);
           if (isMounted) {
             setEditorRecommended(eRec || []);
@@ -65,7 +70,7 @@ export const useDashboardData = () => {
     return () => {
       isMounted = false;
     };
-  }, [role, isAuthLoading]);
+  }, [role, isAuthLoading, isAuthenticated]);
 
   const handleApplicationStatus = async (appId, newStatus) => {
     try {
