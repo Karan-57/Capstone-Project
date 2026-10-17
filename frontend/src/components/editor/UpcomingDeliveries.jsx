@@ -31,21 +31,24 @@ export const UpcomingDeliveries = ({ projects = [] }) => {
             {activeDeliveries.map((item) => (
               <div
                 key={item.id}
-                className="p-3 sm:p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#141A28]/60 border-white/[0.04]"
+                className="p-3 sm:p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#141A28]/60 hover:bg-[#182030]/80 border-white/[0.04] hover:border-purple-500/25 transition-all"
               >
                 <div className="min-w-0">
-                  <h4 className="text-xs font-semibold text-white truncate">
-                    {item.title || 'unknown'}
+                  <h4 className="text-sm font-semibold text-white truncate">
+                    {item.title || 'Untitled Project'}
                   </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5 truncate">
-                    {item.client || 'unknown'} • <span className="text-purple-300">{item.deliverableType || 'unknown'}</span>
+                  <p className="text-[11px] text-slate-400 mt-0.5 truncate flex items-center gap-1.5">
+                    <span className="text-slate-300 font-medium">{item.client || 'Client'}</span>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-purple-300 font-medium">{item.deliverableType || 'Deliverable'}</span>
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end sm:text-right gap-2 shrink-0">
-                  <div className="text-xs font-semibold text-white">
-                    Due {item.dueDate || 'unknown'}
-                  </div>
+                <div className="flex items-center justify-between sm:justify-end sm:text-right gap-2.5 shrink-0">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                    <Clock className="w-3.5 h-3.5 text-purple-400" />
+                    <span>{item.dueDate || 'Pending'}</span>
+                  </span>
                   <Button
                     variant="subtle"
                     size="xs"

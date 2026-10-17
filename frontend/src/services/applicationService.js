@@ -33,6 +33,12 @@ export const applicationService = {
                 totalReviews: app.editorId?.totalReviews || 0,
                 status: app.status || 'unknown',
                 appliedFor: p.title || 'unknown',
+                roleTitle: app.roleTitle || 'Video Editor',
+                hiringId: app.hiringId || null,
+                currentOffer: app.currentOffer != null ? app.currentOffer : null,
+                lastOfferBy: app.lastOfferBy || null,
+                counterNote: app.counterNote || '',
+                negotiationHistory: Array.isArray(app.negotiationHistory) ? app.negotiationHistory : [],
                 appliedDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'unknown',
               }))
             )
@@ -60,6 +66,10 @@ export const applicationService = {
           hiringId: app.hiringId || null,
           creatorName: app.projectId?.creatorId?.name || 'unknown',
           bidAmount: app.bidAmount != null ? app.bidAmount : 999,
+          currentOffer: app.currentOffer != null ? app.currentOffer : null,
+          lastOfferBy: app.lastOfferBy || null,
+          counterNote: app.counterNote || '',
+          negotiationHistory: Array.isArray(app.negotiationHistory) ? app.negotiationHistory : [],
           estimatedDeliveryDays: app.estimatedDeliveryDays != null ? app.estimatedDeliveryDays : 999,
           proposal: app.proposal || 'unknown',
           status: app.status || 'unknown',
@@ -70,6 +80,33 @@ export const applicationService = {
     } catch (err) {
       console.warn('[applicationService] Failed to fetch editor applications:', err.message);
       return [];
+    }
+  },
+  acceptApplication: async (applicationId) => {
+    try {
+      const res = await api.post(`/api/application/${applicationId}/accept`);
+      return res.data;
+    } catch (err) {
+      console.error('[applicationService] Failed to accept application:', err);
+      throw err;
+    }
+  },
+  rejectApplication: async (applicationId) => {
+    try {
+      const res = await api.post(`/api/application/${applicationId}/reject`);
+      return res.data;
+    } catch (err) {
+      console.error('[applicationService] Failed to reject/decline application:', err);
+      throw err;
+    }
+  },
+  negotiateApplication: async (applicationId, { amount, note }) => {
+    try {
+      const res = await api.post(`/api/application/${applicationId}/negotiate`, { amount, note });
+      return res.data;
+    } catch (err) {
+      console.error('[applicationService] Failed to submit counter-offer:', err);
+      throw err;
     }
   },
 };

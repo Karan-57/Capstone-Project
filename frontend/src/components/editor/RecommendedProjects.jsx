@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Clock, CheckCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Clock, CheckCircle, ArrowRight, Users } from 'lucide-react';
 import Button from '../common/Button';
 import { DEFAULT_PFP } from '../../constants/assets';
 
@@ -65,11 +65,12 @@ export const RecommendedProjects = ({ projects = [] }) => {
                   </div>
 
                   <div className="text-left sm:text-right shrink-0">
-                    <div className="text-base font-bold text-white">
+                    <div className="text-base font-extrabold text-emerald-400 font-mono tracking-tight">
                       {gig.budget}
                     </div>
-                    <div className="text-[11px] text-slate-400 font-mono">
-                      {gig.proposalsCount} proposals
+                    <div className="text-[11px] text-slate-400 font-mono flex items-center sm:justify-end gap-1 mt-0.5">
+                      <Users className="w-3 h-3 text-slate-500" />
+                      <span>{gig.proposalsCount} proposals</span>
                     </div>
                   </div>
                 </div>

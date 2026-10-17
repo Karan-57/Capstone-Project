@@ -14,6 +14,7 @@ import EarningsOverview from '../../components/editor/EarningsOverview';
 import UpcomingDeliveries from '../../components/editor/UpcomingDeliveries';
 import MessageCard from '../../components/common/MessageCard';
 import Button from '../../components/common/Button';
+import ProfileCompletionBanner from '../../components/common/ProfileCompletionBanner';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
 import { useWallet } from '../../context/WalletContext';
@@ -36,6 +37,9 @@ export const EditorDashboard = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
+      {/* Instagram-style Profile Completion Visual (checks ONLY pfp, professional title, tools) */}
+      <ProfileCompletionBanner role="editor" />
+
       {/* Top Stats for Editor (Real dynamic counts, ledger credits & rating) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4.5">
         <StatsCard
@@ -66,7 +70,7 @@ export const EditorDashboard = () => {
           icon={Star}
           iconBg="bg-amber-600/20 text-amber-400 border border-amber-500/25"
           value={ratingValue}
-          title="Editor Rating"
+          title="Freelancer Rating"
           trend={ratingValue === '0' ? 'No reviews yet' : 'Top Rated'}
           isPositive={true}
         />
@@ -85,61 +89,16 @@ export const EditorDashboard = () => {
         </div>
       </section>
 
-      {/* Bottom Grid: Deliveries + Earnings Overview + Real Messages */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5.5">
+      {/* Bottom Grid: Deliveries + Earnings Overview */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5.5">
         {/* Upcoming Deliveries */}
         <div className="h-full">
           <UpcomingDeliveries projects={editorActive} />
         </div>
 
-        {/* Earnings & Escrow Overview (Payment exception) */}
+        {/* Earnings & Escrow Overview */}
         <div className="h-full">
           <EarningsOverview earnings={editorEarnings} />
-        </div>
-
-        {/* Real Messages & Conversations */}
-        <div className="glass-card p-4 sm:p-5.5 flex flex-col justify-between h-full md:col-span-2 xl:col-span-1">
-          <div>
-            <div className="flex items-center justify-between mb-3.5">
-              <h3 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-purple-400" />
-                Messages
-              </h3>
-              <button
-                onClick={() => navigate('/editor/messages')}
-                className="text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                View all
-              </button>
-            </div>
-
-            {messages.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500">
-                No active conversations
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                {messages.slice(0, 3).map((msg) => (
-                  <MessageCard
-                    key={msg.id}
-                    message={msg}
-                    onClick={() => navigate('/editor/messages')}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-white/[0.04]">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate('/editor/messages')}
-              className="w-full py-2.5 text-xs font-semibold"
-            >
-              Go to Messages
-            </Button>
-          </div>
         </div>
       </section>
     </div>

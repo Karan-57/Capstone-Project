@@ -219,7 +219,10 @@ async function loginUserController(req, res) {
                 name: user.name,
                 username: user.username,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                subRoles: user.subRoles || [],
+                profileImage: user.profileImage || '',
+                verified: user.verified
             }
         });
     } catch (err) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   FolderGit2,
   UploadCloud,
@@ -27,10 +27,14 @@ import {
   Film,
   Link as LinkIcon,
   Globe,
+  Coins,
+  Lock,
+  ShieldCheck,
 } from 'lucide-react';
 import { DEFAULT_PFP } from '../../constants/assets';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
+import { useWallet } from '../../context/WalletContext';
 import { useSearchParams } from 'react-router-dom';
 import SEO from '../../components/common/SEO';
 import api from '../../services/api';
@@ -143,7 +147,31 @@ function getWorkspaceMembers(ws) {
     }
   }
 
-  // 4. Structured members list
+  // 4. Project Hirings (multi-role: editor, thumbnail designer, scriptwriter, etc.)
+  if (Array.isArray(ws.projectId?.hirings)) {
+    ws.projectId.hirings.forEach((h) => {
+      const freelancer = h.hiredFreelancerId;
+      if (freelancer && (freelancer._id || freelancer.id || freelancer)) {
+        const fid = (freelancer._id || freelancer.id || freelancer).toString();
+        if (fid !== cid) {
+          const existing = map.get(fid);
+          map.set(fid, {
+            _id: fid,
+            name: freelancer.name || freelancer.username || existing?.name || 'Hired Freelancer',
+            role: h.roleTitle || existing?.role || 'Team Freelancer',
+            avatar: freelancer.profileImage || freelancer.avatar || existing?.avatar || DEFAULT_PFP,
+            roleTitle: h.roleTitle || 'Team Freelancer',
+            roleId: h.roleId || 'freelancer',
+            roleBudget: h.budget || (existing?.roleBudget || 0),
+            hiringId: h._id || null,
+            milestones: h.milestones || [],
+          });
+        }
+      }
+    });
+  }
+
+  // 5. Structured members list
   if (Array.isArray(ws.members)) {
     ws.members.forEach((m) => {
       const u = m.user;
@@ -161,6 +189,10 @@ function getWorkspaceMembers(ws) {
             name: u.name || 'Team Member',
             role: roleLabel,
             avatar: u.profileImage || DEFAULT_PFP,
+            roleTitle: roleLabel,
+            roleId: m.projectRole || 'freelancer',
+            roleBudget: 0,
+            milestones: [],
           });
         }
       }
@@ -239,6 +271,7 @@ function ChatPanel({
   currentUserId,
   onBack,
   onOpenMedia,
+  onOpenMilestones,
 }) {
   const { showAlert } = useAlert();
   const { currentUser, role: userRole } = useAuth();
@@ -383,15 +416,30 @@ function ChatPanel({
           </div>
         </div>
 
-        {onOpenMedia && (
-          <button
-            onClick={onOpenMedia}
-            title="Media & Links"
-            className="p-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all cursor-pointer shrink-0 shadow-sm"
-          >
-            <Film className="w-4 h-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {onOpenMilestones && (
+            <button
+              type="button"
+              onClick={onOpenMilestones}
+              title="Milestones & Escrow"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Milestones</span>
+            </button>
+          )}
+
+          {onOpenMedia && (
+            <button
+              type="button"
+              onClick={onOpenMedia}
+              title="Media & Links"
+              className="p-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all cursor-pointer shrink-0 shadow-sm"
+            >
+              <Film className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -986,10 +1034,120 @@ function ProjectMediaAndLinksScreen({
 }
 
 /* ─────────────────────────────────────────────────────
+   FREELANCER MILESTONES & ESCROW SCREEN
+   (Dedicated view for a specific freelancer's milestones)
+───────────────────────────────────────────────────── */
+function FreelancerMilestonesScreen({
+  workspace,
+  member,
+  isCreator,
+  currentUserId,
+  onBack,
+}) {
+  // Determine target freelancer info
+  const targetMember = useMemo(() => {
+    if (isCreator) return member;
+    // If current user is the freelancer chatting with the creator, show their own deliverables
+    const myHiring = Array.isArray(workspace.projectId?.hirings)
+      ? workspace.projectId.hirings.find((h) => {
+          const fid = (h.hiredFreelancerId?._id || h.hiredFreelancerId?.id || h.hiredFreelancerId)?.toString();
+          return fid === currentUserId?.toString();
+        })
+      : null;
+
+    return {
+      _id: currentUserId,
+      name: 'Your Deliverables',
+      role: myHiring?.roleTitle || 'Assigned Role',
+      roleTitle: myHiring?.roleTitle || 'Assigned Role',
+      roleId: myHiring?.roleId || 'video_editor',
+      roleBudget: myHiring?.budget || workspace.projectId?.totalBudget || workspace.projectId?.budget || 10000,
+      milestones: myHiring?.milestones || [],
+      avatar: member?.avatar,
+    };
+  }, [isCreator, member, currentUserId, workspace]);
+
+  // Match with project hiring if exists
+  const hiringMatch = useMemo(() => {
+    if (!Array.isArray(workspace.projectId?.hirings)) return null;
+    return workspace.projectId.hirings.find((h) => {
+      const fid = (h.hiredFreelancerId?._id || h.hiredFreelancerId?.id || h.hiredFreelancerId)?.toString();
+      return fid === targetMember._id?.toString();
+    });
+  }, [workspace, targetMember._id]);
+
+  const effectiveBudget =
+    hiringMatch?.budget ||
+    targetMember.roleBudget ||
+    workspace.projectId?.totalBudget ||
+    workspace.projectId?.budget ||
+    10000;
+  const effectiveRoleTitle =
+    hiringMatch?.roleTitle || targetMember.roleTitle || targetMember.role || 'Production Role';
+  const effectiveRoleId = hiringMatch?.roleId || targetMember.roleId || 'video_editor';
+  const effectiveMilestones = hiringMatch?.milestones?.length ? hiringMatch.milestones : targetMember.milestones;
+
+  return (
+    <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto bg-[#09090E]">
+      {/* Header */}
+      <header className="px-5 py-4 border-b border-white/[0.06] bg-[#0C101C]/90 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 sticky top-0 z-20">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={onBack}
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-medium"
+            title="Back to conversation"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back to Chat</span>
+          </button>
+
+          <div className="h-6 w-px bg-white/10 hidden sm:block" />
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-sm font-bold text-white truncate">
+                {isCreator ? `${targetMember.name} — Milestones & Escrow` : 'My Milestones & Deliverables'}
+              </h2>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                {effectiveRoleTitle}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+              <span>Project: <strong className="text-slate-200">{workspace.projectId?.title || 'Production'}</strong></span>
+              <span>·</span>
+              <span>Role Budget: <strong className="text-emerald-400 font-mono">₹{Number(effectiveBudget).toLocaleString('en-IN')}</strong></span>
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {/* Freelancer Specific Milestones & Escrow Pipeline */}
+      <div className="p-5 space-y-6 max-w-5xl mx-auto w-full">
+        <MilestoneEscrowPipeline
+          mode="all"
+          workspaceId={workspace._id}
+          projectId={workspace.projectId?._id || workspace.projectId}
+          totalBudget={effectiveBudget}
+          roleBudget={effectiveBudget}
+          isCreator={isCreator}
+          editorName={targetMember.name}
+          editorId={targetMember._id}
+          roleTitle={effectiveRoleTitle}
+          roleId={effectiveRoleId}
+          initialMilestones={effectiveMilestones}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────
    PROJECT WORKSPACE (Right Panel)
 ───────────────────────────────────────────────────── */
 function ProjectWorkspace({ workspace, onBack, currentUserId }) {
   const { showAlert } = useAlert();
+  const { transactions = [] } = useWallet();
   const fileInputRef = useRef(null);
 
   const [files, setFiles] = useState([]);
@@ -1009,7 +1167,15 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
   // Views: null | 'group' | 'dm'
   const [activeView, setActiveView] = useState(null);
   const [showMediaScreen, setShowMediaScreen] = useState(false);
+  const [showMilestonesScreen, setShowMilestonesScreen] = useState(false);
   const [mediaScope, setMediaScope] = useState({ type: 'project' });
+  const [milestonesUpdateTick, setMilestonesUpdateTick] = useState(0);
+
+  useEffect(() => {
+    const handleSync = () => setMilestonesUpdateTick((prev) => prev + 1);
+    window.addEventListener('collabo_milestones_sync', handleSync);
+    return () => window.removeEventListener('collabo_milestones_sync', handleSync);
+  }, []);
 
   const isCreator =
     (workspace.creatorId?._id || workspace.creatorId)?.toString() ===
@@ -1120,6 +1286,118 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
   const assignedEditorId = (assignedEditor?._id || assignedEditor)?.toString() || null;
   const assignedEditorName = assignedEditor?.name || 'Assigned Editor';
 
+  // PROJECT-WIDE ESCROW & PROGRESS METRICS (Aggregates across all roles in this project)
+  const projectMetrics = useMemo(() => {
+    const hiringsList = Array.isArray(workspace.projectId?.hirings) ? [...workspace.projectId.hirings] : [];
+    const assignedEditorObj = workspace.editorId || workspace.projectId?.selectedEditorId;
+    if (assignedEditorObj && (assignedEditorObj._id || assignedEditorObj)) {
+      const eid = (assignedEditorObj._id || assignedEditorObj).toString();
+      const alreadyIn = hiringsList.some((h) => {
+        const fid = (h.hiredFreelancerId?._id || h.hiredFreelancerId?.id || h.hiredFreelancerId)?.toString();
+        return fid === eid;
+      });
+      if (!alreadyIn) {
+        hiringsList.push({
+          _id: 'lead_editor',
+          roleTitle: 'Lead Video Editor',
+          roleId: 'video_editor',
+          hiredFreelancerId: assignedEditorObj,
+          budget: workspace.projectId?.totalBudget || workspace.projectId?.budget || 10000,
+        });
+      }
+    }
+
+    const totalProjectBudget =
+      workspace.projectId?.totalBudget ||
+      (hiringsList.length > 0
+        ? hiringsList.reduce((sum, h) => sum + (Number(h.budget) || 0), 0)
+        : typeof workspace.projectId?.budget === 'number'
+        ? workspace.projectId.budget
+        : parseInt(String(workspace.projectId?.budget || 10000).replace(/[^0-9]/g, ''), 10) || 10000);
+
+    let totalReleased = 0;
+    let totalInEscrow = 0;
+    let totalMilestonesCount = 0;
+    let totalCompletedMilestones = 0;
+    const roleProgressList = [];
+
+    const rolesToEvaluate = hiringsList.length > 0 ? hiringsList : [
+      {
+        _id: 'default_role',
+        roleTitle: 'Video Editor',
+        roleId: 'video_editor',
+        budget: totalProjectBudget,
+        hiredFreelancerId: assignedEditorId,
+      }
+    ];
+
+    rolesToEvaluate.forEach((role) => {
+      const fid = (role.hiredFreelancerId?._id || role.hiredFreelancerId?.id || role.hiredFreelancerId)?.toString() || role._id;
+      const roleKey = `collabo_milestones_${workspace._id}_${fid}`;
+      const legacyKey = `collabo_milestones_${workspace._id}`;
+
+      let mList = null;
+      try {
+        const saved = localStorage.getItem(roleKey) || (!role.hiredFreelancerId ? localStorage.getItem(legacyKey) : null);
+        if (saved) mList = JSON.parse(saved);
+      } catch (e) {}
+
+      let rolePaid = 0;
+      let roleLocked = 0;
+      let roleCompleted = 0;
+      let roleTotalCount = 3;
+
+      if (Array.isArray(mList) && mList.length > 0) {
+        roleTotalCount = mList.length;
+        mList.forEach((m) => {
+          if (m.status === 'approved') {
+            rolePaid += Number(m.amount) || 0;
+            roleCompleted += 1;
+          } else if (m.status === 'funded' || m.status === 'submitted') {
+            roleLocked += Number(m.amount) || 0;
+          }
+        });
+      }
+
+      totalReleased += rolePaid;
+      totalInEscrow += roleLocked;
+      totalMilestonesCount += roleTotalCount;
+      totalCompletedMilestones += roleCompleted;
+
+      const roleProgress = roleTotalCount > 0 ? (roleCompleted / roleTotalCount) * 100 : 0;
+      roleProgressList.push(roleProgress);
+    });
+
+    const avgProgress =
+      roleProgressList.length > 0
+        ? Math.round(roleProgressList.reduce((acc, p) => acc + p, 0) / roleProgressList.length)
+        : 0;
+
+    return {
+      totalBudget: totalProjectBudget,
+      totalReleased,
+      totalInEscrow,
+      progressPercent: avgProgress,
+      totalMilestonesCount,
+      totalCompletedMilestones,
+    };
+  }, [workspace, assignedEditorId, milestonesUpdateTick]);
+
+  // FREELANCER MILESTONES SCREEN (Evaluated when user clicks Milestones button in 1-on-1 chat)
+  if (showMilestonesScreen && activeDmMember) {
+    return (
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        <FreelancerMilestonesScreen
+          workspace={workspace}
+          member={activeDmMember}
+          isCreator={isCreator}
+          currentUserId={currentUserId}
+          onBack={() => setShowMilestonesScreen(false)}
+        />
+      </div>
+    );
+  }
+
   // MEDIA & LINKS GRID VIEW (Evaluated first so clicking in Group/DM chat opens immediately!)
   if (showMediaScreen) {
     const isDm = mediaScope.type === 'dm';
@@ -1192,7 +1470,9 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
               setActiveView(null);
               setActiveDmMember(null);
               setActiveDmConvId(null);
+              setShowMilestonesScreen(false);
             }}
+            onOpenMilestones={() => setShowMilestonesScreen(true)}
             onOpenMedia={() => {
               setMediaScope({ type: 'dm', member: activeDmMember });
               setShowMediaScreen(true);
@@ -1224,6 +1504,10 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
               <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${badgeInfo.className}`}>
                 {badgeInfo.label}
               </span>
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25 font-mono flex items-center gap-1.5 shadow-sm">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                {projectMetrics.progressPercent}% Completed
+              </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
               <span>{projectCategory}</span>
@@ -1251,25 +1535,68 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
       </header>
 
       <div className="p-5 space-y-7">
-        {/* ── SECTION 0: PAYMENT MILESTONES & ESCROW PIPELINE ── */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="text-sm font-bold text-white tracking-wide">
-              Payment Milestones <span className="text-xs font-normal text-slate-400">— Escrow Funding & Releases</span>
-            </h3>
+        {/* ── TOP: PROJECT-WIDE ESCROW PROGRESS & FUNDS (ALL ROLES COMBINED) ── */}
+        <section>
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0E1322] border border-white/[0.08] shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Left: Overall Project Funds */}
+            <div className="flex items-center gap-4 sm:gap-6 w-full md:w-auto justify-between md:justify-start">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Project Released</span>
+                  <div className="text-base sm:text-lg font-bold text-emerald-400 font-mono leading-tight">
+                    ₹{projectMetrics.totalReleased.toLocaleString('en-IN')}
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-7 w-px bg-white/[0.08] hidden sm:block" />
+
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">In Escrow</span>
+                  <div className="text-base sm:text-lg font-bold text-purple-300 font-mono leading-tight">
+                    ₹{projectMetrics.totalInEscrow.toLocaleString('en-IN')}
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-7 w-px bg-white/[0.08] hidden sm:block" />
+
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-slate-300 shrink-0">
+                  <Coins className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Project Budget</span>
+                  <div className="text-base sm:text-lg font-bold text-white font-mono leading-tight">
+                    ₹{projectMetrics.totalBudget.toLocaleString('en-IN')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Project-wide Overall Progress */}
+            <div className="w-full md:w-64 lg:w-72 shrink-0">
+              <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+                <span className="text-slate-300 text-[11px]">
+                  Project Progress ({projectMetrics.totalCompletedMilestones}/{projectMetrics.totalMilestonesCount} Milestones)
+                </span>
+                <span className="text-purple-300 font-mono font-bold text-xs">{projectMetrics.progressPercent}%</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-[#182030] overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 transition-all duration-500 rounded-full"
+                  style={{ width: `${projectMetrics.progressPercent}%` }}
+                />
+              </div>
+            </div>
           </div>
-          <MilestoneEscrowPipeline
-            workspaceId={workspace._id}
-            projectId={workspace.projectId?._id || workspace.projectId}
-            totalBudget={workspace.projectId?.totalBudget || workspace.projectId?.budget || 10000}
-            isCreator={isCreator}
-            editorName={assignedEditorName}
-            editorId={assignedEditorId}
-            roleTitle={workspace.projectId?.hirings?.[0]?.roleTitle || 'Video Editor'}
-            roleBudget={workspace.projectId?.hirings?.[0]?.budget || null}
-            initialMilestones={workspace.projectId?.hirings?.[0]?.milestones || null}
-          />
         </section>
 
         {/* ── SECTION 1: SPACE (Drop Zone & Files) ── */}
@@ -1305,15 +1632,25 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
             onPaste={(e) => {
               if (e.clipboardData.files?.length > 0) handleUploadFiles(e.clipboardData.files);
             }}
+            onClick={() => {
+              if (!isUploading) fileInputRef.current?.click();
+            }}
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ' ') && !isUploading) {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            role="button"
             tabIndex={0}
-            className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 outline-none select-none ${
+            className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 outline-none select-none cursor-pointer group ${
               isDraggingOverSpace
                 ? 'border-purple-400 bg-purple-500/10 scale-[1.01]'
-                : 'border-white/10 hover:border-purple-500/40 bg-[#0E1322]/80 hover:bg-[#10152A]'
+                : 'border-white/10 hover:border-purple-500/50 bg-[#0E1322]/80 hover:bg-[#10152A]'
             }`}
           >
-            <div className="flex flex-col items-center max-w-xs mx-auto">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600/25 to-indigo-600/25 border border-purple-500/30 flex items-center justify-center text-purple-300 mb-3.5 shadow-lg shadow-purple-900/20">
+            <div className="flex flex-col items-center max-w-xs mx-auto pointer-events-none">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600/25 to-indigo-600/25 border border-purple-500/30 flex items-center justify-center text-purple-300 mb-3.5 shadow-lg shadow-purple-900/20 group-hover:scale-105 transition-transform">
                 {isUploading ? (
                   <Loader2 className="w-7 h-7 animate-spin text-purple-400" />
                 ) : (
@@ -1325,16 +1662,19 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
                   ? 'Uploading assets to Space...'
                   : isDraggingOverSpace
                   ? 'Drop to upload into Space'
-                  : 'Drop files here to add to Space'}
+                  : 'Click anywhere or drop files to upload'}
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Directly uploads to ImageKit storage. Supports MP4, MOV, WAV, LUTs, PNGs and more.
               </p>
-              <div className="flex items-center gap-2 mt-3 text-[11px] text-purple-400 font-medium flex-wrap justify-center">
+              <div className="flex items-center gap-2 mt-3 text-[11px] text-purple-400 font-medium flex-wrap justify-center pointer-events-auto">
                 <button
                   type="button"
                   disabled={isUploading}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
                   className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Browse Files
@@ -1480,6 +1820,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId }) {
           </div>
         </section>
 
+
       </div>
     </main>
   );
@@ -1606,6 +1947,26 @@ export const Workspace = () => {
               const badgeInfo = getStatusBadge(ws.status || ws.projectId?.status);
               const members = getWorkspaceMembers(ws);
 
+              // Calculate workspace level progress %
+              let wsProgress = 0;
+              if (ws.projectId?.status === 'completed' || ws.status === 'completed') {
+                wsProgress = 100;
+              } else {
+                try {
+                  const saved = localStorage.getItem(`collabo_milestones_${ws._id}`);
+                  if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                      const finished = parsed.filter(m => m.status === 'approved' || m.status === 'released').length;
+                      wsProgress = Math.round((finished / parsed.length) * 100);
+                    }
+                  }
+                } catch (e) {}
+                if (!wsProgress && ws.projectId?.progress != null) {
+                  wsProgress = Math.min(100, Math.max(0, Math.round(Number(ws.projectId.progress) || 0)));
+                }
+              }
+
               return (
                 <div
                   key={ws._id}
@@ -1625,15 +1986,26 @@ export const Workspace = () => {
                     <div className="flex items-start justify-between gap-1 mb-0.5">
                       <p className="text-xs font-bold text-white truncate leading-snug">{title}</p>
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium inline-block ${badgeInfo.className}`}>
                         {badgeInfo.label}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25">
+                        {wsProgress}%
                       </span>
                       {ws.fileCount > 0 && (
                         <span className="text-[10px] text-slate-500 font-mono">
                           {ws.fileCount} file{ws.fileCount > 1 ? 's' : ''}
                         </span>
                       )}
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full h-1 bg-white/[0.06] rounded-full mt-2 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full transition-all duration-300"
+                        style={{ width: `${wsProgress}%` }}
+                      />
                     </div>
 
                     {/* Members avatars */}

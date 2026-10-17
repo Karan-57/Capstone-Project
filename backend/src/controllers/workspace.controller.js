@@ -169,7 +169,7 @@ async function getMyWorkspacesController(req, res) {
                     }
                 }
             }
-        } else if (userRole === 'editor') {
+        } else if (userRole === 'editor' || userRole === 'freelancer') {
             const acceptedApps = await applicationModel.find({ editorId: userObjectId, status: 'accepted' });
             for (const app of acceptedApps) {
                 const p = await projectModel.findById(app.projectId);
@@ -404,8 +404,8 @@ async function updateWorkspaceProgressController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can update progress" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only freelancers can update progress" });
         }
 
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {
@@ -898,8 +898,8 @@ async function deliverWorkspaceController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can deliver projects" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only freelancers can deliver projects" });
         }
 
         if (!mongoose.Types.ObjectId.isValid(workspaceId)) {

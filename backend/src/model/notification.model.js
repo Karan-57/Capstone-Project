@@ -4,6 +4,7 @@ const NOTIFICATION_TYPES = [
   'NEW_APPLICATION',
   'APPLICATION_ACCEPTED',
   'APPLICATION_REJECTED',
+  'APPLICATION_COUNTER_OFFER',
   'EDITOR_SELECTED',
   'NEW_BID',
   'PROJECT_STATUS_UPDATED',
@@ -58,6 +59,15 @@ const notificationSchema = new mongoose.Schema(
     relatedUser: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'user',
+      default: null,
+    },
+    application: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'application',
+      default: null,
+    },
+    actionUrl: {
+      type: String,
       default: null,
     },
     isRead: {

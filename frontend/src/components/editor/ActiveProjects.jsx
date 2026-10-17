@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, Clock, FileVideo } from 'lucide-react';
+import { UploadCloud, Clock, FileVideo, User, ShieldCheck } from 'lucide-react';
 import Button from '../common/Button';
 import { useAlert } from '../../context/AlertContext';
 
@@ -48,9 +48,12 @@ export const ActiveProjects = ({ projects = [] }) => {
                       <h4 className="text-sm font-semibold text-white truncate">
                         {project.title}
                       </h4>
-                      <p className="text-xs text-slate-400 mt-0.5 truncate">
-                        Client: <span className="text-slate-200 font-medium">{project.client}</span> • <span className="text-purple-300">{project.deliverableType}</span>
-                      </p>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 truncate">
+                        <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="text-slate-200 font-medium truncate">{project.client}</span>
+                        <span className="text-slate-600">•</span>
+                        <span className="text-purple-300 font-medium">{project.deliverableType}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -62,11 +65,11 @@ export const ActiveProjects = ({ projects = [] }) => {
                 {/* Progress bar */}
                 <div className="mt-3.5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs mb-1.5 gap-1">
-                    <span className="text-slate-400 flex items-center gap-1">
+                    <span className="text-slate-400 flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      Due {project.dueDate} {project.hoursRemaining ? `(${project.hoursRemaining}h remaining)` : ''}
+                      {project.dueDate} {project.hoursRemaining ? `(${project.hoursRemaining}h remaining)` : ''}
                     </span>
-                    <span className="font-semibold text-white">{project.progress || 0}%</span>
+                    <span className="font-semibold text-white font-mono">{project.progress || 0}%</span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-800/80 overflow-hidden">
                     <div
@@ -78,8 +81,9 @@ export const ActiveProjects = ({ projects = [] }) => {
 
                 {/* Quick Actions */}
                 <div className="mt-3 pt-3 border-t border-white/[0.04] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-emerald-400">
-                    Escrow Secured: {project.budget}
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 font-mono">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>{project.budget} Secured</span>
                   </span>
                   <Button
                     variant="subtle"

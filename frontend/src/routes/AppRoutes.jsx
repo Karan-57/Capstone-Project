@@ -48,6 +48,7 @@ const CreatorHistory = lazy(() => import('../pages/creator/History'));
 const CreatorNotifications = lazy(() => import('../pages/creator/Notifications'));
 const CreatorProfile = lazy(() => import('../pages/creator/Profile'));
 const CreatorEditProfile = lazy(() => import('../pages/creator/EditProfile'));
+const CreatorSettings = lazy(() => import('../pages/creator/Settings'));
 const CreatorMessages = lazy(() => import('../pages/creator/Messages'));
 
 // Lazy-loaded Editor Pages
@@ -59,6 +60,7 @@ const EditorEarnings = lazy(() => import('../pages/editor/Earnings'));
 const EditorNotifications = lazy(() => import('../pages/editor/Notifications'));
 const EditorProfile = lazy(() => import('../pages/editor/Profile'));
 const EditorEditProfile = lazy(() => import('../pages/editor/EditProfile'));
+const EditorSettings = lazy(() => import('../pages/editor/Settings'));
 const EditorMessages = lazy(() => import('../pages/editor/Messages'));
 
 // Lazy-loaded Workspace Page
@@ -113,7 +115,7 @@ export const AppRoutes = () => {
             <Route path="notifications" element={<CreatorNotifications />} />
             <Route path="profile" element={<CreatorProfile />} />
             <Route path="edit-profile" element={<CreatorEditProfile />} />
-            <Route path="settings" element={<CreatorEditProfile />} />
+            <Route path="settings" element={<CreatorSettings />} />
           </Route>
 
           {/* Editor Protected Routes */}
@@ -137,7 +139,7 @@ export const AppRoutes = () => {
             <Route path="profile" element={<EditorProfile />} />
             <Route path="edit-profile" element={<EditorEditProfile />} />
             <Route path="create-showreel" element={<EditorEditProfile />} />
-            <Route path="settings" element={<EditorEditProfile />} />
+            <Route path="settings" element={<EditorSettings />} />
           </Route>
 
           {/* Custom 404 Page */}

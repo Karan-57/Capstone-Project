@@ -53,4 +53,11 @@ applicationRouter.post('/:applicationId/accept', authMiddleware, applicationCont
  */
 applicationRouter.post('/:applicationId/reject', authMiddleware, applicationController.rejectApplicationController);
 
+/**
+ * @route POST api/application/:applicationId/negotiate
+ * @description Submit a counter-offer on an application
+ * @access Private (Creator or Applicant Editor)
+ */
+applicationRouter.post('/:applicationId/negotiate', authMiddleware, applicationController.negotiateApplicationController);
+
 module.exports = applicationRouter;

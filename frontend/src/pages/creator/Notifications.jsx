@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle2, DollarSign, MessageSquare, AlertCircle, RefreshCw, Layers } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Bell, CheckCircle2, DollarSign, MessageSquare, AlertCircle, RefreshCw, Layers, ChevronRight } from 'lucide-react';
 import Button from '../../components/common/Button';
-import { notificationService } from '../../services/notificationService';
+import { notificationService, getNotificationTargetRoute } from '../../services/notificationService';
 import { useAlert } from '../../context/AlertContext';
 
 export const Notifications = () => {
+  const navigate = useNavigate();
   const { showAlert } = useAlert();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,16 @@ export const Notifications = () => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
     );
+  };
+
+  const handleNotificationClick = async (n) => {
+    if (n.unread) {
+      await markSingleRead(n.id);
+    }
+    const targetRoute = getNotificationTargetRoute(n, 'creator');
+    if (targetRoute) {
+      navigate(targetRoute);
+    }
   };
 
   const getNotificationIcon = (type) => {
@@ -87,11 +99,11 @@ export const Notifications = () => {
             return (
               <div
                 key={n.id}
-                onClick={() => n.unread && markSingleRead(n.id)}
-                className={`p-4 rounded-xl border flex items-start gap-3.5 transition-all cursor-pointer ${
+                onClick={() => handleNotificationClick(n)}
+                className={`p-4 rounded-xl border flex items-start gap-3.5 transition-all cursor-pointer group ${
                   n.unread
-                    ? 'bg-purple-950/20 border-purple-800/30'
-                    : 'bg-[#141A28]/50 border-white/[0.04]'
+                    ? 'bg-purple-950/20 border-purple-800/30 hover:bg-purple-900/30'
+                    : 'bg-[#141A28]/50 border-white/[0.04] hover:bg-white/[0.04]'
                 }`}
               >
                 <div className={`p-2 rounded-xl shrink-0 ${color}`}>
@@ -99,7 +111,7 @@ export const Notifications = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-white">{n.title || 'unknown'}</h4>
+                    <h4 className="text-sm font-semibold text-white group-hover:text-purple-300 transition-colors">{n.title || 'unknown'}</h4>
                     <span className="text-[11px] text-slate-500 font-mono">{n.time || 'unknown'}</span>
                   </div>
                   <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{n.message || 'unknown'}</p>
@@ -109,9 +121,12 @@ export const Notifications = () => {
                     </span>
                   )}
                 </div>
-                {n.unread && (
-                  <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0 mt-2" />
-                )}
+                <div className="flex items-center gap-1.5 shrink-0 mt-1">
+                  {n.unread && (
+                    <span className="w-2 h-2 rounded-full bg-purple-500" />
+                  )}
+                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                </div>
               </div>
             );
           })}

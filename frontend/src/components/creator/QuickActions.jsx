@@ -7,8 +7,8 @@ export const QuickActions = ({ onUploadAssets }) => {
 
   const actions = [
     {
-      title: 'Invite Editor',
-      desc: 'Browse verified video creators',
+      title: 'Hire',
+      desc: 'Browse talent & review candidates',
       icon: UserPlus,
       action: () => navigate('/creator/applications'),
       color: 'from-blue-600/20 to-cyan-600/20 text-blue-300 border-blue-500/30 hover:border-blue-400',

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, CheckCircle2, User, Globe, Video, Save, UploadCloud } from 'lucide-react';
+import { ArrowLeft, Camera, CheckCircle2, User, Globe, Video, Save, UploadCloud, Phone } from 'lucide-react';
 import Button from '../../components/common/Button';
 import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
@@ -19,10 +19,11 @@ export const CreatorEditProfile = () => {
   const [email, setEmail] = useState(creatorUser.email || 'unknown');
   const [avatar, setAvatar] = useState(creatorUser.profileImage || creatorUser.avatar || DEFAULT_PFP);
   const [isUploadingImg, setIsUploadingImg] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState(creatorUser.phoneNumber || creatorUser.phone || '');
   const [bio, setBio] = useState(
     creatorUser.bio || 'Tech & SaaS Storyteller focused on AI workflows, consumer hardware, and developer tutorials.'
   );
-  const [category, setCategory] = useState('Tech & Software');
+  const [category, setCategory] = useState(creatorUser.category || 'Tech & Software');
   const [youtubeUrl, setYoutubeUrl] = useState('https://youtube.com/@jasonvance');
   const [twitterUrl, setTwitterUrl] = useState('https://x.com/jasonvance');
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -52,6 +53,9 @@ export const CreatorEditProfile = () => {
       await updateUserProfile({
         name: name.trim(),
         bio: bio.trim(),
+        phone: phoneNumber.trim(),
+        phoneNumber: phoneNumber.trim(),
+        category: category.trim(),
       });
       setSavedSuccess(true);
       showAlert('Profile details saved to backend successfully!', 'success');
@@ -168,17 +172,36 @@ export const CreatorEditProfile = () => {
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-              Email Address
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-purple-400" />
+                  Phone Number
+                </span>
+                <span className="text-[11px] text-slate-500 font-normal">Optional</span>
+              </label>
+              <input
+                type="tel"
+                placeholder="+91 98765 43210"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500 placeholder:text-slate-600"
+              />
+            </div>
           </div>
 
           <div>

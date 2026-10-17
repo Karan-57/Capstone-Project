@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Film, Save, Plus, UploadCloud, Search, Check, X, Tag, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Camera, Film, Save, Plus, UploadCloud, Search, Check, X, Tag, ChevronDown, Phone } from 'lucide-react';
 import Button from '../../components/common/Button';
 import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
@@ -20,6 +20,7 @@ export const EditorEditProfile = () => {
   const [title, setTitle] = useState(editorUser.title || 'Senior Video Editor');
   const [avatar, setAvatar] = useState(editorUser.profileImage || editorUser.avatar || DEFAULT_PFP);
   const [isUploadingImg, setIsUploadingImg] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState(editorUser.phoneNumber || editorUser.phone || '');
   const [bio, setBio] = useState(
     editorUser.bio || ''
   );
@@ -117,7 +118,12 @@ export const EditorEditProfile = () => {
       await updateUserProfile({
         name: name.trim(),
         bio: bio.trim(),
+        title: title.trim(),
+        phone: phoneNumber.trim(),
+        phoneNumber: phoneNumber.trim(),
         subRoles: subRoles,
+        tools: skills,
+        skills: skills,
       });
       await api.patch('/api/portfolio', {
         title: title.trim(),
@@ -238,6 +244,26 @@ export const EditorEditProfile = () => {
                 className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-purple-400" />
+                Phone Number
+              </span>
+              <span className="text-[11px] text-slate-500 font-normal">Optional</span>
+            </label>
+            <input
+              type="tel"
+              placeholder="+91 98765 43210"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500 placeholder:text-slate-600"
+            />
+            <p className="text-[11px] text-slate-500 mt-1">
+              Used for client communication. Manage who can view your number in Settings (Public, Hired Only, or Private).
+            </p>
           </div>
 
           <div>

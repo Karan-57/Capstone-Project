@@ -40,7 +40,7 @@ export const ReviewsAndRating = () => {
   ];
 
   return (
-    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
+    <div className="glass-card p-4 sm:p-5.5 flex flex-col justify-between h-full min-w-0">
       <div>
         <div className="flex items-center justify-between mb-3.5">
           <h3 className="text-base font-semibold text-white tracking-tight">

@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.role === 'editor') {
+        if (parsed.role === 'editor' || parsed.role === 'freelancer') {
           return {
             ...defaultEditor,
             ...parsed,

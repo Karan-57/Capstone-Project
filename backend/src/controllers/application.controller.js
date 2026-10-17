@@ -21,9 +21,9 @@ async function applyToProjectController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        // 2. Only users with role 'editor' can apply
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can apply to projects" });
+        // 2. Only users with role 'editor' or 'freelancer' can apply
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only freelancers can apply to projects" });
         }
 
         // 3. Validate project ID format
@@ -219,9 +219,9 @@ async function getMyApplicationsController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        // 2. Only editors can access their applications
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can view their applications" });
+        // 2. Only freelancers/editors can access their applications
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only freelancers can view their applications" });
         }
 
         // 3. Filter and pagination
@@ -340,8 +340,8 @@ async function updateApplicationController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can update applications" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only freelancers can update applications" });
         }
 
         if (!mongoose.Types.ObjectId.isValid(applicationId)) {
@@ -396,7 +396,7 @@ async function updateApplicationController(req, res) {
                     recipient: project.creatorId,
                     type: 'NEW_BID',
                     title: 'Bid Updated',
-                    message: `${req.user?.name || 'An editor'} updated their bid to ₹${application.bidAmount} on "${project.title}".`,
+                    message: `${req.user?.name || 'A freelancer'} updated their bid to ₹${application.bidAmount} on "${project.title}".`,
                     project: project._id,
                     relatedUser: editorId
                 }).catch(err => console.error("[Notification] Error:", err.message));
@@ -431,8 +431,8 @@ async function withdrawApplicationController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can withdraw applications" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only freelancers can withdraw applications" });
         }
 
         if (!mongoose.Types.ObjectId.isValid(applicationId)) {
@@ -473,21 +473,17 @@ async function withdrawApplicationController(req, res) {
 
 /**
  * @name acceptApplicationController
- * @description accept an application for a project (creator only)
+ * @description accept an application or counter-offer for a project
  * @route POST /api/application/:id/accept
- * @access Private (Creator who owns the project)
+ * @access Private (Creator or Applicant Freelancer)
  */
 async function acceptApplicationController(req, res) {
     try {
-        const creatorId = req.user?._id || req.user?.id;
+        const userId = req.user?._id || req.user?.id;
         const applicationId = req.params.applicationId || req.params.id;
 
-        if (!creatorId) {
+        if (!userId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
-        }
-
-        if (req.user?.role !== 'creator') {
-            return res.status(403).json({ message: "Forbidden: Only creators can accept applications" });
         }
 
         if (!mongoose.Types.ObjectId.isValid(applicationId)) {
@@ -504,9 +500,19 @@ async function acceptApplicationController(req, res) {
             return res.status(404).json({ message: "Associated project not found" });
         }
 
-        if (project.creatorId.toString() !== creatorId.toString()) {
+        const isCreator = project.creatorId.toString() === userId.toString();
+        const isFreelancer = application.editorId.toString() === userId.toString();
+
+        if (!isCreator && !isFreelancer) {
             return res.status(403).json({
-                message: "Forbidden: You do not have permission to accept applications for this project"
+                message: "Forbidden: You do not have permission to accept this application"
+            });
+        }
+
+        // If freelancer is accepting, ensure creator sent a counter offer
+        if (isFreelancer && application.lastOfferBy !== 'creator') {
+            return res.status(400).json({
+                message: "Only the creator's counter-offer can be accepted by the freelancer"
             });
         }
 
@@ -514,17 +520,33 @@ async function acceptApplicationController(req, res) {
             return res.status(400).json({ message: "Application is already accepted" });
         }
 
-        if (application.status === 'withdrawn') {
-            return res.status(400).json({ message: "Cannot accept a withdrawn application" });
+        if (application.status === 'withdrawn' || application.status === 'rejected') {
+            return res.status(400).json({ message: "Cannot accept a closed application" });
         }
 
-        // Update application status
+        const agreedAmount = application.currentOffer != null ? application.currentOffer : application.bidAmount;
+
+        // Update application status and final agreed amount
         application.status = 'accepted';
+        application.bidAmount = agreedAmount;
         await application.save();
 
         // Update project status to assigned and assign selected editor
         project.status = 'assigned';
-        project.selectedEditorId = application.editorId;
+        if (!project.selectedEditorId) {
+            project.selectedEditorId = application.editorId;
+        }
+
+        // If this application belongs to a specific role hiring in the project, mark that role hired
+        if (application.hiringId && Array.isArray(project.hirings)) {
+            const hiring = project.hirings.find(h => h._id.toString() === application.hiringId.toString());
+            if (hiring) {
+                hiring.hiredFreelancerId = application.editorId;
+                hiring.status = 'hired';
+                hiring.budget = agreedAmount;
+                hiring.hiredAt = new Date();
+            }
+        }
         await project.save();
 
         // Ensure workspace exists and add editor as an active member
@@ -532,16 +554,15 @@ async function acceptApplicationController(req, res) {
         if (!workspace) {
             workspace = await workspaceModel.create({
                 projectId: project._id,
-                creatorId,
+                creatorId: project.creatorId,
                 editorId: application.editorId,
                 status: 'active',
                 members: [
-                    { user: creatorId, projectRole: 'creator', status: 'active' },
+                    { user: project.creatorId, projectRole: 'creator', status: 'active' },
                     { user: application.editorId, projectRole: 'lead_editor', status: 'active' }
                 ]
             });
         } else {
-            // Update editorId and sync to members
             workspace.editorId = application.editorId;
             if (!Array.isArray(workspace.members)) workspace.members = [];
             
@@ -566,18 +587,29 @@ async function acceptApplicationController(req, res) {
             console.error('[Chat] Error initializing project conversation on accept:', err.message);
         });
 
-        // Notify the selected editor
-        createNotification({
-            recipient: application.editorId,
-            type: 'APPLICATION_ACCEPTED',
-            title: 'Application Accepted',
-            message: `Your application for "${project.title}" has been accepted! You are now the assigned editor.`,
-            project: project._id,
-            relatedUser: creatorId
-        }).catch(err => console.error("[Notification] Error:", err.message));
+        // Notify the opposite party
+        if (isCreator) {
+            createNotification({
+                recipient: application.editorId,
+                type: 'APPLICATION_ACCEPTED',
+                title: 'Application Accepted!',
+                message: `Your application for "${project.title}" has been accepted at ₹${agreedAmount.toLocaleString('en-IN')}! You are now the assigned freelancer.`,
+                project: project._id,
+                relatedUser: userId
+            }).catch(err => console.error("[Notification] Error:", err.message));
+        } else {
+            createNotification({
+                recipient: project.creatorId,
+                type: 'APPLICATION_ACCEPTED',
+                title: 'Counter-Offer Accepted!',
+                message: `${req.user?.name || 'Freelancer'} accepted your counter-offer of ₹${agreedAmount.toLocaleString('en-IN')} for "${application.roleTitle || 'role'}" on "${project.title}".`,
+                project: project._id,
+                relatedUser: userId
+            }).catch(err => console.error("[Notification] Error:", err.message));
+        }
 
         return res.status(200).json({
-            message: "Application accepted successfully. Project status updated to 'assigned'.",
+            message: `Application accepted at ₹${agreedAmount.toLocaleString('en-IN')}. Project status updated to 'assigned'.`,
             application,
             project
         });
@@ -592,21 +624,17 @@ async function acceptApplicationController(req, res) {
 
 /**
  * @name rejectApplicationController
- * @description reject an application for a project (creator only)
+ * @description reject or decline an application/counter-offer
  * @route POST /api/application/:id/reject
- * @access Private (Creator who owns the project)
+ * @access Private (Creator or Applicant Freelancer)
  */
 async function rejectApplicationController(req, res) {
     try {
-        const creatorId = req.user?._id || req.user?.id;
+        const userId = req.user?._id || req.user?.id;
         const applicationId = req.params.applicationId || req.params.id;
 
-        if (!creatorId) {
+        if (!userId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
-        }
-
-        if (req.user?.role !== 'creator') {
-            return res.status(403).json({ message: "Forbidden: Only creators can reject applications" });
         }
 
         if (!mongoose.Types.ObjectId.isValid(applicationId)) {
@@ -623,9 +651,12 @@ async function rejectApplicationController(req, res) {
             return res.status(404).json({ message: "Associated project not found" });
         }
 
-        if (project.creatorId.toString() !== creatorId.toString()) {
+        const isCreator = project.creatorId.toString() === userId.toString();
+        const isFreelancer = application.editorId.toString() === userId.toString();
+
+        if (!isCreator && !isFreelancer) {
             return res.status(403).json({
-                message: "Forbidden: You do not have permission to reject applications for this project"
+                message: "Forbidden: You do not have permission to decline this application"
             });
         }
 
@@ -637,21 +668,26 @@ async function rejectApplicationController(req, res) {
             return res.status(400).json({ message: "Cannot reject an already accepted application" });
         }
 
-        application.status = 'rejected';
+        application.status = isFreelancer ? 'withdrawn' : 'rejected';
         await application.save();
 
-        // Notify the rejected editor
+        const notifyRecipient = isCreator ? application.editorId : project.creatorId;
+        const rejectTitle = isCreator ? 'Application Not Selected' : 'Offer Declined';
+        const rejectMsg = isCreator
+            ? `Your proposal for "${project.title}" was not selected.`
+            : `${req.user?.name || 'Freelancer'} declined the offer for "${application.roleTitle || 'role'}" on "${project.title}".`;
+
         createNotification({
-            recipient: application.editorId,
+            recipient: notifyRecipient,
             type: 'APPLICATION_REJECTED',
-            title: 'Application Not Selected',
-            message: `Your application for "${project.title}" was not selected.`,
+            title: rejectTitle,
+            message: rejectMsg,
             project: project._id,
-            relatedUser: creatorId
+            relatedUser: userId
         }).catch(err => console.error("[Notification] Error:", err.message));
 
         return res.status(200).json({
-            message: "Application rejected successfully",
+            message: isFreelancer ? "Offer declined successfully" : "Application rejected successfully",
             application
         });
     } catch (err) {
@@ -660,6 +696,106 @@ async function rejectApplicationController(req, res) {
             message: "Internal server error",
             error: err.message
         });
+    }
+}
+
+/**
+ * @name negotiateApplicationController
+ * @description Submit a counter-offer on an application
+ * @route POST /api/application/:applicationId/negotiate
+ * @access Private (Creator who owns project or Applicant Editor)
+ */
+async function negotiateApplicationController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        const applicationId = req.params.applicationId || req.params.id;
+        const { amount, note } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user not authenticated" });
+        }
+
+        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+            return res.status(400).json({ message: "A valid positive offer amount is required" });
+        }
+
+        const counterAmount = Math.round(Number(amount));
+
+        const application = await applicationModel.findById(applicationId);
+        if (!application) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        const project = await projectModel.findById(application.projectId);
+        if (!project) {
+            return res.status(404).json({ message: "Associated project not found" });
+        }
+
+        const isCreator = project.creatorId.toString() === userId.toString();
+        const isFreelancer = application.editorId.toString() === userId.toString();
+
+        if (!isCreator && !isFreelancer) {
+            return res.status(403).json({ message: "Forbidden: You are neither the creator nor the applicant" });
+        }
+
+        if (application.status === 'accepted') {
+            return res.status(400).json({ message: "Cannot negotiate an already accepted contract" });
+        }
+        if (application.status === 'rejected' || application.status === 'withdrawn') {
+            return res.status(400).json({ message: "Cannot negotiate a closed application" });
+        }
+
+        const offeredBy = isCreator ? 'creator' : 'freelancer';
+
+        application.status = 'negotiating';
+        application.currentOffer = counterAmount;
+        application.lastOfferBy = offeredBy;
+        application.counterNote = (note || '').trim();
+
+        if (!Array.isArray(application.negotiationHistory)) {
+            application.negotiationHistory = [];
+        }
+        application.negotiationHistory.push({
+            offeredBy,
+            amount: counterAmount,
+            note: (note || '').trim(),
+            createdAt: new Date()
+        });
+
+        await application.save();
+
+        if (isCreator) {
+            createNotification({
+                recipient: application.editorId,
+                type: 'APPLICATION_COUNTER_OFFER',
+                title: 'New Counter-Offer Received',
+                message: `Creator offered ₹${counterAmount.toLocaleString('en-IN')} for "${application.roleTitle || 'role'}" on "${project.title}".`,
+                project: project._id,
+                application: application._id,
+                actionUrl: `/editor/applications?applicationId=${application._id}`,
+                relatedUser: userId
+            }).catch(e => console.warn('[Notification Error]:', e.message));
+        } else {
+            createNotification({
+                recipient: project.creatorId,
+                type: 'APPLICATION_COUNTER_OFFER',
+                title: 'Freelancer Counter-Offer',
+                message: `${req.user?.name || 'Freelancer'} countered with ₹${counterAmount.toLocaleString('en-IN')} for "${application.roleTitle || 'role'}" on "${project.title}".`,
+                project: project._id,
+                application: application._id,
+                actionUrl: `/creator/applications?applicationId=${application._id}`,
+                relatedUser: userId
+            }).catch(e => console.warn('[Notification Error]:', e.message));
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `Counter-offer of ₹${counterAmount.toLocaleString('en-IN')} sent successfully!`,
+            application
+        });
+    } catch (err) {
+        console.error("Error in negotiateApplicationController:", err);
+        return res.status(500).json({ message: "Internal server error", error: err.message });
     }
 }
 
@@ -749,5 +885,6 @@ module.exports = {
     withdrawApplicationController,
     acceptApplicationController,
     rejectApplicationController,
+    negotiateApplicationController,
     disbandEditorController
 };

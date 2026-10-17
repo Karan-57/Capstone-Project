@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams, Link } from "react-router-dom";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Video, Briefcase } from "lucide-react";
 import CollaboLogo from "../components/landing/CollaboLogo";
 import { DaVinciIcon, PremiereProIcon, BlueFolder3DIcon } from "../components/landing/SoftwareIcons";
 import { useAuth } from "../context/AuthContext";
@@ -29,7 +29,8 @@ export default function AuthModal({
 
   // URL search params override initialRole if present
   const paramRole = searchParams?.get("role");
-  const validParamRole = paramRole === "editor" || paramRole === "creator" ? paramRole : null;
+  const normalizedParamRole = paramRole === "freelancer" ? "editor" : paramRole;
+  const validParamRole = normalizedParamRole === "editor" || normalizedParamRole === "creator" ? normalizedParamRole : null;
 
   const [mode, setMode] = useState(() => {
     if (location.pathname === "/signup" || location.pathname.includes("signup")) return "signup";
@@ -326,23 +327,23 @@ export default function AuthModal({
             {mode === "login"
               ? isCreator
                 ? "Creator Studio Sign In"
-                : "Editor Workspace Sign In"
+                : "Freelancer Sign In"
               : isCreator
               ? "Join as Creator"
-              : "Join as Video Editor"}
+              : "Join as Freelancer"}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-1 transition-all duration-300">
             {mode === "login"
               ? isCreator
-                ? "Sign in to manage your creator productions & edits"
-                : "Sign in to pick video gigs & get paid freely"
+                ? "Sign in to manage your creator productions & track escrow"
+                : "Sign in to pick gigs, submit deliverables & get paid"
               : isCreator
-              ? "Join as a Creator to match with premier video editors"
-              : "Join as an Editor to showcase work & earn top rates"}
+              ? "Hire top video editors, thumbnail designers & creative talent"
+              : "For video editors, thumbnail designers, animators & creators"}
           </p>
         </div>
 
-        {/* ─── ROLE SWITCHER TOGGLE (Creator ↔ Editor) ─── */}
+        {/* ─── ROLE SWITCHER TOGGLE (Creator ↔ Freelancer) ─── */}
         <div className="relative mb-4 p-1 bg-slate-100/90 rounded-2xl flex items-center border border-slate-200">
           <div
             className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl transition-all duration-500 [transition-timing-function:cubic-bezier(0.65,0,0.35,1)] shadow-sm ${
@@ -359,7 +360,8 @@ export default function AuthModal({
               isCreator ? "text-white font-bold" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <span>🎬 Creator</span>
+            <Video className="w-4 h-4" />
+            <span>Creator</span>
           </button>
 
           <button
@@ -369,7 +371,8 @@ export default function AuthModal({
               !isCreator ? "text-white font-bold" : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            <span>✂️ Editor</span>
+            <Briefcase className="w-4 h-4" />
+            <span>Freelancer</span>
           </button>
         </div>
 
@@ -392,7 +395,7 @@ export default function AuthModal({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {isCreator ? "Creator Sign In" : "Editor Sign In"}
+            {isCreator ? "Creator Sign In" : "Freelancer Sign In"}
           </button>
 
           <button
@@ -406,7 +409,7 @@ export default function AuthModal({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            {isCreator ? "Creator Sign Up" : "Editor Sign Up"}
+            {isCreator ? "Creator Sign Up" : "Freelancer Sign Up"}
           </button>
         </div>
 
@@ -688,7 +691,7 @@ export default function AuthModal({
             ) : isSuccess ? (
               <span>✓ Signed in! Entering dashboard...</span>
             ) : mode === "login" ? (
-              <span>Sign In as {isCreator ? "Creator" : "Editor"} →</span>
+              <span>Sign In as {isCreator ? "Creator" : "Freelancer"} →</span>
             ) : (
               <span>Continue to OTP Verification →</span>
             )}

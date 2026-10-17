@@ -56,22 +56,22 @@ export const ProjectCard = ({ project, onView }) => {
         </div>
       </div>
 
-      {/* Progress & Assigned Editor Row */}
+      {/* Progress & Assigned Status Row */}
       <div className="mt-3.5 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-slate-400">
         <div className="flex items-center gap-2">
-          {project.assignedEditor ? (
-            <div className="flex items-center gap-1.5">
-              <img
-                src={project.assignedEditor.avatar || DEFAULT_PFP}
-                alt={project.assignedEditor.name || 'Assigned editor'}
-                loading="lazy"
-                onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                className="w-5 h-5 rounded-full object-cover border border-purple-500/40"
-              />
-              <span className="text-slate-300 text-[11px] truncate max-w-[100px]">{project.assignedEditor.name}</span>
-            </div>
+          {Boolean(
+            project.assignedEditor ||
+            (Array.isArray(project.hirings) && project.hirings.some((h) => h.hiredFreelancerId))
+          ) ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              Assigned
+            </span>
           ) : (
-            <span className="text-[11px] text-slate-500">Unassigned</span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-400 border border-white/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+              Unassigned
+            </span>
           )}
         </div>
 

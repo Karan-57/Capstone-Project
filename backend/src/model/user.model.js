@@ -101,7 +101,61 @@ const userSchema = new mongoose.Schema(
 
     phone: {
       type: String,
+      trim: true,
       default: "",
+    },
+
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    category: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    title: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    tools: {
+      type: [String],
+      default: [],
+    },
+
+    skills: {
+      type: [String],
+      default: [],
+    },
+
+    settings: {
+      phoneVisibility: {
+        type: String,
+        enum: ["public", "hired", "private"],
+        default: "hired",
+      },
+      emailNotifications: {
+        type: Boolean,
+        default: true,
+      },
+      projectAlerts: {
+        type: Boolean,
+        default: true,
+      },
+      soundAlerts: {
+        type: Boolean,
+        default: true,
+      },
+      theme: {
+        type: String,
+        enum: ["dark", "system"],
+        default: "dark",
+      },
     },
 
     // Reputation & Aggregated Review Metrics

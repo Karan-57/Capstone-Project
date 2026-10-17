@@ -105,6 +105,7 @@ export const WalletProvider = ({ children }) => {
                 year: 'numeric',
               }),
               status: t.status,
+              createdAt: t.createdAt || new Date().toISOString(),
               gateway: t.gateway,
               fromUser: t.fromUser,
               toUser: t.toUser,
@@ -217,6 +218,7 @@ export const WalletProvider = ({ children }) => {
           year: 'numeric',
         }),
         status: 'SUCCESS',
+        createdAt: new Date().toISOString(),
         gateway: method,
       };
 
@@ -277,6 +279,7 @@ export const WalletProvider = ({ children }) => {
           year: 'numeric',
         }),
         status: 'SUCCESS',
+        createdAt: new Date().toISOString(),
         gateway: 'SYSTEM_LEDGER',
       };
 
@@ -334,6 +337,7 @@ export const WalletProvider = ({ children }) => {
           year: 'numeric',
         }),
         status: 'SUCCESS',
+        createdAt: new Date().toISOString(),
         gateway: 'SYSTEM_LEDGER',
       };
 

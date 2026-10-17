@@ -10,14 +10,14 @@ import {
 } from 'lucide-react';
 import StatsCard from '../../components/common/StatsCard';
 import ActiveProjects from '../../components/creator/ActiveProjects';
-import RecentApplications from '../../components/creator/RecentApplications';
 import ReviewsAndRating from '../../components/creator/ReviewsAndRating';
-import EarningsOverview from '../../components/creator/EarningsOverview';
+import SpendingsOverview from '../../components/creator/SpendingsOverview';
 import UpcomingDeadlines from '../../components/creator/UpcomingDeadlines';
 import QuickActions from '../../components/creator/QuickActions';
 import UploadAssetModal from '../../components/creator/UploadAssetModal';
 import MessageCard from '../../components/common/MessageCard';
 import Button from '../../components/common/Button';
+import ProfileCompletionBanner from '../../components/common/ProfileCompletionBanner';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
 
@@ -32,8 +32,7 @@ export const CreatorDashboard = () => {
     loading,
     creatorProjects,
     applications,
-    messages,
-    handleApplicationStatus
+    messages
   } = useDashboardData();
 
   const totalProjectsCount = creatorProjects.length;
@@ -72,6 +71,9 @@ export const CreatorDashboard = () => {
           <p className="text-sm text-purple-300 mt-1">Select project destination upon drop</p>
         </div>
       )}
+
+      {/* Instagram-style Profile Completion Visual (checks ONLY pfp and category) */}
+      <ProfileCompletionBanner role="creator" />
 
       {/* SECTION 1: Top Quick Stats (Calculated from real state & user) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
@@ -122,76 +124,21 @@ export const CreatorDashboard = () => {
         <UpcomingDeadlines projects={creatorProjects} />
       </section>
 
-      {/* SECTION 2 & 4: Middle Grid (Recent Projects + My Applications) */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5.5">
-        {/* Left: Recent Projects (Col 5) */}
-        <div className="lg:col-span-5">
-          <ActiveProjects projects={creatorProjects} />
-        </div>
-
-        {/* Right: My Applications (Col 7) */}
-        <div className="lg:col-span-7">
-          <RecentApplications
-            applications={applications}
-            onStatusChange={handleApplicationStatus}
-          />
-        </div>
+      {/* SECTION 2: Recent Projects (Full Width) */}
+      <section>
+        <ActiveProjects projects={creatorProjects} />
       </section>
 
-      {/* SECTION 8, 5, 6: Bottom Grid (Reviews & Rating + Messages + Earnings Overview) */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-5.5">
+      {/* SECTION: Bottom Grid (Reviews & Rating + Spendings Overview) */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4.5 sm:gap-5.5">
         {/* Left: Reviews & Rating */}
-        <div className="h-full">
+        <div className="h-full min-w-0">
           <ReviewsAndRating />
         </div>
 
-        {/* Center: Messages Preview */}
-        <div className="glass-card p-5.5 flex flex-col justify-between h-full">
-          <div>
-            <div className="flex items-center justify-between mb-3.5">
-              <h3 className="text-base font-semibold text-white tracking-tight">
-                Messages
-              </h3>
-              <button
-                onClick={() => navigate('/creator/messages')}
-                className="text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors"
-              >
-                View all
-              </button>
-            </div>
-
-            {messages.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500">
-                No active conversations
-              </div>
-            ) : (
-              <div className="space-y-1.5">
-                {messages.slice(0, 3).map((msg) => (
-                  <MessageCard
-                    key={msg.id}
-                    message={msg}
-                    onClick={() => navigate('/creator/messages')}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-white/[0.04]">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate('/creator/messages')}
-              className="w-full py-2.5 text-xs font-semibold"
-            >
-              Go to Messages
-            </Button>
-          </div>
-        </div>
-
-        {/* Right: Earnings Overview (Payment exception) */}
-        <div className="h-full">
-          <EarningsOverview />
+        {/* Right: Spendings Overview with real ledger values and dynamic graph */}
+        <div className="h-full min-w-0">
+          <SpendingsOverview />
         </div>
       </section>
 

@@ -57,6 +57,12 @@ async function updateMeController(req, res) {
             'bio',
             'location',
             'phone',
+            'phoneNumber',
+            'category',
+            'title',
+            'tools',
+            'skills',
+            'settings',
             'subRoles'
         ];
 
@@ -65,6 +71,22 @@ async function updateMeController(req, res) {
             if (req.body && req.body[key] !== undefined) {
                 updates[key] = req.body[key];
             }
+        }
+
+        // Keep phone and phoneNumber synced
+        if (updates.phoneNumber !== undefined) {
+            updates.phone = typeof updates.phoneNumber === 'string' ? updates.phoneNumber.trim() : updates.phoneNumber;
+            updates.phoneNumber = updates.phone;
+        } else if (updates.phone !== undefined) {
+            updates.phoneNumber = typeof updates.phone === 'string' ? updates.phone.trim() : updates.phone;
+            updates.phone = updates.phoneNumber;
+        }
+
+        if (updates.category && typeof updates.category === 'string') {
+            updates.category = updates.category.trim();
+        }
+        if (updates.title && typeof updates.title === 'string') {
+            updates.title = updates.title.trim();
         }
 
         if (Object.keys(updates).length === 0) {
@@ -425,8 +447,8 @@ async function reviewCreatorController(req, res) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });
         }
 
-        if (req.user?.role !== 'editor') {
-            return res.status(403).json({ message: "Forbidden: Only editors can submit reviews for creators" });
+        if (req.user?.role !== 'editor' && req.user?.role !== 'freelancer') {
+            return res.status(403).json({ message: "Forbidden: Only freelancers can submit reviews for creators" });
         }
 
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
@@ -609,8 +631,8 @@ async function getUserReviewsController(req, res) {
 
         // Determine fields projection depending on role
         let fieldSelection = '';
-        if (user.role === 'editor') {
-            // Editor metrics: rating, speed, quality, behaviour, responseTime (exclude boundaryRespect)
+        if (user.role === 'editor' || user.role === 'freelancer') {
+            // Freelancer/Editor metrics: rating, speed, quality, behaviour, responseTime (exclude boundaryRespect)
             fieldSelection = '-boundaryRespect';
         } else {
             // Creator metrics: rating, behaviour, responseTime, boundaryRespect (exclude speed, quality)
@@ -671,7 +693,7 @@ async function getUserRatingsController(req, res) {
 
         let ratingsData = {};
 
-        if (user.role === 'editor') {
+        if (user.role === 'editor' || user.role === 'freelancer') {
             ratingsData = {
                 userId: user._id,
                 name: user.name,
@@ -713,6 +735,91 @@ async function getUserRatingsController(req, res) {
     }
 }
 
+/**
+ * @name getSettingsController
+ * @description Get app settings for the authenticated user
+ * @access Private
+ */
+async function getSettingsController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user ID not found" });
+        }
+        const user = await userModel.findById(userId).select("settings phone phoneNumber email name role");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json({
+            settings: user.settings || {
+                phoneVisibility: 'hired',
+                emailNotifications: true,
+                projectAlerts: true,
+                soundAlerts: true,
+                theme: 'dark'
+            },
+            phoneNumber: user.phoneNumber || user.phone || ''
+        });
+    } catch (err) {
+        console.error("Error in getSettingsController:", err);
+        return res.status(500).json({ message: "Internal server error", error: err.message });
+    }
+}
+
+/**
+ * @name updateSettingsController
+ * @description Update user app settings
+ * @access Private
+ */
+async function updateSettingsController(req, res) {
+    try {
+        const userId = req.user?._id || req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized, user ID not found" });
+        }
+
+        const allowedKeys = ['phoneVisibility', 'emailNotifications', 'projectAlerts', 'soundAlerts', 'theme'];
+        const settingsUpdates = {};
+        for (const key of allowedKeys) {
+            if (req.body[key] !== undefined) {
+                settingsUpdates[`settings.${key}`] = req.body[key];
+            } else if (req.body.settings && req.body.settings[key] !== undefined) {
+                settingsUpdates[`settings.${key}`] = req.body.settings[key];
+            }
+        }
+
+        // Also allow updating phone number from settings if supplied
+        const phoneVal = req.body.phoneNumber || req.body.phone;
+        if (phoneVal !== undefined) {
+            settingsUpdates.phone = String(phoneVal).trim();
+            settingsUpdates.phoneNumber = String(phoneVal).trim();
+        }
+
+        if (Object.keys(settingsUpdates).length === 0) {
+            return res.status(400).json({ message: "No valid settings fields provided" });
+        }
+
+        const updatedUser = await userModel.findByIdAndUpdate(
+            userId,
+            { $set: settingsUpdates },
+            { new: true, runValidators: true }
+        ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({
+            message: "Settings updated successfully",
+            settings: updatedUser.settings,
+            user: updatedUser
+        });
+    } catch (err) {
+        console.error("Error in updateSettingsController:", err);
+        return res.status(500).json({ message: "Internal server error", error: err.message });
+    }
+}
+
 module.exports = {
     getMeController,
     updateMeController,
@@ -723,5 +830,7 @@ module.exports = {
     reviewCreatorController,
     getUserReviewsController,
     getUserRatingsController,
-    addReviewController: reviewEditorController
+    addReviewController: reviewEditorController,
+    getSettingsController,
+    updateSettingsController
 };

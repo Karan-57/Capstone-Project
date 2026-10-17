@@ -26,9 +26,44 @@ const applicationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'rejected', 'withdrawn'],
+      enum: ['pending', 'negotiating', 'counter_offered', 'accepted', 'rejected', 'withdrawn'],
       default: 'pending',
     },
+    // Negotiation & Counter-Offer Tracking
+    currentOffer: {
+      type: Number,
+      default: null,
+    },
+    lastOfferBy: {
+      type: String,
+      enum: ['creator', 'freelancer', null],
+      default: null,
+    },
+    counterNote: {
+      type: String,
+      default: '',
+    },
+    negotiationHistory: [
+      {
+        offeredBy: {
+          type: String,
+          enum: ['creator', 'freelancer'],
+          required: true,
+        },
+        amount: {
+          type: Number,
+          required: true,
+        },
+        note: {
+          type: String,
+          default: '',
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
     matchScore: {
       type: Number,
       default: 0,

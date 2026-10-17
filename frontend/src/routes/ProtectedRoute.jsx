@@ -19,9 +19,17 @@ export const ProtectedRoute = ({ children, requiredRole }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Strict role enforcement: An editor cannot access creator pages, and a creator cannot access editor pages
-  if (requiredRole && role !== requiredRole) {
-    return <Navigate to={role === 'editor' ? '/editor/dashboard' : '/creator/dashboard'} replace />;
+  // Strict role enforcement: Freelancer/editor cannot access creator pages, and creator cannot access freelancer pages
+  const isFreelancerRole = role === 'editor' || role === 'freelancer';
+  const isTargetFreelancer = requiredRole === 'editor' || requiredRole === 'freelancer';
+
+  if (requiredRole) {
+    if (requiredRole === 'creator' && role !== 'creator') {
+      return <Navigate to="/editor/dashboard" replace />;
+    }
+    if (isTargetFreelancer && !isFreelancerRole) {
+      return <Navigate to="/creator/dashboard" replace />;
+    }
   }
 
   return children;

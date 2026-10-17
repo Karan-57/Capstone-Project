@@ -296,7 +296,7 @@ async function getWalletDetails(req, res) {
       console.warn('[getWalletDetails] Editor escrow calculation:', wsErr.message);
     }
 
-    const isEditor = (req.user.role === 'editor' || user?.role === 'editor');
+    const isEditor = (req.user.role === 'editor' || user?.role === 'editor' || req.user.role === 'freelancer' || user?.role === 'freelancer');
     const escrowLocked = isEditor ? editorPendingEscrow : creatorCurrentEscrow;
 
     return res.status(200).json({

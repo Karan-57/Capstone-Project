@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, AlertTriangle } from 'lucide-react';
+import { Clock, User, Calendar } from 'lucide-react';
 
 export const UpcomingDeadlines = ({ projects = [] }) => {
   const activeDeadlines = projects
@@ -28,20 +28,24 @@ export const UpcomingDeadlines = ({ projects = [] }) => {
             {activeDeadlines.map((item) => (
               <div
                 key={item.id}
-                className="p-3 rounded-xl border flex items-center justify-between bg-[#141A28]/60 border-white/[0.04]"
+                className="p-3.5 rounded-xl border flex items-center justify-between bg-[#141A28]/60 hover:bg-[#182030]/80 border-white/[0.04] hover:border-purple-500/25 transition-all"
               >
-                <div>
-                  <h4 className="text-sm font-semibold text-white">
-                    {item.title || 'unknown'}
+                <div className="min-w-0 pr-3">
+                  <h4 className="text-sm font-semibold text-white truncate">
+                    {item.title || 'Untitled Project'}
                   </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Assigned to: <span className="text-slate-200">{item.assignedEditor?.name || 'unknown'}</span>
-                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
+                    <User className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <span className="text-slate-300 font-medium truncate">
+                      {item.assignedEditor?.name || 'Unassigned'}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="text-right shrink-0 pl-2">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30">
-                    Due {item.deadline || 'unknown'}
+                <div className="text-right shrink-0">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                    <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                    <span>{item.deadline || 'No deadline'}</span>
                   </span>
                 </div>
               </div>

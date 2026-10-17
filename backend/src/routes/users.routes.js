@@ -20,6 +20,20 @@ usersRouter.get('/me', authMiddleware.authUser, usersController.getMeController)
 usersRouter.patch('/me', authMiddleware.authUser, usersController.updateMeController);
 
 /**
+ * @route GET api/users/me/settings
+ * @description get user app settings
+ * @access Private
+ */
+usersRouter.get('/me/settings', authMiddleware.authUser, usersController.getSettingsController);
+
+/**
+ * @route PATCH api/users/me/settings
+ * @description update user app settings
+ * @access Private
+ */
+usersRouter.patch('/me/settings', authMiddleware.authUser, usersController.updateSettingsController);
+
+/**
  * @route PATCH api/users/me/profile-image
  * @description upload and update profile image
  * @access Private
