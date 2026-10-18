@@ -21,13 +21,13 @@ export const Button = ({
   };
 
   const variantStyles = {
-    primary: "bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-900/30",
-    secondary: "bg-purple-900/30 hover:bg-purple-800/40 text-purple-300 border border-purple-600/30",
-    accept: "bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm shadow-emerald-950",
-    reject: "bg-rose-600 hover:bg-rose-500 text-white font-medium shadow-sm shadow-rose-950",
-    outline: "bg-transparent hover:bg-white/[0.05] text-slate-300 hover:text-white border border-white/[0.12]",
-    subtle: "bg-white/[0.05] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.06]",
-    ghost: "bg-transparent hover:bg-white/[0.06] text-slate-400 hover:text-slate-100",
+    primary: "bg-[#3C2415] hover:bg-[#2B1810] text-[#F7F5F0] shadow-sm",
+    secondary: "bg-[#F0EDE5] hover:bg-[#EAE6DF] text-[#3C2415] border border-[#DDD9CE]",
+    accept: "bg-[#55745C] hover:bg-[#48634E] text-white font-medium shadow-sm",
+    reject: "bg-[#A34F45] hover:bg-[#8F443B] text-white font-medium shadow-sm",
+    outline: "bg-transparent hover:bg-[#F0EDE5] text-[#3C2415] border border-[#E5E0D7]",
+    subtle: "bg-[#F0EDE5] hover:bg-[#EAE6DF] text-[#3C2415] border border-[#E5E0D7]",
+    ghost: "bg-transparent hover:bg-[#F0EDE5] text-[#77736D] hover:text-[#3C2415]",
   };
 
   return (

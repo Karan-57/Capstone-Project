@@ -165,11 +165,9 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
   const isCreator = profile?.role === 'creator';
   const roleLabel = isCreator ? 'Creator' : 'Freelancer';
   const roleGradient = isCreator
-    ? 'from-purple-900/60 via-indigo-950/40 to-[#07090E]'
-    : 'from-cyan-950/60 via-blue-950/40 to-[#07090E]';
-  const ringColor = isCreator
-    ? 'border-purple-500 ring-purple-600/30'
-    : 'border-cyan-500 ring-cyan-600/30';
+    ? 'from-[#DDD9CE] via-[#F0EDE5] to-[#F7F5F0]'
+    : 'from-[#E5E0D7] via-[#F0EDE5] to-[#F7F5F0]';
+  const ringColor = 'border-white ring-[#DDD9CE]';
 
   const ratingScore = profile?.rating != null ? Number(profile.rating).toFixed(1) : '0.0';
   const totalReviewsCount = profile?.totalReviews != null ? profile.totalReviews : reviewsData.length;
@@ -183,18 +181,18 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#3C2415]/40 backdrop-blur-sm overflow-y-auto animate-fade-in">
       {/* Backdrop */}
       <div className="fixed inset-0" onClick={onClose} />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-2xl bg-[#0B0F19] border border-white/[0.12] rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-2xl bg-white border border-[#E5E0D7] rounded-3xl shadow-xl overflow-hidden z-10 my-auto flex flex-col max-h-[90vh] text-[#3C2415]">
         
         {/* Banner Cover with Close Button */}
-        <div className={`relative h-28 sm:h-36 bg-gradient-to-r ${roleGradient} p-4 flex items-start justify-end shrink-0 border-b border-white/[0.06]`}>
+        <div className={`relative h-28 sm:h-36 bg-gradient-to-r ${roleGradient} p-4 flex items-start justify-end shrink-0 border-b border-[#E5E0D7]`}>
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-black/40 hover:bg-black/70 text-slate-300 hover:text-white backdrop-blur-sm transition-colors border border-white/10"
+            className="p-2 rounded-full bg-white/80 hover:bg-white text-[#77736D] hover:text-[#3C2415] backdrop-blur-sm transition-colors border border-[#E5E0D7]"
             title="Close profile"
           >
             <X className="w-5 h-5" />
@@ -217,28 +215,24 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = DEFAULT_PFP;
                   }}
-                  className={`w-full h-full rounded-2xl object-cover border-4 bg-[#0B0F19] shadow-2xl ring-4 ${ringColor}`}
+                  className={`w-full h-full rounded-2xl object-cover border-4 bg-white shadow-md ring-4 ${ringColor}`}
                 />
-                <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-[#0B0F19] z-10"></span>
+                <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-[#55745C] ring-2 ring-white z-10"></span>
               </div>
 
               <div className="mb-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white truncate">
+                  <h3 className="text-xl sm:text-2xl font-bold text-[#3C2415] truncate">
                     {profile?.name || 'Anonymous User'}
                   </h3>
-                  <CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0" />
-                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${
-                    isCreator
-                      ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
-                      : 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
-                  }`}>
+                  <CheckCircle2 className="w-5 h-5 text-[#55745C] shrink-0" />
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border bg-[#F0EDE5] text-[#3C2415] border-[#DDD9CE]">
                     {roleLabel}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-400 font-mono mt-0.5">
+                <p className="text-xs sm:text-sm text-[#77736D] font-mono mt-0.5">
                   @{profile?.username || 'user'}
-                  {profile?.title && <span className="text-slate-400 font-sans ml-2">• {profile.title}</span>}
+                  {profile?.title && <span className="text-[#77736D] font-sans ml-2">• {profile.title}</span>}
                 </p>
               </div>
             </div>
@@ -249,14 +243,14 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                 <button
                   onClick={handleMessage}
                   disabled={isMessaging}
-                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-[#F7F5F0] bg-[#3C2415] hover:bg-[#2A180E] shadow-sm transition-all cursor-pointer"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>{isMessaging ? 'Opening Chat...' : 'Message'}</span>
                 </button>
               )}
               {isSelf && (
-                <div className="px-3.5 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs font-medium text-purple-300">
+                <div className="px-3.5 py-1.5 rounded-xl bg-[#F0EDE5] border border-[#DDD9CE] text-xs font-medium text-[#3C2415]">
                   Your Profile
                 </div>
               )}
@@ -264,25 +258,25 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
           </div>
 
           {/* Stats Bar */}
-          <div className="grid grid-cols-3 gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-center">
+          <div className="grid grid-cols-3 gap-3 p-3.5 rounded-2xl bg-[#F0EDE5] border border-[#E5E0D7] text-center">
             <div>
-              <div className="flex items-center justify-center gap-1 text-base sm:text-lg font-bold text-amber-300">
-                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+              <div className="flex items-center justify-center gap-1 text-base sm:text-lg font-bold text-amber-600">
+                <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
                 <span>{ratingScore}</span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Rating Score</div>
+              <div className="text-[11px] text-[#77736D] mt-0.5">Rating Score</div>
             </div>
             <div>
-              <div className="text-base sm:text-lg font-bold text-white">
+              <div className="text-base sm:text-lg font-bold text-[#3C2415]">
                 {totalReviewsCount}
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Total Reviews</div>
+              <div className="text-[11px] text-[#77736D] mt-0.5">Total Reviews</div>
             </div>
             <div>
-              <div className="text-base sm:text-lg font-bold text-purple-300 capitalize truncate">
+              <div className="text-base sm:text-lg font-bold text-[#3C2415] capitalize truncate">
                 {profile?.category || (isCreator ? 'Content' : 'Video Editing')}
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Category</div>
+              <div className="text-[11px] text-[#77736D] mt-0.5">Category</div>
             </div>
           </div>
 
@@ -299,12 +293,12 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
           {/* Subroles / Skills Pills */}
           {((profile?.subRoles && profile.subRoles.length > 0) || (profile?.skills && profile.skills.length > 0)) && (
             <div className="space-y-2">
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Expertise & Skills</h4>
+              <h4 className="text-xs font-semibold text-[#77736D] uppercase tracking-wider">Expertise & Skills</h4>
               <div className="flex flex-wrap gap-1.5">
                 {(profile.subRoles || []).map((sub, idx) => (
                   <span
                     key={`sub-${idx}`}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20"
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-[#F0EDE5] text-[#3C2415] border border-[#DDD9CE]"
                   >
                     {sub}
                   </span>
@@ -312,7 +306,7 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                 {(profile.skills || []).map((sk, idx) => (
                   <span
                     key={`sk-${idx}`}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white/[0.04] text-slate-300 border border-white/[0.08]"
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-white text-[#3C2415] border border-[#E5E0D7]"
                   >
                     {sk}
                   </span>
@@ -324,23 +318,23 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
           {/* SECTION: Collaboration-Gated Rating
               Only shown if the users have actually worked together on a project! */}
           {!isSelf && collabStatus?.collaborated && (
-            <div className="p-4 sm:p-5 rounded-2xl bg-[#0E1322] border border-white/[0.08] space-y-4">
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#F0EDE5]/60 border border-[#E5E0D7] space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-amber-400" />
-                  <h4 className="text-sm font-bold text-white">Rate {profile?.name}</h4>
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                  <h4 className="text-sm font-bold text-[#3C2415]">Rate {profile?.name}</h4>
                 </div>
-                <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-[#55745C] bg-[#55745C]/10 px-2 py-0.5 rounded-md border border-[#55745C]/20">
                   <ShieldCheck className="w-3.5 h-3.5" /> Verified Collaborator
                 </span>
               </div>
 
               {/* Case: Already reviewed */}
               {!collabStatus.canRate && collabStatus.existingReview && (
-                <div className="p-4 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 space-y-2">
+                <div className="p-4 rounded-xl bg-white border border-[#E5E0D7] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-emerald-300 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" /> You already reviewed this collaborator
+                    <span className="text-xs font-semibold text-[#55745C] flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-[#55745C]" /> You already reviewed this collaborator
                     </span>
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((st) => (
@@ -348,15 +342,15 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                           key={st}
                           className={`w-3.5 h-3.5 ${
                             st <= (collabStatus.existingReview.rating || 5)
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-slate-600'
+                              ? 'fill-amber-500 text-amber-500'
+                              : 'text-[#DDD9CE]'
                           }`}
                         />
                       ))}
                     </div>
                   </div>
                   {collabStatus.existingReview.reviewText && (
-                    <p className="text-xs text-slate-300 italic">
+                    <p className="text-xs text-[#3C2415] italic">
                       "{collabStatus.existingReview.reviewText}"
                     </p>
                   )}
@@ -367,15 +361,15 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
               {collabStatus.canRate && (
                 <form onSubmit={handleRatingSubmit} className="space-y-4 pt-1">
                   {reviewSuccessMsg && (
-                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <div className="p-3 rounded-xl bg-[#55745C]/10 border border-[#55745C]/30 text-xs text-[#55745C] flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-[#55745C]" />
                       <span>{reviewSuccessMsg}</span>
                     </div>
                   )}
 
                   {reviewErrorMsg && (
-                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <div className="p-3 rounded-xl bg-[#A34F45]/10 border border-[#A34F45]/30 text-xs text-[#A34F45] flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0 text-[#A34F45]" />
                       <span>{reviewErrorMsg}</span>
                     </div>
                   )}
@@ -383,10 +377,10 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                   {/* Star Selector */}
                   <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-medium text-slate-300">
-                      Overall Rating: <span className="text-amber-400 font-semibold">{starLabels[hoverRating || rating]}</span>
+                    <label className="text-xs font-medium text-[#3C2415]">
+                      Overall Rating: <span className="text-amber-600 font-semibold">{starLabels[hoverRating || rating]}</span>
                     </label>
-                    <span className="text-xs font-mono font-bold text-amber-300">
+                    <span className="text-xs font-mono font-bold text-amber-600">
                       {(hoverRating || rating)} / 5.0
                     </span>
                   </div>
@@ -403,8 +397,8 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                         <Star
                           className={`w-7 h-7 ${
                             starIdx <= (hoverRating || rating)
-                              ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]'
-                              : 'text-slate-600 hover:text-slate-400'
+                              ? 'fill-amber-500 text-amber-500'
+                              : 'text-[#DDD9CE] hover:text-[#77736D]'
                           }`}
                         />
                       </button>
@@ -414,7 +408,7 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
 
                 {/* Review Text */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  <label className="block text-xs font-medium text-[#3C2415] mb-1.5">
                     Feedback & Comments
                   </label>
                   <textarea
@@ -422,7 +416,7 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
                     placeholder={`Write your honest review about collaborating with ${profile?.name || 'this user'}...`}
-                    className="w-full bg-[#07090E] border border-white/[0.08] rounded-xl p-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                    className="w-full bg-white border border-[#E5E0D7] rounded-xl p-3 text-xs text-[#3C2415] placeholder-[#77736D] focus:outline-none focus:border-[#3C2415] transition-colors resize-none"
                   />
                 </div>
 
@@ -431,9 +425,9 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                   {!isCreator ? (
                     <>
                       <div>
-                        <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                        <div className="flex justify-between text-[11px] text-[#77736D] mb-1">
                           <span>Delivery Speed</span>
-                          <span className="text-slate-200 font-mono">{speed}/10</span>
+                          <span className="text-[#3C2415] font-mono">{speed}/10</span>
                         </div>
                         <input
                           type="range"
@@ -441,13 +435,13 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                           max="10"
                           value={speed}
                           onChange={(e) => setSpeed(Number(e.target.value))}
-                          className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                          className="w-full accent-[#3C2415] h-1.5 bg-[#DDD9CE] rounded-lg cursor-pointer"
                         />
                       </div>
                       <div>
-                        <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                        <div className="flex justify-between text-[11px] text-[#77736D] mb-1">
                           <span>Quality of Cut</span>
-                          <span className="text-slate-200 font-mono">{quality}/10</span>
+                          <span className="text-[#3C2415] font-mono">{quality}/10</span>
                         </div>
                         <input
                           type="range"
@@ -455,16 +449,16 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                           max="10"
                           value={quality}
                           onChange={(e) => setQuality(Number(e.target.value))}
-                          className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                          className="w-full accent-[#3C2415] h-1.5 bg-[#DDD9CE] rounded-lg cursor-pointer"
                         />
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
-                        <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                        <div className="flex justify-between text-[11px] text-[#77736D] mb-1">
                           <span>Boundary Respect</span>
-                          <span className="text-slate-200 font-mono">{boundaryRespect}/10</span>
+                          <span className="text-[#3C2415] font-mono">{boundaryRespect}/10</span>
                         </div>
                         <input
                           type="range"
@@ -472,13 +466,13 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                           max="10"
                           value={boundaryRespect}
                           onChange={(e) => setBoundaryRespect(Number(e.target.value))}
-                          className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                          className="w-full accent-[#3C2415] h-1.5 bg-[#DDD9CE] rounded-lg cursor-pointer"
                         />
                       </div>
                       <div>
-                        <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                        <div className="flex justify-between text-[11px] text-[#77736D] mb-1">
                           <span>Communication Behaviour</span>
-                          <span className="text-slate-200 font-mono">{behaviour}/10</span>
+                          <span className="text-[#3C2415] font-mono">{behaviour}/10</span>
                         </div>
                         <input
                           type="range"
@@ -486,7 +480,7 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                           max="10"
                           value={behaviour}
                           onChange={(e) => setBehaviour(Number(e.target.value))}
-                          className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                          className="w-full accent-[#3C2415] h-1.5 bg-[#DDD9CE] rounded-lg cursor-pointer"
                         />
                       </div>
                     </>
@@ -497,7 +491,7 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                 <button
                   type="submit"
                   disabled={isSubmittingReview}
-                  className="w-full py-2.5 rounded-xl font-semibold text-xs text-white bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-900/40 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 rounded-xl font-semibold text-xs text-[#F7F5F0] bg-[#3C2415] hover:bg-[#2A180E] shadow-sm transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isSubmittingReview ? 'Submitting Rating...' : 'Submit Rating & Review'}
                 </button>
@@ -508,13 +502,13 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
 
           {/* SECTION: Past Reviews List */}
           <div className="space-y-3 pt-2">
-            <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+            <h4 className="text-xs font-semibold text-[#77736D] uppercase tracking-wider flex items-center justify-between">
               <span>Reviews & Ratings ({reviewsData.length})</span>
             </h4>
 
             {reviewsData.length === 0 ? (
-              <div className="p-6 text-center rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-                <p className="text-xs text-slate-400">
+              <div className="p-6 text-center rounded-2xl bg-[#F0EDE5] border border-[#E5E0D7]">
+                <p className="text-xs text-[#77736D]">
                   No public reviews recorded yet. Reviews will show here as projects complete.
                 </p>
               </div>
@@ -525,7 +519,7 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                   return (
                     <div
                       key={rev._id}
-                      className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-2"
+                      className="p-3.5 rounded-xl bg-[#F0EDE5]/50 border border-[#E5E0D7] space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
@@ -537,13 +531,13 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = DEFAULT_PFP;
                             }}
-                            className="w-7 h-7 rounded-full object-cover border border-white/10"
+                            className="w-7 h-7 rounded-full object-cover border border-[#E5E0D7]"
                           />
                           <div>
-                            <span className="text-xs font-semibold text-white">
+                            <span className="text-xs font-semibold text-[#3C2415]">
                               {reviewer.name || 'Collaborator'}
                             </span>
-                            <span className="text-[10px] text-slate-500 ml-1.5 font-mono">
+                            <span className="text-[10px] text-[#77736D] ml-1.5 font-mono">
                               @{reviewer.username || 'user'}
                             </span>
                           </div>
@@ -555,8 +549,8 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                               key={st}
                               className={`w-3 h-3 ${
                                 st <= (rev.rating || 5)
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'text-slate-600'
+                                  ? 'fill-amber-500 text-amber-500'
+                                  : 'text-[#DDD9CE]'
                               }`}
                             />
                           ))}
@@ -564,13 +558,13 @@ export const UserProfileModal = ({ userId, initialUser = null, isOpen, onClose }
                       </div>
 
                       {rev.reviewText && (
-                        <p className="text-xs text-slate-300 leading-relaxed">
+                        <p className="text-xs text-[#3C2415] leading-relaxed">
                           {rev.reviewText}
                         </p>
                       )}
 
                       {rev.projectId?.title && (
-                        <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                        <div className="text-[10px] text-[#77736D] flex items-center gap-1">
                           <Briefcase className="w-3 h-3" />
                           <span>Project: {rev.projectId.title}</span>
                         </div>

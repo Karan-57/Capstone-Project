@@ -40,16 +40,35 @@ export const EditorDashboard = () => {
   const activeProjectsCount = editorActive.length;
   const ratingValue = currentUser?.rating != null ? String(currentUser.rating) : '0';
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Good morning';
+    if (hour >= 12 && hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const displayName = currentUser?.name || currentUser?.displayName || 'Editor';
+
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
-      {/* Instagram-style Profile Completion Visual (checks ONLY pfp, professional title, tools) */}
+      {/* Editorial Greeting Header */}
+      <div className="pt-1 pb-1">
+        <h1 className="font-serif italic text-3xl sm:text-4xl text-[#3C2415] tracking-tight">
+          {getGreeting()}, {displayName}
+        </h1>
+        <p className="text-sm sm:text-base text-[#77736D] mt-1 font-normal">
+          Here's where things stand with your work.
+        </p>
+      </div>
+
+      {/* Profile Completion Visual */}
       <ProfileCompletionBanner role="editor" />
 
       {/* Top Stats for Editor (Real dynamic counts, ledger credits & rating) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4.5">
         <StatsCard
           icon={Compass}
-          iconBg="bg-blue-600/20 text-blue-400 border border-blue-500/25"
+          iconBg="bg-[#F0EDE5] text-[#3C2415] border border-[#DDD9CE]"
           value={String(availableProjectsCount)}
           title="Available Projects"
           trend={`${availableProjectsCount} Open`}
@@ -57,7 +76,7 @@ export const EditorDashboard = () => {
         />
         <StatsCard
           icon={FileCheck2}
-          iconBg="bg-purple-600/20 text-purple-400 border border-purple-500/25"
+          iconBg="bg-[#EAECE7] text-[#55745C] border border-[#D5D9CF]"
           value={String(activeProjectsCount)}
           title="Active Contracts"
           trend="In Progress"
@@ -65,7 +84,7 @@ export const EditorDashboard = () => {
         />
         <StatsCard
           icon={Coins}
-          iconBg="bg-emerald-600/20 text-emerald-400 border border-emerald-500/25"
+          iconBg="bg-[#FBF6EE] text-[#A17A43] border border-[#F0E6D2]"
           value={`₹${Number(walletBalance || 0).toLocaleString('en-IN')}`}
           title="Wallet Credits"
           trend="From Ledgers"
@@ -73,7 +92,7 @@ export const EditorDashboard = () => {
         />
         <StatsCard
           icon={Star}
-          iconBg="bg-amber-600/20 text-amber-400 border border-amber-500/25"
+          iconBg="bg-[#F0EDE5] text-[#77736D] border border-[#DDD9CE]"
           value={ratingValue}
           title="Freelancer Rating"
           trend={ratingValue === '0' ? 'No reviews yet' : 'Top Rated'}

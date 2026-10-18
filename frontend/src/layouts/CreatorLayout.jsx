@@ -16,7 +16,7 @@ export const CreatorLayout = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex h-screen bg-[#07090E] text-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-[#F7F5F0] text-[#3C2415] overflow-hidden selection:bg-[#3C2415] selection:text-[#F7F5F0]">
       {/* Left Sidebar (Desktop + Mobile Drawer) */}
       <Sidebar
         role="creator"

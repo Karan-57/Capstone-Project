@@ -91,7 +91,7 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
       )}
 
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen bg-[#07090F]/95 md:bg-[#07090F]/80 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col justify-between p-3 select-none shrink-0 z-50 overflow-y-auto transition-all duration-300 ease-in-out ${
+        className={`fixed md:sticky top-0 left-0 h-screen bg-[#FFFFFF] md:bg-[#FFFFFF]/95 backdrop-blur-xl border-r border-[#E5E0D7] flex flex-col justify-between p-3 select-none shrink-0 z-50 overflow-y-auto transition-all duration-300 ease-in-out ${
           isCollapsed ? 'md:w-20' : 'md:w-64'
         } ${
           isOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'
@@ -102,14 +102,14 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
           <div className="flex items-center justify-between pb-4 pt-1 px-1">
             <CollaboLogo
               className="w-8 h-8"
-              textClassName="text-xl font-bold tracking-tight text-white font-mono"
+              textClassName="text-xl font-bold tracking-tight text-[#3C2415] font-sans"
               hideText={isCollapsed}
             />
 
             {/* Desktop Collapse / Expand Toggle Button */}
             <button
               onClick={toggleCollapse}
-              className="hidden md:flex p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border border-transparent hover:border-white/[0.08]"
+              className="hidden md:flex p-1.5 rounded-xl text-[#77736D] hover:text-[#3C2415] hover:bg-[#F0EDE5] transition-colors border border-transparent hover:border-[#E5E0D7]"
               title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -118,13 +118,13 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
             {/* Mobile Close Button */}
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-white md:hidden"
+              className="p-1 rounded-lg text-[#77736D] hover:text-[#3C2415] md:hidden"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Navigation links with Pierre Sù / Apple Capsule Hover */}
+          {/* Navigation links with refined Editorial Active Capsule */}
           <nav className="space-y-1">
             {currentNavItems.map((item) => {
               const Icon = item.icon;
@@ -135,12 +135,10 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
                   end={item.path.endsWith('/profile') || item.path.endsWith('/dashboard')}
                   title={isCollapsed ? item.label : undefined}
                   className={({ isActive }) =>
-                    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-3.5'} py-2.5 rounded-2xl text-xs font-semibold tracking-tight transition-all duration-200 group relative ${
+                    `flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between px-3.5'} py-2.5 rounded-xl text-xs font-medium tracking-tight transition-all duration-200 group relative ${
                       isActive
-                        ? role === 'creator'
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-900/40 border border-purple-400/30'
-                          : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/40 border border-blue-400/30'
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.04]'
+                        ? 'bg-[#3C2415] text-[#F7F5F0] shadow-sm font-semibold'
+                        : 'text-[#77736D] hover:text-[#3C2415] hover:bg-[#F0EDE5]'
                     }`
                   }
                 >
@@ -149,20 +147,16 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
                     {!isCollapsed && <span>{item.label}</span>}
                   </div>
                   {!isCollapsed && item.badge && (
-                    <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md border ${
-                      role === 'creator'
-                        ? 'bg-purple-500/30 text-purple-200 border-purple-400/20'
-                        : 'bg-blue-500/30 text-blue-200 border-blue-400/20'
-                    }`}>
+                    <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-[#F0EDE5] text-[#3C2415] border border-[#DDD9CE]">
                       {item.badge}
                     </span>
                   )}
 
                   {/* Tooltip on collapsed desktop view */}
                   {isCollapsed && (
-                    <div className="absolute left-full ml-3 px-2.5 py-1 bg-[#141A28] border border-white/[0.1] rounded-lg text-xs font-medium text-white shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                    <div className="absolute left-full ml-3 px-2.5 py-1 bg-[#3C2415] border border-[#2E1E12] rounded-lg text-xs font-medium text-[#F7F5F0] shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                       {item.label}
-                      {item.badge && <span className="ml-1.5 text-[10px] text-purple-400 font-bold">({item.badge})</span>}
+                      {item.badge && <span className="ml-1.5 text-[10px] text-[#DDD9CE] font-bold">({item.badge})</span>}
                     </div>
                   )}
                 </NavLink>
@@ -172,17 +166,17 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
         </div>
 
         {/* Footer Navigation */}
-        <div className="pt-3 border-t border-white/[0.05] space-y-1">
+        <div className="pt-3 border-t border-[#E5E0D7] space-y-1">
           <button
             onClick={handleLogout}
             title={isCollapsed ? 'Logout' : undefined}
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-3.5'} py-2 rounded-2xl text-xs font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors group relative`}
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'gap-3 px-3.5'} py-2 rounded-xl text-xs font-medium text-[#77736D] hover:text-[#A34F45] hover:bg-[#A34F45]/10 transition-colors group relative cursor-pointer`}
           >
             <LogOut className="w-4 h-4 shrink-0" />
             {!isCollapsed && <span>Logout</span>}
 
             {isCollapsed && (
-              <div className="absolute left-full ml-3 px-2.5 py-1 bg-[#141A28] border border-white/[0.1] rounded-lg text-xs font-medium text-rose-400 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+              <div className="absolute left-full ml-3 px-2.5 py-1 bg-[#3C2415] border border-[#2E1E12] rounded-lg text-xs font-medium text-rose-300 shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                 Logout
               </div>
             )}

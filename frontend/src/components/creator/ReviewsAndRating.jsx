@@ -40,29 +40,29 @@ export const ReviewsAndRating = () => {
   ];
 
   return (
-    <div className="glass-card p-4 sm:p-5.5 flex flex-col justify-between h-full min-w-0">
+    <div className="p-5 sm:p-5.5 rounded-2xl bg-white border border-[#E5E0D7] shadow-sm flex flex-col justify-between h-full min-w-0">
       <div>
         <div className="flex items-center justify-between mb-3.5">
-          <h3 className="text-base font-semibold text-white tracking-tight">
+          <h3 className="text-base font-semibold text-[#3C2415] tracking-tight">
             Reviews & Rating
           </h3>
-          <span className="text-xs text-slate-400 font-mono">
+          <span className="text-xs text-[#77736D] font-mono">
             {reviewCount === 0 ? '0 reviews' : `(${reviewCount} reviews)`}
           </span>
         </div>
 
         {/* Rating score header */}
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-3xl font-extrabold text-white tracking-tight font-mono">
+          <span className="text-3xl font-bold text-[#3C2415] tracking-tight font-mono">
             {ratingVal}
           </span>
           <div>
-            <div className="flex items-center gap-1 text-amber-400">
+            <div className="flex items-center gap-1 text-[#A17A43]">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className={`w-4 h-4 ${i < Math.round(Number(ratingVal)) && ratingVal > 0 ? 'fill-amber-400 text-amber-400' : 'text-slate-600'}`} />
+                <Star key={i} className={`w-4 h-4 ${i < Math.round(Number(ratingVal)) && ratingVal > 0 ? 'fill-[#A17A43] text-[#A17A43]' : 'text-[#DDD9CE]'}`} />
               ))}
             </div>
-            <span className="text-xs text-slate-400 mt-0.5 block">
+            <span className="text-xs text-[#77736D] mt-0.5 block font-normal">
               Average Rating
             </span>
           </div>
@@ -72,15 +72,15 @@ export const ReviewsAndRating = () => {
         <div className="space-y-3">
           {metrics.map((item) => (
             <div key={item.label} className="text-xs">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-slate-400 font-medium">{item.label}</span>
-                <span className="font-mono text-purple-300 font-semibold">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[#77736D] font-medium">{item.label}</span>
+                <span className="font-mono text-[#3C2415] font-semibold">
                   {item.score} / {item.max}
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden">
+              <div className="w-full h-1.5 bg-[#F0EDE5] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-purple-600 rounded-full shadow-[0_0_8px_rgba(124,58,237,0.5)] transition-all duration-500"
+                  className="h-full bg-[#3C2415] rounded-full transition-all duration-500"
                   style={{ width: `${(item.score / item.max) * 100}%` }}
                 />
               </div>

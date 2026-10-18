@@ -61,12 +61,12 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
   }, [isAuthenticated, isAuthLoading, currentUser?._id, currentUser?.id]);
 
   return (
-    <header className="flex flex-row items-center justify-between gap-4 py-4 md:py-6 px-4 md:px-8 bg-[#07090E] border-b border-white/[0.06] shrink-0">
+    <header className="flex flex-row items-center justify-between gap-4 py-3.5 md:py-4 px-4 md:px-8 bg-[#FFFFFF]/90 backdrop-blur-md border-b border-[#E5E0D7] shrink-0 sticky top-0 z-30">
       {/* Mobile Hamburger toggle */}
       <div className="flex items-center gap-2 md:hidden">
         <button
           onClick={onMenuClick}
-          className="p-2 rounded-xl text-slate-400 hover:text-white bg-white/[0.04] border border-white/[0.06] transition-colors"
+          className="p-2 rounded-xl text-[#77736D] hover:text-[#3C2415] bg-[#F0EDE5] border border-[#E5E0D7] transition-colors"
           title="Open menu"
         >
           <Menu className="w-5 h-5" />
@@ -79,12 +79,12 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
         <button
           type="button"
           onClick={handleOpenSearchPage}
-          className="group relative hidden sm:flex items-center justify-between w-60 md:w-72 pl-9 pr-2.5 py-2 text-xs rounded-xl bg-[#0F1420] hover:bg-[#141A28] text-slate-400 hover:text-slate-200 border border-white/[0.08] hover:border-purple-500/50 transition-all cursor-pointer shadow-sm text-left"
+          className="group relative hidden sm:flex items-center justify-between w-60 md:w-72 pl-9 pr-2.5 py-2 text-xs rounded-xl bg-[#F0EDE5] hover:bg-[#EAE6DF] text-[#77736D] hover:text-[#3C2415] border border-[#E5E0D7] hover:border-[#DDD9CE] transition-all cursor-pointer shadow-none text-left"
           title="Search users by name or @username (Ctrl+K)"
         >
-          <Search className="w-4 h-4 text-slate-400 group-hover:text-purple-400 absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
+          <Search className="w-4 h-4 text-[#77736D] group-hover:text-[#3C2415] absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
           <span className="truncate">Search creators, freelancers...</span>
-          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-white/[0.06] border border-white/[0.08] rounded">
+          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono font-medium text-[#77736D] bg-[#FFFFFF] border border-[#E5E0D7] rounded">
             ⌘K
           </kbd>
         </button>
@@ -93,7 +93,7 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
         <button
           type="button"
           onClick={handleOpenSearchPage}
-          className="sm:hidden p-2.5 rounded-xl bg-[#0F1420] text-slate-300 hover:text-white border border-white/[0.08] hover:border-purple-500/30 transition-colors"
+          className="sm:hidden p-2.5 rounded-xl bg-[#F0EDE5] text-[#77736D] hover:text-[#3C2415] border border-[#E5E0D7] transition-colors"
           title="Search users"
         >
           <Search className="w-4 h-4" />
@@ -105,21 +105,17 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
             onClick={() => navigate('/creator/create-project')}
             title="Create New Project"
             aria-label="Create New Project"
-            className="group relative inline-flex items-center justify-center p-2.5 rounded-xl text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/40 hover:shadow-purple-700/60 border border-purple-400/40 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+            className="group relative inline-flex items-center justify-center p-2.5 rounded-xl text-[#F7F5F0] bg-[#3C2415] hover:bg-[#2B1810] shadow-sm border border-[#3C2415] hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
           >
-            {/* Shimmer light bar effect */}
-            <span className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-              <span className="absolute -left-[100%] top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:left-[200%] transition-all duration-1000" />
-            </span>
             <Plus className="w-4 h-4 stroke-[2.5] group-hover:rotate-90 transition-transform duration-300" />
           </button>
         )}
 
         {/* Wallet Balance Pill */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border border-amber-500/25 shadow-sm">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F0EDE5] border border-[#E5E0D7] shadow-none">
           <div className="flex items-center gap-1.5">
-            <Coins className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-xs font-bold font-mono text-amber-300 leading-tight">
+            <Coins className="w-4 h-4 text-[#A17A43] shrink-0" />
+            <span className="text-xs font-bold font-mono text-[#3C2415] leading-tight">
               {walletBalance.toLocaleString('en-IN')}
             </span>
           </div>
@@ -128,7 +124,7 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
               onClick={() => setIsTopUpOpen(true)}
               title="Top Up Credits"
               aria-label="Top Up Credits"
-              className="ml-1 w-5 h-5 flex items-center justify-center rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer hover:scale-105 active:scale-95"
+              className="ml-1 w-5 h-5 flex items-center justify-center rounded-lg bg-[#DDD9CE] hover:bg-[#C7B9A7] text-[#3C2415] border border-[#DDD9CE] text-xs font-bold transition-all cursor-pointer hover:scale-105 active:scale-95"
             >
               +
             </button>
@@ -138,12 +134,12 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
         {/* Messages Icon */}
         <button
           onClick={() => navigate(role === 'creator' ? '/creator/messages' : '/editor/messages')}
-          className="relative p-2.5 rounded-xl bg-[#0F1420] text-slate-300 hover:text-white border border-white/[0.08] hover:border-purple-500/30 transition-colors"
+          className="relative p-2.5 rounded-xl bg-[#FFFFFF] text-[#77736D] hover:text-[#3C2415] hover:bg-[#F0EDE5] border border-[#E5E0D7] transition-colors cursor-pointer"
           title="Direct Messages"
         >
           <MessageSquare className="w-4 h-4" />
           {unreadMessagesCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white shadow">
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#3C2415] text-[10px] font-bold text-[#F7F5F0] shadow-sm">
               {unreadMessagesCount}
             </span>
           )}
@@ -152,12 +148,12 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
         {/* Notification Bell */}
         <button
           onClick={() => navigate(role === 'creator' ? '/creator/notifications' : '/editor/notifications')}
-          className="relative p-2.5 rounded-xl bg-[#0F1420] text-slate-300 hover:text-white border border-white/[0.08] hover:border-purple-500/30 transition-colors"
+          className="relative p-2.5 rounded-xl bg-[#FFFFFF] text-[#77736D] hover:text-[#3C2415] hover:bg-[#F0EDE5] border border-[#E5E0D7] transition-colors cursor-pointer"
           title="Notifications"
         >
           <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow">
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#A34F45] text-[10px] font-bold text-white shadow-sm">
               {unreadCount}
             </span>
           )}
@@ -177,9 +173,9 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
               }}
-              className="w-9 h-9 rounded-full object-cover border border-purple-500/40 ring-2 ring-purple-600/20 group-hover:ring-purple-500 transition-all"
+              className="w-9 h-9 rounded-full object-cover border border-[#E5E0D7] ring-2 ring-[#F0EDE5] group-hover:ring-[#DDD9CE] transition-all"
             />
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#07090E]"></span>
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#55745C] ring-2 ring-[#FFFFFF]"></span>
           </div>
         </div>
       </div>

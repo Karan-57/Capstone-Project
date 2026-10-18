@@ -192,15 +192,15 @@ export const SpendingsOverview = () => {
   }, [filteredData, timeframe]);
 
   return (
-    <div className="glass-card p-4 sm:p-5.5 flex flex-col justify-between h-full relative min-w-0">
+    <div className="p-5 sm:p-5.5 rounded-2xl bg-white border border-[#E5E0D7] shadow-sm flex flex-col justify-between h-full relative min-w-0">
       <div>
         {/* Header with Title and Timeframe Dropdown */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+            <div className="p-1.5 rounded-lg bg-[#F0EDE5] text-[#3C2415] border border-[#DDD9CE]">
               <CreditCard className="w-4 h-4" />
             </div>
-            <h3 className="text-base font-semibold text-white tracking-tight">
+            <h3 className="text-base font-semibold text-[#3C2415] tracking-tight">
               Spendings Overview
             </h3>
           </div>
@@ -209,14 +209,14 @@ export const SpendingsOverview = () => {
             <button
               type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-slate-300 bg-[#161D2D] hover:bg-[#1E2638] rounded-lg border border-white/[0.08] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[#3C2415] bg-[#F0EDE5] hover:bg-[#EAE6DF] rounded-lg border border-[#E5E0D7] transition-colors cursor-pointer"
             >
               <span>{timeframe}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3.5 h-3.5 text-[#77736D] transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 top-full mt-1.5 z-30 w-32 p-1 rounded-xl bg-[#0E1322] border border-white/10 shadow-2xl backdrop-blur-xl">
+              <div className="absolute right-0 top-full mt-1.5 z-30 w-32 p-1 rounded-xl bg-white border border-[#E5E0D7] shadow-xl">
                 {timeframes.map((tf) => (
                   <button
                     key={tf}
@@ -227,8 +227,8 @@ export const SpendingsOverview = () => {
                     }}
                     className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                       timeframe === tf
-                        ? 'bg-purple-600/20 text-purple-300 font-semibold'
-                        : 'text-slate-300 hover:bg-white/[0.05]'
+                        ? 'bg-[#F0EDE5] text-[#3C2415] font-semibold'
+                        : 'text-[#77736D] hover:bg-[#FAF8F5]'
                     }`}
                   >
                     {tf}
@@ -241,13 +241,13 @@ export const SpendingsOverview = () => {
 
         {/* Real Metric Display */}
         <div className="mb-2">
-          <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-[#3C2415] tracking-tight font-mono">
             ₹{filteredData.totalSpent.toLocaleString('en-IN')}
           </div>
-          <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+          <div className="text-xs text-[#77736D] mt-1 flex items-center gap-2 flex-wrap">
             <span>Total Production Spend</span>
-            <span className="text-purple-400 font-medium text-[11px] flex items-center gap-1 bg-purple-950/40 px-2 py-0.5 rounded-md border border-purple-800/30">
-              <CheckCircle2 className="w-3 h-3 text-purple-400" />
+            <span className="text-[#55745C] font-medium text-[11px] flex items-center gap-1 bg-[#EAECE7] px-2 py-0.5 rounded-md border border-[#D5D9CF]">
+              <CheckCircle2 className="w-3 h-3 text-[#55745C]" />
               {filteredData.milestonesCount} Milestones Paid
             </span>
           </div>
@@ -256,7 +256,7 @@ export const SpendingsOverview = () => {
         {/* Dynamic Real SVG Spendings Curve */}
         <div className="relative mt-3">
           {/* Y Axis Legend */}
-          <div className="absolute left-0 top-1 bottom-7 flex flex-col justify-between text-[10px] text-slate-400 font-mono select-none">
+          <div className="absolute left-0 top-1 bottom-7 flex flex-col justify-between text-[10px] text-[#77736D] font-mono select-none">
             {chartData.yLabels.map((lbl, idx) => (
               <span key={idx}>{lbl}</span>
             ))}
@@ -270,32 +270,27 @@ export const SpendingsOverview = () => {
             >
               <defs>
                 <linearGradient id="spendingsGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.4" />
-                  <stop offset="60%" stopColor="#6366F1" stopOpacity="0.12" />
-                  <stop offset="100%" stopColor="#6366F1" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#3C2415" stopOpacity="0.10" />
+                  <stop offset="100%" stopColor="#3C2415" stopOpacity="0.0" />
                 </linearGradient>
-                <filter id="spendingsGlow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#8B5CF6" floodOpacity="0.5" />
-                </filter>
               </defs>
 
               {/* Grid Lines */}
-              <line x1="0" y1="15" x2={chartData.width} y2="15" stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
-              <line x1="0" y1="48" x2={chartData.width} y2="48" stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
-              <line x1="0" y1="81" x2={chartData.width} y2="81" stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
-              <line x1="0" y1="110" x2={chartData.width} y2="110" stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
+              <line x1="0" y1="15" x2={chartData.width} y2="15" stroke="#E5E0D7" strokeDasharray="3 3" />
+              <line x1="0" y1="48" x2={chartData.width} y2="48" stroke="#E5E0D7" strokeDasharray="3 3" />
+              <line x1="0" y1="81" x2={chartData.width} y2="81" stroke="#E5E0D7" strokeDasharray="3 3" />
+              <line x1="0" y1="110" x2={chartData.width} y2="110" stroke="#E5E0D7" strokeDasharray="3 3" />
 
               {/* Gradient Area Fill */}
               <path d={chartData.areaPath} fill="url(#spendingsGrad)" />
 
-              {/* Glowing Curve Line */}
+              {/* Curve Line */}
               <path
                 d={chartData.linePath}
                 fill="none"
-                stroke="#A78BFA"
+                stroke="#3C2415"
                 strokeWidth="2.5"
                 strokeLinecap="round"
-                filter="url(#spendingsGlow)"
               />
 
               {/* Interactive Milestone Dots */}
@@ -312,10 +307,9 @@ export const SpendingsOverview = () => {
                       cx={pt.x}
                       cy={pt.y}
                       r={isLast ? 4.5 : 3.5}
-                      fill={isLast ? '#A78BFA' : '#7C3AED'}
+                      fill="#3C2415"
                       stroke="#FFFFFF"
                       strokeWidth={isLast ? 2 : 1.5}
-                      className={isLast && chartData.hasRealData ? 'animate-pulse' : ''}
                     />
                   </g>
                 );
@@ -325,7 +319,7 @@ export const SpendingsOverview = () => {
             {/* Hover Tooltip */}
             {hoveredPoint && (
               <div
-                className="absolute -top-7 z-20 px-2 py-1 rounded-md bg-[#090D16] border border-purple-500/40 text-[11px] font-mono text-white shadow-lg pointer-events-none transform -translate-x-1/2"
+                className="absolute -top-7 z-20 px-2 py-1 rounded-md bg-[#3C2415] border border-[#2E1E12] text-[11px] font-mono text-[#F7F5F0] shadow-lg pointer-events-none transform -translate-x-1/2"
                 style={{ left: `${(hoveredPoint.x / chartData.width) * 100}%` }}
               >
                 ₹{hoveredPoint.amount.toLocaleString('en-IN')}
@@ -333,7 +327,7 @@ export const SpendingsOverview = () => {
             )}
 
             {/* X Axis Labels */}
-            <div className="flex justify-between text-[10px] sm:text-[11px] text-slate-400 font-medium pt-1.5 select-none overflow-hidden gap-1">
+            <div className="flex justify-between text-[10px] sm:text-[11px] text-[#77736D] font-medium pt-1.5 select-none overflow-hidden gap-1">
               {chartData.coords.map((c, idx) => (
                 <span key={idx} className="truncate text-center">{c.label}</span>
               ))}
@@ -342,20 +336,20 @@ export const SpendingsOverview = () => {
         </div>
 
         {/* Real Breakdown Pills */}
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/[0.04]">
-          <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-            <span className="text-[10px] text-slate-400 block font-medium">Settled to Freelancers</span>
-            <span className="text-xs font-bold text-white font-mono mt-0.5 block">
+        <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#E5E0D7]">
+          <div className="p-2.5 rounded-xl bg-[#F0EDE5] border border-[#DDD9CE]">
+            <span className="text-[10px] text-[#77736D] block font-medium">Settled to Freelancers</span>
+            <span className="text-xs font-bold text-[#3C2415] font-mono mt-0.5 block">
               ₹{filteredData.settledAmount.toLocaleString('en-IN')}
             </span>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-            <span className="text-[10px] text-slate-400 block font-medium flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+          <div className="p-2.5 rounded-xl bg-[#EAECE7] border border-[#D5D9CF]">
+            <span className="text-[10px] text-[#55745C] block font-medium flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3 text-[#55745C]" />
               In Active Escrow
             </span>
-            <span className="text-xs font-bold text-emerald-400 font-mono mt-0.5 block">
+            <span className="text-xs font-bold text-[#55745C] font-mono mt-0.5 block">
               ₹{filteredData.escrowAmount.toLocaleString('en-IN')}
             </span>
           </div>
@@ -367,7 +361,7 @@ export const SpendingsOverview = () => {
         <button
           type="button"
           onClick={() => navigate('/creator/payments')}
-          className="text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
+          className="text-xs font-semibold text-[#6E7464] hover:text-[#3C2415] transition-colors inline-flex items-center gap-1 cursor-pointer"
         >
           <span>View Payments & Invoices</span>
           <ArrowUpRight className="w-3.5 h-3.5" />

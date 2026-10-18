@@ -25,25 +25,25 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
       <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-3.5">
-          <h3 className="text-base font-semibold text-white tracking-tight">
+          <h3 className="text-base font-semibold text-[#3C2415] tracking-tight">
             My Applications
           </h3>
           <button
             onClick={() => navigate('/creator/applications')}
-            className="text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors"
+            className="text-xs font-medium text-[#77736D] hover:text-[#3C2415] transition-colors"
           >
             View all
           </button>
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-[#0A0D15]/80 rounded-xl border border-white/[0.05] mb-4 overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1 bg-[#F0EDE5] rounded-xl border border-[#E5E0D7] mb-4 overflow-x-auto">
           <button
             onClick={() => setActiveTab('all')}
             className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
               activeTab === 'all'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#3C2415] text-[#F7F5F0] shadow-sm'
+                : 'text-[#77736D] hover:text-[#3C2415]'
             }`}
           >
             All ({counts.all})
@@ -52,8 +52,8 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
             onClick={() => setActiveTab('pending')}
             className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
               activeTab === 'pending'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#3C2415] text-[#F7F5F0] shadow-sm'
+                : 'text-[#77736D] hover:text-[#3C2415]'
             }`}
           >
             Pending ({counts.pending})
@@ -62,8 +62,8 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
             onClick={() => setActiveTab('accepted')}
             className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
               activeTab === 'accepted'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#3C2415] text-[#F7F5F0] shadow-sm'
+                : 'text-[#77736D] hover:text-[#3C2415]'
             }`}
           >
             Accepted ({counts.accepted})
@@ -72,8 +72,8 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
             onClick={() => setActiveTab('rejected')}
             className={`px-3 py-1 text-xs font-medium rounded-lg transition-all ${
               activeTab === 'rejected'
-                ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#3C2415] text-[#F7F5F0] shadow-sm'
+                : 'text-[#77736D] hover:text-[#3C2415]'
             }`}
           >
             Rejected ({counts.rejected})
@@ -85,7 +85,7 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
           {filteredApplications.slice(0, 3).map((app) => (
             <div
               key={app.id}
-              className="flex items-center justify-between p-3 rounded-xl bg-[#141A28]/50 border border-white/[0.04] hover:border-white/[0.1] transition-all"
+              className="flex items-center justify-between p-3 rounded-xl bg-[#F0EDE5]/50 border border-[#E5E0D7] hover:border-[#DDD9CE] hover:bg-[#F0EDE5] transition-all"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <img
@@ -93,33 +93,33 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
                   alt={app.name || 'Applicant avatar'}
                   loading="lazy"
                   onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                  className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0"
+                  className="w-10 h-10 rounded-full object-cover border border-[#E5E0D7] shrink-0"
                 />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-semibold text-white truncate">
+                    <span className="text-sm font-semibold text-[#3C2415] truncate">
                       {app.name}
                     </span>
                     {app.rating && (
-                      <span className="flex items-center gap-0.5 text-[11px] font-bold text-amber-400">
-                        <Star className="w-3 h-3 fill-amber-400" />
+                      <span className="flex items-center gap-0.5 text-[11px] font-bold text-amber-600">
+                        <Star className="w-3 h-3 fill-amber-500" />
                         {app.rating}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[#77736D] mt-0.5">
                     {app.price} • {app.duration}
                   </p>
                 </div>
               </div>
 
-              {/* Action Buttons matching screenshot */}
+              {/* Action Buttons */}
               <div className="flex items-center gap-2 shrink-0">
                 <Button
                   variant="subtle"
                   size="xs"
                   onClick={() => navigate('/creator/profile')}
-                  className="hidden sm:inline-flex bg-[#1E2638] hover:bg-[#253047] text-slate-300"
+                  className="hidden sm:inline-flex bg-white hover:bg-[#F0EDE5] text-[#3C2415] border border-[#E5E0D7]"
                 >
                   View Profile
                 </Button>
@@ -130,7 +130,7 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
                       variant="accept"
                       size="xs"
                       onClick={() => onStatusChange && onStatusChange(app.id, 'accepted')}
-                      className="px-2.5 bg-emerald-600 hover:bg-emerald-500 font-medium"
+                      className="px-2.5 font-medium"
                     >
                       Accept
                     </Button>
@@ -138,7 +138,7 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
                       variant="reject"
                       size="xs"
                       onClick={() => onStatusChange && onStatusChange(app.id, 'rejected')}
-                      className="px-2.5 bg-rose-600 hover:bg-rose-500 font-medium"
+                      className="px-2.5 font-medium"
                     >
                       Reject
                     </Button>
@@ -147,8 +147,8 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
                   <span
                     className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg capitalize ${
                       app.status === 'accepted'
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                        ? 'bg-[#55745C]/15 text-[#55745C] border border-[#55745C]/25'
+                        : 'bg-[#A34F45]/15 text-[#A34F45] border border-[#A34F45]/25'
                     }`}
                   >
                     {app.status}
@@ -159,17 +159,17 @@ export const RecentApplications = ({ applications = [], onStatusChange }) => {
           ))}
 
           {filteredApplications.length === 0 && (
-            <div className="py-6 text-center text-xs text-slate-400">
+            <div className="py-6 text-center text-xs text-[#77736D]">
               No applications in this status.
             </div>
           )}
         </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/[0.04]">
+      <div className="mt-4 pt-3 border-t border-[#E5E0D7]">
         <button
           onClick={() => navigate('/creator/applications')}
-          className="w-full py-2 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.07] rounded-xl border border-white/[0.06] transition-colors"
+          className="w-full py-2 text-xs font-medium text-[#3C2415] hover:bg-[#F0EDE5] bg-white rounded-xl border border-[#E5E0D7] transition-colors"
         >
           Manage Applications
         </button>

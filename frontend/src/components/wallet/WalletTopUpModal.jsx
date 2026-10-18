@@ -83,38 +83,38 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-md glass-card p-6 border border-white/[0.12] rounded-2xl bg-[#0B0E17]/95 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3C2415]/40 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-md p-6 border border-[#E5E0D7] rounded-3xl bg-white shadow-xl text-[#3C2415]">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-[#77736D] hover:text-[#3C2415] hover:bg-[#F0EDE5] transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-3 pb-4 border-b border-white/[0.08] mb-5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+        <div className="flex items-center gap-3 pb-4 border-b border-[#E5E0D7] mb-5">
+          <div className="w-10 h-10 rounded-xl bg-[#F0EDE5] border border-[#DDD9CE] flex items-center justify-center text-[#3C2415]">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white tracking-tight">Top Up Wallet Credits</h3>
-            <p className="text-xs text-slate-400">1 Platform Credit = ₹1.00 INR (Escrow Protected)</p>
+            <h3 className="text-base font-semibold text-[#3C2415] tracking-tight">Top Up Wallet Credits</h3>
+            <p className="text-xs text-[#77736D]">1 Platform Credit = ₹1.00 INR (Escrow Protected)</p>
           </div>
         </div>
 
         {/* Current Balance Bar */}
-        <div className="p-3.5 rounded-xl bg-[#141A28] border border-white/[0.06] mb-5 flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-[#F0EDE5] border border-[#E5E0D7] mb-5 flex items-center justify-between">
           <div>
-            <span className="text-[11px] text-slate-400 block">Available Balance</span>
-            <span className="text-base font-bold text-white font-mono">
+            <span className="text-[11px] text-[#77736D] block">Available Balance</span>
+            <span className="text-base font-bold text-[#3C2415] font-mono">
               ₹{walletBalance.toLocaleString('en-IN')}
             </span>
           </div>
           <div className="text-right">
-            <span className="text-[11px] text-slate-400 block">After Top-Up</span>
-            <span className="text-base font-bold text-emerald-400 font-mono">
+            <span className="text-[11px] text-[#77736D] block">After Top-Up</span>
+            <span className="text-base font-bold text-[#55745C] font-mono">
               ₹{(walletBalance + (activeAmount || 0)).toLocaleString('en-IN')}
             </span>
           </div>
@@ -122,7 +122,7 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
 
         {/* Packages Grid */}
         <div className="space-y-2 mb-4">
-          <label className="text-xs font-semibold text-slate-300">Select Credit Package</label>
+          <label className="text-xs font-semibold text-[#3C2415]">Select Credit Package</label>
           <div className="grid grid-cols-2 gap-2.5">
             {packages.map((pkg) => {
               const isSelected = selectedPackage === pkg.credits && !customAmount;
@@ -135,22 +135,22 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
                   }}
                   className={`p-3 rounded-xl border cursor-pointer transition-all relative ${
                     isSelected
-                      ? 'bg-purple-900/30 border-purple-500 ring-1 ring-purple-500/40 text-white'
-                      : 'bg-[#121622] border-white/[0.06] text-slate-300 hover:border-white/20'
+                      ? 'bg-[#3C2415] border-[#3C2415] text-[#F7F5F0]'
+                      : 'bg-[#F0EDE5] border-[#E5E0D7] text-[#3C2415] hover:border-[#DDD9CE]'
                   }`}
                 >
                   {pkg.popular && (
-                    <span className="absolute -top-2 right-2 px-1.5 py-0.5 rounded-md bg-purple-600 text-[9px] font-bold text-white tracking-wider uppercase">
+                    <span className="absolute -top-2 right-2 px-1.5 py-0.5 rounded-md bg-[#55745C] text-[9px] font-bold text-white tracking-wider uppercase">
                       Popular
                     </span>
                   )}
-                  <span className="text-[10px] text-slate-400 font-medium block uppercase tracking-wider">
+                  <span className={`text-[10px] font-medium block uppercase tracking-wider ${isSelected ? 'text-[#DDD9CE]' : 'text-[#77736D]'}`}>
                     {pkg.label}
                   </span>
                   <div className="flex items-baseline gap-1 mt-0.5">
                     <span className="text-sm font-bold font-mono">₹{pkg.price.toLocaleString('en-IN')}</span>
                   </div>
-                  <span className="text-[11px] text-purple-300 font-mono">
+                  <span className={`text-[11px] font-mono ${isSelected ? 'text-[#DDD9CE]' : 'text-[#6E7464]'}`}>
                     +{pkg.credits.toLocaleString()} Credits
                   </span>
                 </div>
@@ -161,7 +161,7 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
 
         {/* Custom Amount */}
         <div className="mb-5">
-          <label className="text-[11px] text-slate-400 mb-1 block">Or enter custom amount (₹)</label>
+          <label className="text-[11px] text-[#77736D] mb-1 block">Or enter custom amount (₹)</label>
           <input
             type="number"
             min="100"
@@ -169,7 +169,7 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
             placeholder="e.g. 7500"
             value={customAmount}
             onChange={(e) => setCustomAmount(e.target.value)}
-            className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500 font-mono"
+            className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#F0EDE5] text-[#3C2415] border border-[#E5E0D7] focus:outline-none focus:border-[#3C2415] font-mono"
           />
         </div>
 
@@ -179,7 +179,7 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
             type="button"
             disabled={isProcessing || !activeAmount || activeAmount <= 0}
             onClick={handlePayRazorpay}
-            className="w-full py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-900/40 transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-2.5 rounded-xl text-xs font-semibold text-[#F7F5F0] bg-[#3C2415] hover:bg-[#2A180E] shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <CreditCard className="w-4 h-4" />
             {isProcessing ? 'Processing Gateway...' : `Pay ₹${(activeAmount || 0).toLocaleString('en-IN')} via Razorpay Test`}
@@ -188,16 +188,16 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
           <button
             type="button"
             onClick={handleInstantDemoFaucet}
-            className="w-full py-2 rounded-xl text-xs font-medium text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            className="w-full py-2 rounded-xl text-xs font-medium text-[#3C2415] hover:bg-[#E5E0D7] bg-[#F0EDE5] border border-[#E5E0D7] transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <Zap className="w-3.5 h-3.5 text-[#A17A43]" />
             ⚡ 1-Click Demo Faucet (+₹{(activeAmount || 5000).toLocaleString('en-IN')})
           </button>
         </div>
 
         {/* Trust Footnote */}
-        <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-[#77736D]">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#55745C]" />
           <span>Encrypted with 256-bit TLS • Test Mode Enabled</span>
         </div>
       </div>

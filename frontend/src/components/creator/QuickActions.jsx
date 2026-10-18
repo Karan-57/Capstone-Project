@@ -11,24 +11,21 @@ export const QuickActions = ({ onUploadAssets }) => {
       desc: 'Browse talent & review candidates',
       icon: UserPlus,
       action: () => navigate('/creator/applications'),
-      color: 'from-blue-600/20 to-cyan-600/20 text-blue-300 border-blue-500/30 hover:border-blue-400',
-      iconColor: 'text-blue-400',
+      badge: 'Talent',
     },
     {
       title: 'Upload Assets',
       desc: 'Sync B-Roll & raw 4K footage',
       icon: UploadCloud,
       action: () => onUploadAssets ? onUploadAssets() : navigate('/workspace'),
-      color: 'from-emerald-600/20 to-teal-600/20 text-emerald-300 border-emerald-500/30 hover:border-emerald-400',
-      iconColor: 'text-emerald-400',
+      badge: 'Media',
     },
     {
       title: 'Release Payment',
       desc: 'Approve milestones & payout',
       icon: CreditCard,
       action: () => navigate('/creator/payments'),
-      color: 'from-amber-600/20 to-orange-600/20 text-amber-300 border-amber-500/30 hover:border-amber-400',
-      iconColor: 'text-amber-400',
+      badge: 'Escrow',
     },
   ];
 
@@ -40,16 +37,20 @@ export const QuickActions = ({ onUploadAssets }) => {
           <button
             key={idx}
             onClick={item.action}
-            className={`p-4 rounded-2xl bg-gradient-to-br ${item.color} border text-left transition-all duration-200 hover:-translate-y-0.5 group`}
+            className="p-4 rounded-2xl bg-white hover:bg-[#FAF8F5] border border-[#E5E0D7] hover:border-[#DDD9CE] hover:-translate-y-0.5 shadow-[0_1px_3px_rgba(60,36,21,0.03)] hover:shadow-[0_4px_12px_rgba(60,36,21,0.06)] text-left transition-all duration-200 group cursor-pointer"
           >
             <div className="flex items-center justify-between mb-2">
-              <Icon className={`w-5 h-5 ${item.iconColor} group-hover:scale-110 transition-transform`} />
-              <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">Quick</span>
+              <div className="w-8 h-8 rounded-lg bg-[#F0EDE5] text-[#3C2415] flex items-center justify-center border border-[#DDD9CE] group-hover:scale-105 transition-transform">
+                <Icon className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-[#77736D] bg-[#F0EDE5] px-2 py-0.5 rounded-full border border-[#DDD9CE]">
+                {item.badge}
+              </span>
             </div>
-            <h4 className="text-sm font-semibold text-white group-hover:text-purple-200 transition-colors">
+            <h4 className="text-sm font-semibold text-[#3C2415] transition-colors">
               {item.title}
             </h4>
-            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+            <p className="text-xs text-[#77736D] mt-0.5 line-clamp-1">
               {item.desc}
             </p>
           </button>

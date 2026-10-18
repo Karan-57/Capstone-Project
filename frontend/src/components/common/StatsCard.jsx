@@ -60,44 +60,41 @@ export const StatsCard = ({
     .join(' ');
 
   return (
-    <div className="glass-panel-interactive p-5 flex items-center justify-between gap-3 relative overflow-hidden group">
-      {/* Floating glass reflection sweep */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -translate-x-[150%] group-hover:translate-x-[250%] transition-transform duration-1000 pointer-events-none" />
-
+    <div className="p-5 rounded-2xl bg-white border border-[#E5E0D7] shadow-[0_1px_3px_rgba(60,36,21,0.03)] hover:shadow-[0_4px_14px_rgba(60,36,21,0.06)] hover:border-[#DDD9CE] hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between gap-3 relative overflow-hidden group">
       {/* Left Column: Icon & Metric */}
       <div className="flex items-center gap-3.5 min-w-0">
         {/* Icon Badge with live pulse dot */}
         <div className="relative">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${iconBg} shadow-inner group-hover:scale-110 transition-transform duration-300`}>
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${iconBg} transition-transform duration-200 group-hover:scale-105`}>
             {Icon && (React.isValidElement(Icon) ? (
               Icon
             ) : typeof Icon === 'function' || (typeof Icon === 'object' && Icon !== null) ? (
               <Icon className="w-5 h-5" />
             ) : (
-              <span className="text-xl font-bold">{Icon}</span>
+              <span className="text-lg font-bold">{Icon}</span>
             ))}
           </div>
           {/* Live indicator dot */}
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0D111B] shadow-[0_0_8px_#34D399]" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#55745C] ring-2 ring-white" />
         </div>
 
         {/* Value and Title */}
         <div className="min-w-0">
-          <div className="text-2xl font-black text-white tracking-tight leading-none font-mono">
+          <div className="text-2xl font-bold text-[#3C2415] tracking-tight leading-none font-mono">
             {displayValue}
           </div>
-          <div className="text-xs font-semibold text-slate-400 mt-1 truncate tracking-tight">
+          <div className="text-xs font-medium text-[#77736D] mt-1.5 truncate tracking-tight">
             {title}
           </div>
           {trend && (
-            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold text-emerald-400">
+            <div className="flex items-center gap-1 mt-1 text-[11px] font-semibold text-[#55745C]">
               {isPositive ? (
-                <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400" />
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#55745C]" />
               ) : (
-                <ArrowDownRight className="w-3.5 h-3.5 text-rose-400" />
+                <ArrowDownRight className="w-3.5 h-3.5 text-[#A34F45]" />
               )}
               <span>{trend}</span>
-              <span className="text-slate-500 font-normal">{subtitle}</span>
+              <span className="text-[#77736D] font-normal">{subtitle}</span>
             </div>
           )}
         </div>
@@ -105,11 +102,11 @@ export const StatsCard = ({
 
       {/* Right Column: Mini Sparkline Chart */}
       <div className="shrink-0 pl-2">
-        <svg width={sparkWidth} height={sparkHeight} className="overflow-visible opacity-70 group-hover:opacity-100 transition-opacity">
+        <svg width={sparkWidth} height={sparkHeight} className="overflow-visible opacity-75 group-hover:opacity-100 transition-opacity">
           <defs>
             <linearGradient id={`sparkGrad-${title}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#A855F7" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#7C3AED" stopOpacity="0" />
+              <stop offset="0%" stopColor="#6E7464" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#6E7464" stopOpacity="0" />
             </linearGradient>
           </defs>
           <polygon
@@ -118,7 +115,7 @@ export const StatsCard = ({
           />
           <polyline
             fill="none"
-            stroke="#C084FC"
+            stroke="#6E7464"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"

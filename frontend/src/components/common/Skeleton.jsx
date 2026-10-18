@@ -3,7 +3,7 @@ import React from 'react';
 export const Skeleton = ({ className = '', rounded = 'rounded-xl', ...props }) => {
   return (
     <div
-      className={`animate-pulse bg-gradient-to-r from-white/[0.03] via-white/[0.08] to-white/[0.03] bg-[length:200%_100%] ${rounded} ${className}`}
+      className={`animate-pulse bg-gradient-to-r from-[#EAE6DF] via-[#F4F1EA] to-[#EAE6DF] bg-[length:200%_100%] ${rounded} ${className}`}
       {...props}
     />
   );
@@ -24,7 +24,7 @@ export const SkeletonText = ({ lines = 2, className = '' }) => {
 
 export const SkeletonCard = ({ className = '' }) => {
   return (
-    <div className={`p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4 ${className}`}>
+    <div className={`p-5 rounded-2xl bg-white border border-[#E5E0D7] space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <Skeleton className="w-10 h-10 rounded-xl" />
         <Skeleton className="w-20 h-5 rounded-full" />
@@ -33,7 +33,7 @@ export const SkeletonCard = ({ className = '' }) => {
         <Skeleton className="w-3/4 h-4.5" />
         <Skeleton className="w-1/2 h-3" />
       </div>
-      <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between">
+      <div className="pt-3 border-t border-[#E5E0D7] flex items-center justify-between">
         <Skeleton className="w-24 h-4" />
         <Skeleton className="w-16 h-4" />
       </div>
@@ -43,10 +43,10 @@ export const SkeletonCard = ({ className = '' }) => {
 
 export const SkeletonProjectCard = () => {
   return (
-    <div className="p-4 rounded-2xl bg-[#0F1422]/60 border border-white/[0.06] space-y-3.5">
+    <div className="p-4 rounded-2xl bg-white border border-[#E5E0D7] space-y-3.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 w-3/4">
-          <Skeleton className="w-11 h-11 rounded-2xl shrink-0" />
+          <Skeleton className="w-11 h-11 rounded-xl shrink-0" />
           <div className="space-y-2 flex-1">
             <Skeleton className="w-4/5 h-4" />
             <Skeleton className="w-1/2 h-3" />
@@ -54,7 +54,7 @@ export const SkeletonProjectCard = () => {
         </div>
         <Skeleton className="w-16 h-6 rounded-full" />
       </div>
-      <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between">
+      <div className="pt-3 border-t border-[#E5E0D7] flex items-center justify-between">
         <Skeleton className="w-24 h-4" />
         <Skeleton className="w-20 h-2 rounded-full" />
       </div>
@@ -68,7 +68,7 @@ export const SkeletonRow = ({ count = 3, className = '' }) => {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="p-3.5 rounded-xl bg-[#101524]/60 border border-white/[0.04] flex items-center justify-between gap-4"
+          className="p-3.5 rounded-xl bg-[#F0EDE5] border border-[#E5E0D7] flex items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3 flex-1">
             <Skeleton className="w-9 h-9 rounded-full shrink-0" />
@@ -114,7 +114,7 @@ export const SkeletonProfile = () => {
 export const SidebarSkeleton = ({ className = '' }) => {
   return (
     <aside
-      className={`h-screen w-64 bg-[#07090F]/95 md:bg-[#07090F]/80 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col justify-between p-3 shrink-0 select-none ${className}`}
+      className={`h-screen w-64 bg-white border-r border-[#E5E0D7] flex flex-col justify-between p-3 shrink-0 select-none ${className}`}
     >
       <div>
         {/* Brand header placeholder */}
@@ -131,7 +131,7 @@ export const SidebarSkeleton = ({ className = '' }) => {
           {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={i}
-              className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.015] border border-white/[0.03]"
+              className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-[#F0EDE5] border border-[#E5E0D7]"
             >
               <div className="flex items-center gap-3 flex-1">
                 <Skeleton className="w-4 h-4 rounded-md shrink-0" />
@@ -143,13 +143,13 @@ export const SidebarSkeleton = ({ className = '' }) => {
         </div>
       </div>
 
-      {/* Footer logout placeholder */}
-      <div className="pt-3 border-t border-white/[0.05]">
-        <div className="flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-white/[0.01]">
-          <Skeleton className="w-4 h-4 rounded-md shrink-0" />
-          <Skeleton className="w-16 h-3 rounded-md" />
+        {/* Footer logout placeholder */}
+        <div className="pt-3 border-t border-[#E5E0D7]">
+          <div className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-[#F0EDE5]">
+            <Skeleton className="w-4 h-4 rounded-md shrink-0" />
+            <Skeleton className="w-16 h-3 rounded-md" />
+          </div>
         </div>
-      </div>
     </aside>
   );
 };
@@ -160,7 +160,7 @@ export const SidebarSkeleton = ({ className = '' }) => {
 ───────────────────────────────────────────────────── */
 export const HeaderSkeleton = () => {
   return (
-    <header className="flex flex-row items-center justify-between gap-4 py-4 md:py-6 px-4 md:px-8 bg-[#07090E] border-b border-white/[0.06] shrink-0">
+    <header className="flex flex-row items-center justify-between gap-4 py-3.5 md:py-4 px-4 md:px-8 bg-white border-b border-[#E5E0D7] shrink-0">
       <div className="flex items-center gap-2 md:hidden">
         <Skeleton className="w-9 h-9 rounded-xl" />
       </div>
@@ -189,7 +189,7 @@ export const DashboardSkeleton = () => {
   return (
     <div className="space-y-6 pb-12 animate-fade-in w-full">
       {/* Small Profile completion banner skeleton */}
-      <div className="p-3.5 rounded-2xl bg-[#0E1322]/50 border border-white/[0.05] flex items-center justify-between">
+      <div className="p-3.5 rounded-2xl bg-white border border-[#E5E0D7] flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <Skeleton className="w-7 h-7 rounded-full shrink-0" />
           <div className="space-y-1">
@@ -205,7 +205,7 @@ export const DashboardSkeleton = () => {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="p-4 rounded-2xl bg-[#0E1322]/70 border border-white/[0.06] space-y-3"
+            className="p-4 rounded-2xl bg-white border border-[#E5E0D7] space-y-3 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <Skeleton className="w-9 h-9 rounded-xl" />
@@ -220,7 +220,7 @@ export const DashboardSkeleton = () => {
       </section>
 
       {/* Quick Actions banner skeleton */}
-      <div className="p-4 rounded-2xl bg-[#0E1322]/40 border border-white/[0.05] flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-white border border-[#E5E0D7] flex flex-wrap items-center justify-between gap-3 shadow-sm">
         <div className="flex items-center gap-3">
           <Skeleton className="w-8 h-8 rounded-xl" />
           <Skeleton className="w-44 h-4 rounded-md" />
@@ -232,7 +232,7 @@ export const DashboardSkeleton = () => {
       </div>
 
       {/* Active Projects / Recent Projects row */}
-      <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+      <div className="p-5 rounded-2xl bg-white border border-[#E5E0D7] space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <Skeleton className="w-36 h-5 rounded-md" />
           <Skeleton className="w-20 h-6 rounded-lg" />
@@ -246,14 +246,14 @@ export const DashboardSkeleton = () => {
 
       {/* Bottom 2-col Split */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#E5E0D7] space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
             <Skeleton className="w-32 h-5 rounded-md" />
             <Skeleton className="w-16 h-4 rounded-md" />
           </div>
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02]">
+              <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-[#F0EDE5]">
                 <div className="flex items-center gap-3">
                   <Skeleton className="w-8 h-8 rounded-lg" />
                   <div className="space-y-1">
@@ -267,7 +267,7 @@ export const DashboardSkeleton = () => {
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+        <div className="p-5 rounded-2xl bg-white border border-[#E5E0D7] space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
             <Skeleton className="w-36 h-5 rounded-md" />
             <Skeleton className="w-20 h-4 rounded-md" />
@@ -551,7 +551,7 @@ export const NotificationsSkeleton = () => {
 ───────────────────────────────────────────────────── */
 export const AppShellSkeleton = ({ children, isWorkspace = false }) => {
   return (
-    <div className="flex h-screen bg-[#07090E] text-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-[#F7F5F0] text-[#3C2415] overflow-hidden">
       {/* Sidebar (Desktop visible, hidden on mobile) */}
       <div className="hidden md:block shrink-0">
         <SidebarSkeleton />

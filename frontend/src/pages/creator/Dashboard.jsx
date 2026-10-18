@@ -45,6 +45,15 @@ export const CreatorDashboard = () => {
   const pendingApplicationsCount = applications.filter(a => a.status === 'pending').length || applications.length;
   const ratingValue = currentUser?.rating != null ? String(currentUser.rating) : '0';
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Good morning';
+    if (hour >= 12 && hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const displayName = currentUser?.name || currentUser?.displayName || 'Creator';
+
   return (
     <div
       onDragOver={(e) => {
@@ -68,23 +77,33 @@ export const CreatorDashboard = () => {
     >
       {/* Drag & Drop Visual Overlay */}
       {isDraggingOver && (
-        <div className="fixed inset-0 z-50 bg-[#07090F]/90 backdrop-blur-md border-4 border-dashed border-purple-500 flex flex-col items-center justify-center pointer-events-none animate-fade-in">
-          <div className="p-5 rounded-3xl bg-purple-600/20 border border-purple-500/40 mb-4 animate-bounce">
-            <UploadCloud className="w-16 h-16 text-purple-400" />
+        <div className="fixed inset-0 z-50 bg-[#FAF8F5]/90 backdrop-blur-md border-4 border-dashed border-[#3C2415] flex flex-col items-center justify-center pointer-events-none animate-fade-in">
+          <div className="p-5 rounded-3xl bg-[#F0EDE5] border border-[#DDD9CE] mb-4 animate-bounce">
+            <UploadCloud className="w-16 h-16 text-[#3C2415]" />
           </div>
-          <h3 className="text-2xl font-extrabold text-white tracking-tight">Drop Media to Upload to Workspace</h3>
-          <p className="text-sm text-purple-300 mt-1">Select project destination upon drop</p>
+          <h3 className="text-2xl font-bold text-[#3C2415] tracking-tight">Drop Media to Upload to Workspace</h3>
+          <p className="text-sm text-[#77736D] mt-1">Select project destination upon drop</p>
         </div>
       )}
 
-      {/* Instagram-style Profile Completion Visual (checks ONLY pfp and category) */}
+      {/* Editorial Greeting Header */}
+      <div className="pt-1 pb-1">
+        <h1 className="font-serif italic text-3xl sm:text-4xl text-[#3C2415] tracking-tight">
+          {getGreeting()}, {displayName}
+        </h1>
+        <p className="text-sm sm:text-base text-[#77736D] mt-1 font-normal">
+          Here's where things stand with your work.
+        </p>
+      </div>
+
+      {/* Profile Completion Visual */}
       <ProfileCompletionBanner role="creator" />
 
       {/* SECTION 1: Top Quick Stats (Calculated from real state & user) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
         <StatsCard
           icon={FolderKanban}
-          iconBg="bg-blue-600/20 text-blue-400 border border-blue-500/25"
+          iconBg="bg-[#F0EDE5] text-[#3C2415] border border-[#DDD9CE]"
           value={String(totalProjectsCount)}
           title="Total Projects"
           trend={`${totalProjectsCount} Total`}
@@ -92,7 +111,7 @@ export const CreatorDashboard = () => {
         />
         <StatsCard
           icon={DollarSign}
-          iconBg="bg-emerald-600/20 text-emerald-400 border border-emerald-500/25"
+          iconBg="bg-[#EAECE7] text-[#55745C] border border-[#D5D9CF]"
           value={String(activeProjectsCount)}
           title="Active Projects"
           trend="In Production"
@@ -100,7 +119,7 @@ export const CreatorDashboard = () => {
         />
         <StatsCard
           icon={Users}
-          iconBg="bg-purple-600/20 text-purple-400 border border-purple-500/25"
+          iconBg="bg-[#F0EDE5] text-[#77736D] border border-[#DDD9CE]"
           value={String(pendingApplicationsCount)}
           title="Applications"
           trend="Candidates"
@@ -108,7 +127,7 @@ export const CreatorDashboard = () => {
         />
         <StatsCard
           icon={Star}
-          iconBg="bg-amber-600/20 text-amber-400 border border-amber-500/25"
+          iconBg="bg-[#FBF6EE] text-[#A17A43] border border-[#F0E6D2]"
           value={ratingValue}
           title="Avg Rating"
           trend={ratingValue === '0' ? 'No reviews yet' : 'Top Creator'}
