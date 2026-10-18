@@ -26,6 +26,10 @@ const sessionSchema = new mongoose.Schema({
     timestamps:true
 });
 
+sessionSchema.index({ refreshTokenHash: 1 });
+sessionSchema.index({ user: 1 });
+sessionSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 30 });
+
 const sessionModel = mongoose.model('session', sessionSchema);
 
 module.exports = sessionModel;

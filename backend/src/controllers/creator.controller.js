@@ -307,7 +307,8 @@ async function getMyProjectsController(req, res) {
         const projects = await projectModel.find(filter)
             .sort({ createdAt: -1 })
             .populate('selectedEditorId', 'name username profileImage')
-            .populate('hirings.hiredFreelancerId', 'name username profileImage role subRoles rating');
+            .populate('hirings.hiredFreelancerId', 'name username profileImage role subRoles rating')
+            .lean();
 
         return res.status(200).json({
             count: projects.length,

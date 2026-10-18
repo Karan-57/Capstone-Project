@@ -139,10 +139,27 @@ async function getMyConversationsController(req, res) {
           { 'members.user': currentUserId, 'members.status': 'active' },
         ],
         status: { $ne: 'cancelled' },
-      }).select('_id');
+      }).select('_id').lean();
 
-      for (const ws of activeWorkspaces) {
-        await getOrCreateProjectConversation(ws._id).catch(() => {});
+      if (activeWorkspaces.length > 0) {
+        const existingConversations = await conversationModel.find({
+          type: 'project',
+          workspaceId: { $in: activeWorkspaces.map((w) => w._id) },
+        }).select('workspaceId').lean();
+
+        const existingWsIds = new Set(
+          existingConversations.map((c) => c.workspaceId ? c.workspaceId.toString() : '')
+        );
+
+        const missingWorkspaces = activeWorkspaces.filter(
+          (ws) => !existingWsIds.has(ws._id.toString())
+        );
+
+        if (missingWorkspaces.length > 0) {
+          await Promise.all(
+            missingWorkspaces.map((ws) => getOrCreateProjectConversation(ws._id).catch(() => {}))
+          );
+        }
       }
     }
 
@@ -153,11 +170,12 @@ async function getMyConversationsController(req, res) {
       .populate('projectId', 'title category status budget deadline')
       .populate('workspaceId', 'status')
       .populate('lastMessage.sender', 'name username profileImage')
-      .sort({ updatedAt: -1 });
+      .sort({ updatedAt: -1 })
+      .lean();
 
     // Compute unread status for each conversation
     const formatted = conversations.map((conv) => {
-      const convObj = conv.toObject();
+      const convObj = conv.toObject ? conv.toObject() : conv;
       const readEntry = conv.readBy?.find(
         (r) => r.user?.toString() === currentUserId.toString()
       );

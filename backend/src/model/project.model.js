@@ -191,6 +191,9 @@ const projectSchema = new mongoose.Schema(
 projectSchema.index({ creatorId: 1 });
 projectSchema.index({ status: 1 });
 projectSchema.index({ category: 1 });
+projectSchema.index({ creatorId: 1, status: 1 });
+projectSchema.index({ selectedEditorId: 1 });
+projectSchema.index({ "hirings.hiredFreelancerId": 1 });
 
 const projectModel = mongoose.model('project', projectSchema);
 module.exports = projectModel;

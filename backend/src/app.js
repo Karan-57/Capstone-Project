@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const compression = require("compression");
 
 const authRouter = require("./routes/auth.routes");
 const usersRouter = require("./routes/users.routes");
@@ -22,6 +23,7 @@ const app = express();
 
 app.set('trust proxy', 1);
 
+app.use(compression());
 app.use(securityHeaders);
 app.use(cors({
     origin: "http://localhost:5173",

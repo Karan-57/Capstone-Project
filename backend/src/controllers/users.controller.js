@@ -281,32 +281,35 @@ async function getCollaborationStatusController(req, res) {
         const currentObjId = new mongoose.Types.ObjectId(currentUserId);
         const targetObjId = new mongoose.Types.ObjectId(targetUserId);
 
-        // 1. Projects where creator is current user and target user is assigned or hired
-        const projectsAsCreator = await projectModel.find({
-            creatorId: currentObjId,
-            $or: [
-                { selectedEditorId: targetObjId },
-                { "hirings.hiredFreelancerId": targetObjId }
-            ]
-        }).select('title category status createdAt');
+        // Fetch collaboration projects and shared workspaces in parallel
+        const [projectsAsCreator, projectsAsFreelancer, sharedWorkspaces] = await Promise.all([
+            // 1. Projects where creator is current user and target user is assigned or hired
+            projectModel.find({
+                creatorId: currentObjId,
+                $or: [
+                    { selectedEditorId: targetObjId },
+                    { "hirings.hiredFreelancerId": targetObjId }
+                ]
+            }).select('title category status createdAt').lean(),
 
-        // 2. Projects where creator is target user and current user is assigned or hired
-        const projectsAsFreelancer = await projectModel.find({
-            creatorId: targetObjId,
-            $or: [
-                { selectedEditorId: currentObjId },
-                { "hirings.hiredFreelancerId": currentObjId }
-            ]
-        }).select('title category status createdAt');
+            // 2. Projects where creator is target user and current user is assigned or hired
+            projectModel.find({
+                creatorId: targetObjId,
+                $or: [
+                    { selectedEditorId: currentObjId },
+                    { "hirings.hiredFreelancerId": currentObjId }
+                ]
+            }).select('title category status createdAt').lean(),
 
-        // 3. Workspaces where both are members or creator/editor
-        const sharedWorkspaces = await workspaceModel.find({
-            $or: [
-                { creatorId: currentObjId, editorId: targetObjId },
-                { creatorId: targetObjId, editorId: currentObjId },
-                { "members.user": { $all: [currentObjId, targetObjId] } }
-            ]
-        }).populate('projectId', 'title category status createdAt');
+            // 3. Workspaces where both are members or creator/editor
+            workspaceModel.find({
+                $or: [
+                    { creatorId: currentObjId, editorId: targetObjId },
+                    { creatorId: targetObjId, editorId: currentObjId },
+                    { "members.user": { $all: [currentObjId, targetObjId] } }
+                ]
+            }).populate('projectId', 'title category status createdAt').lean()
+        ]);
 
         const projectMap = new Map();
 
@@ -452,30 +455,32 @@ async function rateUserController(req, res) {
         const currentObjId = new mongoose.Types.ObjectId(currentUserId);
         const targetObjId = new mongoose.Types.ObjectId(targetUserId);
 
-        // Find all projects where they worked together
-        const projectsAsCreator = await projectModel.find({
-            creatorId: currentObjId,
-            $or: [
-                { selectedEditorId: targetObjId },
-                { "hirings.hiredFreelancerId": targetObjId }
-            ]
-        }).select('_id');
+        // Find all projects where they worked together in parallel
+        const [projectsAsCreator, projectsAsFreelancer, sharedWorkspaces] = await Promise.all([
+            projectModel.find({
+                creatorId: currentObjId,
+                $or: [
+                    { selectedEditorId: targetObjId },
+                    { "hirings.hiredFreelancerId": targetObjId }
+                ]
+            }).select('_id').lean(),
 
-        const projectsAsFreelancer = await projectModel.find({
-            creatorId: targetObjId,
-            $or: [
-                { selectedEditorId: currentObjId },
-                { "hirings.hiredFreelancerId": currentObjId }
-            ]
-        }).select('_id');
+            projectModel.find({
+                creatorId: targetObjId,
+                $or: [
+                    { selectedEditorId: currentObjId },
+                    { "hirings.hiredFreelancerId": currentObjId }
+                ]
+            }).select('_id').lean(),
 
-        const sharedWorkspaces = await workspaceModel.find({
-            $or: [
-                { creatorId: currentObjId, editorId: targetObjId },
-                { creatorId: targetObjId, editorId: currentObjId },
-                { "members.user": { $all: [currentObjId, targetObjId] } }
-            ]
-        }).select('projectId');
+            workspaceModel.find({
+                $or: [
+                    { creatorId: currentObjId, editorId: targetObjId },
+                    { creatorId: targetObjId, editorId: currentObjId },
+                    { "members.user": { $all: [currentObjId, targetObjId] } }
+                ]
+            }).select('projectId').lean()
+        ]);
 
         const sharedProjectIds = new Set([
             ...projectsAsCreator.map((p) => p._id.toString()),
@@ -489,6 +494,15 @@ async function rateUserController(req, res) {
             });
         }
 
+        // Fetch existing reviews for all shared projects in one single batch query
+        const existingReviews = await reviewModel.find({
+            projectId: { $in: Array.from(sharedProjectIds).map((pid) => new mongoose.Types.ObjectId(pid)) },
+            reviewerId: currentObjId,
+            revieweeId: targetObjId
+        }).lean();
+
+        const reviewedProjectIds = new Set(existingReviews.map((r) => r.projectId.toString()));
+
         let targetProjectId = projectId;
         if (targetProjectId) {
             if (!sharedProjectIds.has(targetProjectId.toString())) {
@@ -496,15 +510,17 @@ async function rateUserController(req, res) {
                     message: "Forbidden: The specified project is not a valid collaboration between you and this user."
                 });
             }
+            if (reviewedProjectIds.has(targetProjectId.toString())) {
+                const dup = existingReviews.find((r) => r.projectId.toString() === targetProjectId.toString());
+                return res.status(400).json({
+                    message: "You have already submitted a review for this project",
+                    review: dup
+                });
+            }
         } else {
             // Find the first shared project that has not been reviewed yet
             for (const pid of sharedProjectIds) {
-                const existing = await reviewModel.findOne({
-                    projectId: new mongoose.Types.ObjectId(pid),
-                    reviewerId: currentObjId,
-                    revieweeId: targetObjId
-                });
-                if (!existing) {
+                if (!reviewedProjectIds.has(pid)) {
                     targetProjectId = pid;
                     break;
                 }
@@ -514,20 +530,6 @@ async function rateUserController(req, res) {
         if (!targetProjectId) {
             return res.status(400).json({
                 message: "You have already submitted reviews for all shared projects with this collaborator."
-            });
-        }
-
-        // Double check duplicate review
-        const duplicateReview = await reviewModel.findOne({
-            projectId: new mongoose.Types.ObjectId(targetProjectId),
-            reviewerId: currentObjId,
-            revieweeId: targetObjId
-        });
-
-        if (duplicateReview) {
-            return res.status(400).json({
-                message: "You have already submitted a review for this project",
-                review: duplicateReview
             });
         }
 
@@ -1001,7 +1003,7 @@ async function getUserReviewsController(req, res) {
             return res.status(400).json({ message: "Invalid user ID" });
         }
 
-        const user = await userModel.findById(userId).select('role name username profileImage');
+        const user = await userModel.findById(userId).select('role name username profileImage').lean();
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -1009,9 +1011,6 @@ async function getUserReviewsController(req, res) {
         const page = Math.max(1, parseInt(req.query.page, 10) || 1);
         const limit = 10;
         const skip = (page - 1) * limit;
-
-        const totalReviews = await reviewModel.countDocuments({ revieweeId: userId });
-        const totalPages = Math.ceil(totalReviews / limit) || 1;
 
         // Determine fields projection depending on role
         let fieldSelection = '';
@@ -1023,13 +1022,19 @@ async function getUserReviewsController(req, res) {
             fieldSelection = '-speed -quality';
         }
 
-        const reviews = await reviewModel.find({ revieweeId: userId })
-            .select(fieldSelection)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .populate('reviewerId', 'name username profileImage role')
-            .populate('projectId', 'title category status');
+        const [totalReviews, reviews] = await Promise.all([
+            reviewModel.countDocuments({ revieweeId: userId }),
+            reviewModel.find({ revieweeId: userId })
+                .select(fieldSelection)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .populate('reviewerId', 'name username profileImage role')
+                .populate('projectId', 'title category status')
+                .lean()
+        ]);
+
+        const totalPages = Math.ceil(totalReviews / limit) || 1;
 
         return res.status(200).json({
             message: "User reviews retrieved successfully",

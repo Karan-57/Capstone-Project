@@ -92,6 +92,8 @@ const applicationSchema = new mongoose.Schema(
 
 applicationSchema.index({ projectId: 1, editorId: 1, roleId: 1 });
 applicationSchema.index({ editorId: 1 });
+applicationSchema.index({ projectId: 1, status: 1 });
+applicationSchema.index({ editorId: 1, status: 1 });
 
 const applicationModel = mongoose.model('application', applicationSchema);
 module.exports = applicationModel;

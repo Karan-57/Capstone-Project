@@ -9,6 +9,7 @@ const otpModel = require('../model/otp.model');
 const sessionModel = require('../model/session.model');
 const { sendEmail } = require('../services/email.service.js');
 const tokenBlacklistModel = require('../model/tokenBlacklist.model.js');
+const { markTokenBlacklisted } = require('../middleware/auth.middleware');
 const { generateOTP, generateOTPEmailHTML } = require('../utils/utils.js');
 
 /**
@@ -305,10 +306,13 @@ async function logoutUserController(req, res) {
         }
 
         const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith("Bearer ")) {
-            const accessToken = authHeader.split(" ")[1];
+        const cookieToken = req.cookies?.accessToken || req.cookies?.token;
+        const tokenToBlacklist = (authHeader && authHeader.startsWith("Bearer ")) ? authHeader.split(" ")[1] : cookieToken;
+
+        if (tokenToBlacklist) {
+            markTokenBlacklisted(tokenToBlacklist);
             try {
-                await tokenBlacklistModel.create({ token: accessToken });
+                await tokenBlacklistModel.create({ token: tokenToBlacklist });
             } catch (err) {
                 // ignore duplicate
             }
@@ -342,24 +346,25 @@ async function logoutAllController(req, res) {
         const refreshToken = req.cookies?.refreshToken;
 
         if (refreshToken) {
-            const sessions = await sessionModel.find({
-                user:refreshToken.id,
-                revoked: false
-            })
+            let userId = null;
+            try {
+                const decoded = jwt.verify(refreshToken, config.JWT_SECRET);
+                userId = decoded?.id;
+            } catch (e) {}
 
-            if(sessions.length > 0) {
-                for(const session in sessions) {
-                    session.revoked = true;
-                    await session.save();
-                }
+            if (userId) {
+                await sessionModel.updateMany({ user: userId, revoked: false }, { $set: { revoked: true } });
             }
         }
 
         const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith("Bearer ")) {
-            const accessToken = authHeader.split(" ")[1];
+        const cookieToken = req.cookies?.accessToken || req.cookies?.token;
+        const tokenToBlacklist = (authHeader && authHeader.startsWith("Bearer ")) ? authHeader.split(" ")[1] : cookieToken;
+
+        if (tokenToBlacklist) {
+            markTokenBlacklisted(tokenToBlacklist);
             try {
-                await tokenBlacklistModel.create({ token: accessToken });
+                await tokenBlacklistModel.create({ token: tokenToBlacklist });
             } catch (err) {
                 // ignore duplicate
             }

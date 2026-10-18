@@ -13,7 +13,8 @@ async function getCreatorPublicProjectsController(req, res) {
             creatorId,
             status: { $ne: 'cancelled' }
         })
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .lean();
 
         return res.status(200).json({
             count: projects.length,
@@ -42,7 +43,8 @@ async function getProjectByIdController(req, res) {
 
         const project = await projectModel.findById(projectId)
             .populate('creatorId', 'name username profileImage rating')
-            .populate('selectedEditorId', 'name username profileImage rating');
+            .populate('selectedEditorId', 'name username profileImage rating')
+            .lean();
 
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
@@ -82,7 +84,8 @@ async function getAllOpenProjectsController(req, res) {
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(Number(limit))
-                .populate('creatorId', 'name username profileImage rating'),
+                .populate('creatorId', 'name username profileImage rating')
+                .lean(),
             projectModel.countDocuments(filter)
         ]);
 
@@ -134,7 +137,8 @@ async function searchProjectsController(req, res) {
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(Number(limit))
-                .populate('creatorId', 'name username profileImage rating'),
+                .populate('creatorId', 'name username profileImage rating')
+                .lean(),
             projectModel.countDocuments(filter)
         ]);
 

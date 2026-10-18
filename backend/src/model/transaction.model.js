@@ -67,6 +67,7 @@ const transactionSchema = new mongoose.Schema(
 );
 
 transactionSchema.index({ createdAt: -1 });
+transactionSchema.index({ referenceWorkspaceId: 1 });
 
 const transactionModel = mongoose.model('transaction', transactionSchema);
 module.exports = transactionModel;
