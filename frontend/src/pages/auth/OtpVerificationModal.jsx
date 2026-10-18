@@ -14,6 +14,7 @@ export default function OtpVerificationModal({
   isOpen = true,
   email = "",
   role = "creator",
+  initialCooldown = null,
   onSuccess,
   onCancel,
 }) {
@@ -23,13 +24,54 @@ export default function OtpVerificationModal({
   const [isResending, setIsResending] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [resendCooldown, setResendCooldown] = useState(45);
   const inputRefs = useRef([]);
+
+  const cooldownKey = email ? `otp_cooldown_${email.toLowerCase().trim()}` : null;
+
+  const calculateRemaining = () => {
+    if (typeof initialCooldown === "number" && initialCooldown >= 0) {
+      if (cooldownKey) {
+        localStorage.setItem(cooldownKey, (Date.now() + initialCooldown * 1000).toString());
+      }
+      return initialCooldown;
+    }
+    if (cooldownKey) {
+      const savedExpiry = localStorage.getItem(cooldownKey);
+      if (savedExpiry) {
+        const remaining = Math.max(0, Math.ceil((Number(savedExpiry) - Date.now()) / 1000));
+        if (remaining <= 0) {
+          localStorage.removeItem(cooldownKey);
+          return 0;
+        }
+        return remaining;
+      }
+      // First time initialization: 90s cooldown
+      const defaultExpiry = Date.now() + 90 * 1000;
+      localStorage.setItem(cooldownKey, defaultExpiry.toString());
+      return 90;
+    }
+    return 90;
+  };
+
+  const [resendCooldown, setResendCooldown] = useState(calculateRemaining);
+
+  const formatCooldown = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  };
 
   const isCreator = role === "creator";
   const accentGradient = isCreator
     ? "from-purple-600 to-indigo-600 shadow-purple-500/25"
     : "from-blue-600 to-sky-600 shadow-blue-500/25";
+
+  // Re-sync cooldown when modal opens or email / initialCooldown updates
+  useEffect(() => {
+    if (isOpen && email) {
+      setResendCooldown(calculateRemaining());
+    }
+  }, [isOpen, email, initialCooldown]);
 
   // Focus first input on mount
   useEffect(() => {
@@ -40,14 +82,29 @@ export default function OtpVerificationModal({
     }
   }, [isOpen]);
 
-  // Resend cooldown timer
+  // Resend cooldown timer tick: derives from persistent timestamp so navigation or unmount won't reset time
   useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const interval = setInterval(() => {
+    if (!isOpen || !email) return;
+
+    const tick = () => {
+      if (cooldownKey) {
+        const savedExpiry = localStorage.getItem(cooldownKey);
+        if (savedExpiry) {
+          const remaining = Math.max(0, Math.ceil((Number(savedExpiry) - Date.now()) / 1000));
+          setResendCooldown(remaining);
+          if (remaining <= 0) {
+            localStorage.removeItem(cooldownKey);
+          }
+          return;
+        }
+      }
       setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [resendCooldown]);
+  }, [isOpen, email, cooldownKey]);
 
   const handleChange = (index, value) => {
     // Only accept numeric inputs
@@ -112,6 +169,9 @@ export default function OtpVerificationModal({
     setErrorMsg("");
     try {
       await verifyEmail({ otp: code, email });
+      if (cooldownKey) {
+        localStorage.removeItem(cooldownKey);
+      }
       setSuccessMsg("Email successfully verified! Welcome aboard.");
       setTimeout(() => {
         if (onSuccess) onSuccess();
@@ -140,7 +200,11 @@ export default function OtpVerificationModal({
     try {
       await resendOTP({ email });
       setSuccessMsg("A new verification code has been sent to your email.");
-      setResendCooldown(60);
+      const newExpiry = Date.now() + 90 * 1000;
+      if (cooldownKey) {
+        localStorage.setItem(cooldownKey, newExpiry.toString());
+      }
+      setResendCooldown(90); // 1:30 min cooldown
       setDigits(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
       setActiveIdx(0);
@@ -274,7 +338,7 @@ export default function OtpVerificationModal({
             {isResending ? (
               <RotateCw className="w-3.5 h-3.5 animate-spin" />
             ) : resendCooldown > 0 ? (
-              `Resend Code (${resendCooldown}s)`
+              `Resend Code (${formatCooldown(resendCooldown)})`
             ) : (
               "Resend Code"
             )}

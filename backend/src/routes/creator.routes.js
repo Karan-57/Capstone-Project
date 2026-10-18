@@ -10,7 +10,7 @@ const creatorRouter = Router();
  * @description create a new project (supports optional multipart reference images)
  * @access Private (Creator)
  */
-creatorRouter.post('/projects', authMiddleware.authUser, upload.array('images', 3), creatorController.createProjectController);
+creatorRouter.post('/projects', [authMiddleware.authUser, upload.array('images', 3)], creatorController.createProjectController);
 
 /**
  * @route POST api/creator/projects/reference-images
@@ -18,7 +18,8 @@ creatorRouter.post('/projects', authMiddleware.authUser, upload.array('images', 
  * @description upload reference images/moodboard to ImageKit (max 3 images)
  * @access Private (Creator)
  */
-creatorRouter.post(['/projects/reference-images', '/upload-reference-images'], authMiddleware.authUser, upload.array('images', 3), creatorController.uploadReferenceImagesController);
+creatorRouter.post('/projects/reference-images', [authMiddleware.authUser, upload.array('images', 3)], creatorController.uploadReferenceImagesController);
+creatorRouter.post('/upload-reference-images', [authMiddleware.authUser, upload.array('images', 3)], creatorController.uploadReferenceImagesController);
 
 /**
  * @route GET api/creator/projects

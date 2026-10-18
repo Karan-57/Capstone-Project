@@ -20,6 +20,8 @@ const { securityHeaders, preventNoSqlAndXss } = require("./middleware/security.m
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(securityHeaders);
 app.use(cors({
     origin: "http://localhost:5173",

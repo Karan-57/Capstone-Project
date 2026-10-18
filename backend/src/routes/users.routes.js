@@ -38,7 +38,7 @@ usersRouter.patch('/me/settings', authMiddleware.authUser, usersController.updat
  * @description upload and update profile image
  * @access Private
  */
-usersRouter.patch('/me/profile-image', authMiddleware.authUser, upload.single('profileImage'), usersController.uploadProfileImageController);
+usersRouter.patch('/me/profile-image', [authMiddleware.authUser, upload.single('profileImage')], usersController.uploadProfileImageController);
 
 /**
  * @route GET api/users/search

@@ -74,6 +74,7 @@ export default function AuthModal({
   // OTP Verification Modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpTargetEmail, setOtpTargetEmail] = useState("");
+  const [otpCooldownRemaining, setOtpCooldownRemaining] = useState(null);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -188,7 +189,14 @@ export default function AuthModal({
         } catch (err) {
           const errRes = err.message || "";
           if (err.status === 403 || errRes.toLowerCase().includes("not verified")) {
-            setOtpTargetEmail(identifier.includes("@") ? identifier.trim() : "");
+            if (err.data?.accessToken) {
+              setAccessToken(err.data.accessToken);
+            }
+            if (typeof err.data?.cooldownRemaining === "number") {
+              setOtpCooldownRemaining(err.data.cooldownRemaining);
+            }
+            const targetEmail = err.data?.email || (identifier.includes("@") ? identifier.trim() : "");
+            setOtpTargetEmail(targetEmail);
             setShowOtpModal(true);
             setIsSubmitting(false);
             return;
@@ -240,6 +248,9 @@ export default function AuthModal({
             setAccessToken(res.accessToken);
           }
 
+          if (typeof res?.cooldownRemaining === "number") {
+            setOtpCooldownRemaining(res.cooldownRemaining);
+          }
 
           // Open aesthetic OTP verification modal
           setOtpTargetEmail(email.trim().toLowerCase());
@@ -736,6 +747,7 @@ export default function AuthModal({
           isOpen={showOtpModal}
           email={otpTargetEmail || email}
           role={role}
+          initialCooldown={otpCooldownRemaining}
           onSuccess={handleOtpVerified}
           onCancel={() => setShowOtpModal(false)}
         />

@@ -38,6 +38,7 @@ export async function login({ identifier, password }) {
     const message = error.response?.data?.message || error.message || 'Login failed';
     const err = new Error(message);
     err.status = error.response?.status;
+    err.data = error.response?.data;
     throw err;
   }
 }

@@ -86,7 +86,7 @@ workspaceRouter.post(['/:deliveryId/approve', '/delivery/:deliveryId/approve'], 
  * @description Upload or add a file to the workspace
  * @access Private (Workspace Creator or Editor)
  */
-workspaceRouter.post('/:workspaceId/files', authMiddleware, workspaceUpload.any(), workspaceController.uploadWorkspaceFileController);
+workspaceRouter.post('/:workspaceId/files', [authMiddleware, workspaceUpload.any()], workspaceController.uploadWorkspaceFileController);
 
 /**
  * @route GET api/workspace/:workspaceId/files

@@ -40,42 +40,71 @@ async function registerUserController(req, res) {
 
         const normalizedEmail = email.toLowerCase().trim();
 
-        const alreadyExists = await userModel.findOne({
-            $or: [
-                { email: normalizedEmail },
-                ...(username ? [{ username: username.trim() }] : [])
-            ]
-        });
+        const existingEmailUser = await userModel.findOne({ email: normalizedEmail });
+        const existingUsernameUser = username ? await userModel.findOne({ username: username.trim() }) : null;
 
-        if (alreadyExists) {
+        // If an account with this email exists AND is already verified
+        if (existingEmailUser && existingEmailUser.verified) {
             return res.status(409).json({
-                message: "Username or email already exists"
+                message: "An account with this email is already registered and verified. Please sign in."
             });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // If the username is taken by a different user
+        if (existingUsernameUser && (!existingEmailUser || existingUsernameUser._id.toString() !== existingEmailUser._id.toString())) {
+            return res.status(409).json({
+                message: "This username is already taken. Please choose another username."
+            });
+        }
 
-        const user = await userModel.create({
-            name: displayName.trim(),
-            username: (username || displayName).trim(),
-            email: normalizedEmail,
-            password: hashedPassword,
-            role
-        });
+        let user = existingEmailUser;
 
-        const otp = generateOTP();
-        const html = generateOTPEmailHTML(otp);
-        const otpHash = await bcrypt.hash(otp, 10);
+        if (user && !user.verified) {
+            // User registered previously but hasn't completed OTP verification yet
+            // Update password, display name, and role so they are not blocked
+            user.name = displayName.trim();
+            user.password = await bcrypt.hash(password, 10);
+            if (username) user.username = username.trim();
+            if (role) user.role = role;
+            await user.save();
+        } else {
+            // Brand new registration
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user = await userModel.create({
+                name: displayName.trim(),
+                username: (username || displayName).trim(),
+                email: normalizedEmail,
+                password: hashedPassword,
+                role
+            });
+        }
 
-        await otpModel.deleteMany({ email: normalizedEmail });
+        const COOLDOWN_MS = 90 * 1000; // 90 seconds (1:30 min)
+        const existingOtp = await otpModel.findOne({ email: normalizedEmail }).sort({ createdAt: -1 });
+        const otpAgeMs = existingOtp ? (Date.now() - new Date(existingOtp.createdAt).getTime()) : Infinity;
 
-        await otpModel.create({
-            email: normalizedEmail,
-            user: user._id,
-            otpHash
-        });
+        let cooldownRemaining = 90;
 
-        await sendEmail(normalizedEmail, "OTP verification", `Your OTP is ${otp}`, html);
+        if (existingOtp && otpAgeMs < COOLDOWN_MS) {
+            // Existing OTP is still fresh within the 90-second cooldown window
+            // Preserve the existing OTP without spamming user's inbox
+            cooldownRemaining = Math.max(1, Math.ceil((COOLDOWN_MS - otpAgeMs) / 1000));
+        } else {
+            // Fresh OTP generation and email delivery
+            const otp = generateOTP();
+            const html = generateOTPEmailHTML(otp);
+            const otpHash = await bcrypt.hash(otp, 10);
+
+            await otpModel.deleteMany({ email: normalizedEmail });
+            await otpModel.create({
+                email: normalizedEmail,
+                user: user._id,
+                otpHash
+            });
+
+            await sendEmail(normalizedEmail, "OTP verification", `Your OTP is ${otp}`, html);
+            cooldownRemaining = 90;
+        }
 
         const refreshToken = jwt.sign(
             { id: user._id },
@@ -106,9 +135,10 @@ async function registerUserController(req, res) {
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
-        return res.status(201).json({
-            message: "User registered successfully",
+        return res.status(200).json({
+            message: existingEmailUser ? "Verification pending. Please verify your email with the OTP." : "User registered successfully",
             accessToken,
+            cooldownRemaining,
             user: {
                 id: user._id,
                 name: user.name,
@@ -177,8 +207,25 @@ async function loginUserController(req, res) {
         }
 
         if (!user.verified) {
+            const COOLDOWN_MS = 90 * 1000;
+            const existingOtp = await otpModel.findOne({ email: user.email }).sort({ createdAt: -1 });
+            const otpAgeMs = existingOtp ? (Date.now() - new Date(existingOtp.createdAt).getTime()) : Infinity;
+            const cooldownRemaining = existingOtp && otpAgeMs < COOLDOWN_MS
+                ? Math.max(1, Math.ceil((COOLDOWN_MS - otpAgeMs) / 1000))
+                : 0;
+
+            const tempToken = jwt.sign(
+                { id: user._id },
+                config.JWT_SECRET,
+                { expiresIn: '15m' }
+            );
+
             return res.status(403).json({
-                message: "User not verified. Please verify your email."
+                message: "User not verified. Please verify your email.",
+                accessToken: tempToken,
+                email: user.email,
+                role: user.role,
+                cooldownRemaining
             });
         }
 
@@ -403,15 +450,16 @@ async function verifyEmailController(req, res) {
 async function resendOtpController(req, res) {
     try {
         const user = req.user;
-        const email = req.user?.email || req.body?.email;
-        const normalizedEmail = email.toLowerCase().trim();
+        const email = req.user?.email || req.body?.email || req.query?.email;
 
-
-        if(!email){
+        if (!email) {
             return res.status(400).json({
                 message: "Email is required to resend OTP"
             });
         }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const dbUser = user || await userModel.findOne({ email: normalizedEmail });
 
         const otp = generateOTP();
         const html = generateOTPEmailHTML(otp);
@@ -421,11 +469,15 @@ async function resendOtpController(req, res) {
 
         await otpModel.create({
             email: normalizedEmail,
-            user: user._id,
+            user: dbUser?._id || null,
             otpHash
         });
 
         await sendEmail(normalizedEmail, "OTP verification", `Your OTP is ${otp}`, html);
+
+        return res.status(200).json({
+            message: "Verification code resent successfully"
+        });
     } catch (err) {
         console.error("Error in resendOtpController:", err);
         return res.status(500).json({
