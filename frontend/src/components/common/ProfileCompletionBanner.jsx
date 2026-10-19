@@ -81,9 +81,9 @@ export const ProfileCompletionBanner = ({ role = 'creator' }) => {
   const editProfilePath = role === 'creator' ? '/creator/edit-profile' : '/editor/edit-profile';
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-950/40 via-[#0F1422] to-indigo-950/30 border border-purple-500/25 p-3.5 sm:p-4 shadow-lg shadow-purple-950/20 animate-fade-in select-none">
-      {/* Background glow accent */}
-      <div className="absolute -top-12 -right-12 w-32 h-32 bg-purple-600/10 rounded-full blur-2xl pointer-events-none" />
+    <div className="relative overflow-hidden rounded-2xl bg-[#FFEBAA]/80 border-2 border-[#382322] shadow-[3px_3px_0_#382322] p-3.5 sm:p-4 animate-fade-in select-none">
+      {/* Decorative tape sticker */}
+      <div className="absolute -top-1.5 left-10 w-14 h-3.5 bg-[#B1C8EA]/90 border border-[#382322]/30 rotate-[-2deg] pointer-events-none" />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 relative z-10">
         {/* Left: Progress info & title */}
@@ -92,14 +92,14 @@ export const ProfileCompletionBanner = ({ role = 'creator' }) => {
           <div className="relative w-10 h-10 shrink-0 flex items-center justify-center">
             <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
               <path
-                className="text-white/[0.08]"
+                className="text-[#382322]/15"
                 strokeWidth="3.5"
                 stroke="currentColor"
                 fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               />
               <path
-                className="text-purple-400 transition-all duration-500"
+                className="text-[#382322] transition-all duration-500"
                 strokeDasharray={`${percentage}, 100`}
                 strokeWidth="3.5"
                 strokeLinecap="round"
@@ -108,22 +108,22 @@ export const ProfileCompletionBanner = ({ role = 'creator' }) => {
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
               />
             </svg>
-            <span className="absolute text-[11px] font-bold text-white font-mono">
+            <span className="absolute text-[11px] font-extrabold text-[#382322] font-mono">
               {percentage}%
             </span>
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="text-xs sm:text-sm font-bold text-white tracking-tight flex items-center gap-1.5 truncate">
-                <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+              <h4 className="text-xs sm:text-sm font-bold text-[#382322] tracking-tight flex items-center gap-1.5 truncate">
+                <Sparkles className="w-3.5 h-3.5 text-[#382322] shrink-0" />
                 Complete your profile
               </h4>
-              <span className="text-[10px] font-semibold text-purple-300 bg-purple-500/15 px-2 py-0.5 rounded-full border border-purple-500/25 shrink-0">
+              <span className="text-[10px] font-mono font-extrabold text-[#382322] bg-white px-2 py-0.5 rounded-full border border-[#382322] shrink-0">
                 {completedCount}/{totalCount} Done
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+            <p className="text-[11px] text-[#382322]/80 truncate mt-0.5 font-sans">
               {role === 'creator'
                 ? 'Add your photo and category to attract verified talent.'
                 : 'Add photo, professional title, and software tools to stand out to creators.'}
@@ -138,16 +138,16 @@ export const ProfileCompletionBanner = ({ role = 'creator' }) => {
             return (
               <span
                 key={item.id}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium border transition-colors ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold border-2 border-[#382322] transition-colors ${
                   item.done
-                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
-                    : 'bg-white/[0.03] text-slate-400 border-white/[0.08]'
+                    ? 'bg-white text-[#382322] shadow-[1.5px_1.5px_0_#382322]'
+                    : 'bg-[#FFEBAA] text-[#382322]/60 border-dashed'
                 }`}
               >
                 {item.done ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#382322] shrink-0" />
                 ) : (
-                  <Circle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <Circle className="w-3.5 h-3.5 text-[#382322]/50 shrink-0" />
                 )}
                 <span>{item.label}</span>
               </span>
@@ -159,14 +159,14 @@ export const ProfileCompletionBanner = ({ role = 'creator' }) => {
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
           <button
             onClick={() => navigate(editProfilePath)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md shadow-purple-900/40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#382322] hover:bg-[#4e3332] text-[#FFEBAA] text-xs font-bold border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
           >
             <span>Complete</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => setDismissed(true)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-[#382322]/70 hover:text-[#382322] hover:bg-[#382322]/10 transition-colors cursor-pointer"
             title="Dismiss reminder"
           >
             <X className="w-3.5 h-3.5" />

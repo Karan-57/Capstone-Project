@@ -10,20 +10,23 @@ export const UpcomingDeliveries = ({ projects = [] }) => {
     .slice(0, 3);
 
   return (
-    <div className="glass-card p-4 sm:p-5.5 flex flex-col justify-between h-full">
+    <div className="bg-white/95 rounded-2xl border-2 border-[#382322] shadow-[3px_3px_0_#382322] p-5 flex flex-col justify-between h-full relative overflow-hidden">
+      {/* Editorial top accent tape */}
+      <div className="absolute -top-1.5 right-8 w-12 h-3.5 bg-[#B1C8EA] border border-[#382322]/30 rotate-[2deg] pointer-events-none" />
+
       <div>
         <div className="flex items-center justify-between mb-3.5">
-          <h3 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">
-            <Clock className="w-4 h-4 text-purple-400" />
+          <h3 className="text-lg font-serif font-bold text-[#382322] tracking-tight flex items-center gap-2">
+            <Clock className="w-4.5 h-4.5 text-[#382322]" />
             Upcoming Deliveries
           </h3>
-          <span className="text-xs text-slate-400">
+          <span className="text-xs font-mono font-bold text-[#382322] bg-[#FFEBAA] px-2.5 py-0.5 rounded-full border border-[#382322]">
             {activeDeliveries.length ? `${activeDeliveries.length} Active` : '0 Active'}
           </span>
         </div>
 
         {activeDeliveries.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-500">
+          <div className="py-8 text-center text-xs font-sans text-[#382322]/60 bg-[#FDEBDE]/30 rounded-xl border border-dashed border-[#382322]/30">
             No upcoming deliveries scheduled
           </div>
         ) : (
@@ -31,33 +34,31 @@ export const UpcomingDeliveries = ({ projects = [] }) => {
             {activeDeliveries.map((item) => (
               <div
                 key={item.id}
-                className="p-3 sm:p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#141A28]/60 hover:bg-[#182030]/80 border-white/[0.04] hover:border-purple-500/25 transition-all"
+                className="p-3.5 rounded-xl border-2 border-[#382322] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FDEBDE]/50 hover:bg-[#FFEBAA]/40 shadow-[2px_2px_0_#382322] hover:-translate-y-0.5 transition-all"
               >
                 <div className="min-w-0">
-                  <h4 className="text-sm font-semibold text-white truncate">
+                  <h4 className="text-sm font-bold text-[#382322] truncate">
                     {item.title || 'Untitled Project'}
                   </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5 truncate flex items-center gap-1.5">
-                    <span className="text-slate-300 font-medium">{item.client || 'Client'}</span>
-                    <span className="text-slate-600">•</span>
-                    <span className="text-purple-300 font-medium">{item.deliverableType || 'Deliverable'}</span>
+                  <p className="text-[11px] text-[#382322]/70 mt-0.5 truncate flex items-center gap-1.5">
+                    <span className="text-[#382322] font-semibold">{item.client || 'Client'}</span>
+                    <span className="text-[#382322]/40">•</span>
+                    <span className="text-[#382322] font-medium">{item.deliverableType || 'Deliverable'}</span>
                   </p>
                 </div>
 
                 <div className="flex items-center justify-between sm:justify-end sm:text-right gap-2.5 shrink-0">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-purple-500/15 text-purple-300 border border-purple-500/30">
-                    <Clock className="w-3.5 h-3.5 text-purple-400" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold font-mono rounded-lg bg-[#FFEBAA] text-[#382322] border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322]">
+                    <Clock className="w-3.5 h-3.5 text-[#382322]" />
                     <span>{item.dueDate || 'Pending'}</span>
                   </span>
-                  <Button
-                    variant="subtle"
-                    size="xs"
-                    icon={UploadCloud}
+                  <button
                     onClick={() => navigate('/editor/workspace')}
-                    className="bg-[#1C2333] hover:bg-[#253047] text-slate-200"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#382322] hover:bg-[#4d3332] text-[#FFEBAA] border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322] text-xs font-bold active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
                   >
-                    Deliver
-                  </Button>
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>Deliver</span>
+                  </button>
                 </div>
               </div>
             ))}

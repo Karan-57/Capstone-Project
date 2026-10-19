@@ -6,37 +6,43 @@ export const ActiveProjects = ({ projects = [] }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="glass-card p-5.5 flex flex-col justify-between h-full">
+    <div className="bg-white/95 rounded-2xl border-2 border-[#382322] shadow-[3px_3px_0_#382322] p-5 flex flex-col justify-between h-full relative">
       <div>
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-white tracking-tight">
+          <h3 className="text-lg font-serif font-bold text-[#382322] tracking-tight">
             Recent Projects
           </h3>
           <button
             onClick={() => navigate('/creator/projects')}
-            className="text-xs font-medium text-purple-400 hover:text-purple-300 transition-colors"
+            className="text-xs font-bold text-[#382322] underline decoration-2 decoration-[#FFEBAA] hover:bg-[#FFEBAA] px-2 py-0.5 rounded transition-all cursor-pointer"
           >
-            View all
+            View all ({projects.length})
           </button>
         </div>
 
         {/* Projects List */}
-        <div className="space-y-3">
-          {projects.slice(0, 3).map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onView={() => navigate('/creator/projects')}
-            />
-          ))}
-        </div>
+        {projects.length === 0 ? (
+          <div className="py-8 text-center text-xs text-[#382322]/60 bg-[#FDEBDE]/30 rounded-xl border border-dashed border-[#382322]/30">
+            No projects in workspace yet.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {projects.slice(0, 3).map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onView={() => navigate('/creator/projects')}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="mt-4 pt-3 border-t border-white/[0.04]">
+      <div className="mt-4 pt-3 border-t-2 border-[#382322]/10">
         <button
           onClick={() => navigate('/creator/projects')}
-          className="w-full py-2 text-xs font-medium text-slate-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.07] rounded-xl border border-white/[0.06] transition-colors"
+          className="w-full py-2.5 text-xs font-bold font-mono text-[#382322] bg-[#FFEBAA] hover:bg-[#ffe285] rounded-xl border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
         >
           View All Projects
         </button>

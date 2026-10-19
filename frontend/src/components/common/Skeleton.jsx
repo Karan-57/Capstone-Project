@@ -3,7 +3,7 @@ import React from 'react';
 export const Skeleton = ({ className = '', rounded = 'rounded-xl', ...props }) => {
   return (
     <div
-      className={`animate-pulse bg-gradient-to-r from-white/[0.03] via-white/[0.08] to-white/[0.03] bg-[length:200%_100%] ${rounded} ${className}`}
+      className={`animate-pulse bg-gradient-to-r from-[#382322]/5 via-[#382322]/15 to-[#382322]/5 bg-[length:200%_100%] ${rounded} ${className}`}
       {...props}
     />
   );
@@ -189,7 +189,7 @@ export const DashboardSkeleton = () => {
   return (
     <div className="space-y-6 pb-12 animate-fade-in w-full">
       {/* Small Profile completion banner skeleton */}
-      <div className="p-3.5 rounded-2xl bg-[#0E1322]/50 border border-white/[0.05] flex items-center justify-between">
+      <div className="p-3.5 rounded-2xl bg-white/80 border-2 border-[#382322]/20 shadow-[2px_2px_0_#382322]/20 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Skeleton className="w-7 h-7 rounded-full shrink-0" />
           <div className="space-y-1">
@@ -205,7 +205,7 @@ export const DashboardSkeleton = () => {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="p-4 rounded-2xl bg-[#0E1322]/70 border border-white/[0.06] space-y-3"
+            className="p-4 rounded-2xl bg-white/80 border-2 border-[#382322]/20 shadow-[2px_2px_0_#382322]/20 space-y-3"
           >
             <div className="flex items-center justify-between">
               <Skeleton className="w-9 h-9 rounded-xl" />
@@ -220,7 +220,7 @@ export const DashboardSkeleton = () => {
       </section>
 
       {/* Quick Actions banner skeleton */}
-      <div className="p-4 rounded-2xl bg-[#0E1322]/40 border border-white/[0.05] flex flex-wrap items-center justify-between gap-3">
+      <div className="p-4 rounded-2xl bg-white/60 border-2 border-[#382322]/20 shadow-[2px_2px_0_#382322]/20 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Skeleton className="w-8 h-8 rounded-xl" />
           <Skeleton className="w-44 h-4 rounded-md" />
@@ -232,7 +232,7 @@ export const DashboardSkeleton = () => {
       </div>
 
       {/* Active Projects / Recent Projects row */}
-      <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+      <div className="p-5 rounded-2xl bg-white/80 border-2 border-[#382322]/20 shadow-[2px_2px_0_#382322]/20 space-y-4">
         <div className="flex items-center justify-between">
           <Skeleton className="w-36 h-5 rounded-md" />
           <Skeleton className="w-20 h-6 rounded-lg" />
@@ -246,7 +246,7 @@ export const DashboardSkeleton = () => {
 
       {/* Bottom 2-col Split */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+        <div className="p-5 rounded-2xl bg-white/80 border-2 border-[#382322]/20 shadow-[2px_2px_0_#382322]/20 space-y-4">
           <div className="flex items-center justify-between">
             <Skeleton className="w-32 h-5 rounded-md" />
             <Skeleton className="w-16 h-4 rounded-md" />
