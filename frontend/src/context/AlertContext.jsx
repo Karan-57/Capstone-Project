@@ -28,28 +28,28 @@ export const AlertProvider = ({ children }) => {
     switch (type) {
       case 'success':
         return {
-          border: 'border-emerald-500/40',
-          bg: 'bg-[#0B1713]/95 text-emerald-200 shadow-emerald-950/50',
-          icon: <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />,
+          border: 'border-2 border-[#382322]',
+          bg: 'bg-[#D1FAE5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#A7F3D0] shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000]',
+          icon: <CheckCircle2 className="w-5 h-5 text-[#059669] dark:text-[#34D399] shrink-0" />,
         };
       case 'error':
         return {
-          border: 'border-rose-500/40',
-          bg: 'bg-[#180C11]/95 text-rose-200 shadow-rose-950/50',
-          icon: <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />,
+          border: 'border-2 border-[#382322]',
+          bg: 'bg-[#FFE4E6] dark:bg-[#881337] text-[#9F1239] dark:text-[#FECDD3] shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000]',
+          icon: <AlertCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />,
         };
       case 'warning':
         return {
-          border: 'border-amber-500/40',
-          bg: 'bg-[#18140B]/95 text-amber-200 shadow-amber-950/50',
-          icon: <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />,
+          border: 'border-2 border-[#382322]',
+          bg: 'bg-[#FFEBAA] dark:bg-[#78350F] text-[#261615] dark:text-[#FEF3C7] shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000]',
+          icon: <AlertTriangle className="w-5 h-5 text-[#8A5200] dark:text-[#FFEBAA] shrink-0" />,
         };
       case 'info':
       default:
         return {
-          border: 'border-purple-500/40',
-          bg: 'bg-[#120F1F]/95 text-purple-200 shadow-purple-950/50',
-          icon: <Info className="w-5 h-5 text-purple-400 shrink-0" />,
+          border: 'border-2 border-[#382322]',
+          bg: 'bg-[#FFFDF9] dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000]',
+          icon: <Info className="w-5 h-5 text-[#261615] dark:text-[#FFEBAA] shrink-0" />,
         };
     }
   };
@@ -65,15 +65,16 @@ export const AlertProvider = ({ children }) => {
           return (
             <div
               key={alert.id}
-              className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 animate-slide-in ${styles.bg} ${styles.border}`}
+              className={`pointer-events-auto flex items-start gap-3 p-4 transition-all duration-300 animate-slide-in ${styles.bg} ${styles.border}`}
             >
               {styles.icon}
-              <div className="flex-1 text-xs font-medium leading-relaxed">
+              <div className="flex-1 text-xs font-bold font-sans leading-relaxed">
                 {alert.message}
               </div>
               <button
                 onClick={() => removeAlert(alert.id)}
-                className="text-slate-400 hover:text-white p-0.5 rounded-lg transition-colors"
+                className="text-current opacity-70 hover:opacity-100 p-0.5 transition-opacity cursor-pointer"
+                title="Dismiss"
               >
                 <X className="w-4 h-4" />
               </button>

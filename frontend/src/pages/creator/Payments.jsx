@@ -236,30 +236,30 @@ export const Payments = () => {
            LEVEL 3: DEDICATED MILESTONE & ESCROW VIEW FOR THIS TEAM MEMBER
         ═════════════════════════════════════════════════════════════════ */
         <div className="space-y-6">
-          {/* Header of the page: plain text, NO border, NO container */}
+          {/* Header of the page */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={handleBackToProjectMembers}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shrink-0"
+                className="p-2 rounded-xl bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-mono font-bold shrink-0"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Team Members</span>
               </button>
 
               <div className="min-w-0">
-                <h2 className="text-xl font-bold text-white tracking-tight">
+                <h2 className="text-xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">
                   Multi-Stage Escrow Pipeline
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5 truncate">
-                  {selectedProject.title} • Member: <span className="text-white font-semibold">{effectiveFreelancerName}</span> • Role: <span className="text-purple-300 font-medium">{effectiveRoleTitle}</span> • Allocated Role Budget: <span className="text-emerald-400 font-mono font-bold">₹{effectiveBudget.toLocaleString()}</span> (Total Project: <span className="text-slate-300 font-mono">₹{effectiveTotalProjectBudget.toLocaleString()}</span>)
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5 truncate">
+                  {selectedProject.title} • Member: <span className="text-[#261615] dark:text-[#FDEBDE] font-bold">{effectiveFreelancerName}</span> • Role: <span className="text-[#261615] dark:text-[#FFEBAA] font-mono font-semibold">{effectiveRoleTitle}</span> • Allocated Role Budget: <span className="text-emerald-700 dark:text-emerald-400 font-mono font-bold">₹{effectiveBudget.toLocaleString()}</span> (Total Project: <span className="text-[#261615] dark:text-[#FDEBDE] font-mono font-bold">₹{effectiveTotalProjectBudget.toLocaleString()}</span>)
                 </p>
               </div>
             </div>
 
             <button
               onClick={handleBackToAllProjects}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 border border-white/[0.08] transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
+              className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-colors cursor-pointer shrink-0 self-start sm:self-auto"
             >
               All Projects
             </button>
@@ -289,25 +289,25 @@ export const Payments = () => {
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={handleBackToAllProjects}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shrink-0"
+                className="p-2 rounded-xl bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-mono font-bold shrink-0"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>All Projects</span>
               </button>
 
               <div className="min-w-0">
-                <h2 className="text-xl font-bold text-white tracking-tight">
+                <h2 className="text-xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">
                   {selectedProject.title} — Team Members & Role Budgets
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5 truncate">
-                  Total Project Budget: <span className="text-emerald-400 font-mono font-bold">{selectedProject.budget}</span> • Select a team member to manage their milestone escrow deposits & payment releases.
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5 truncate">
+                  Total Project Budget: <span className="text-emerald-700 dark:text-emerald-400 font-mono font-bold">{selectedProject.budget}</span> • Select a team member to manage their milestone escrow deposits & payment releases.
                 </p>
               </div>
             </div>
 
             <button
               onClick={() => navigate(`/creator/create-project?step=2&projectId=${selectedProject.id}`)}
-              className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-md shadow-purple-900/30"
+              className="px-3.5 py-2 rounded-xl bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span>Hire New Role</span>
@@ -315,17 +315,17 @@ export const Payments = () => {
           </div>
 
           {/* Team Members & Hirings List Container */}
-          <div className="glass-card p-6 border border-white/[0.08] space-y-4">
+          <div className="glass-card brutal-card p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#201413] shadow-[4px_4px_0_#382322] space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <User className="w-4 h-4 text-purple-400" />
+                <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] flex items-center gap-2">
+                  <User className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
                   Assigned Team Members & Roles ({
                     (Array.isArray(selectedProject.hirings) ? selectedProject.hirings.length : 0) +
                     (selectedProject.assignedEditor && (!Array.isArray(selectedProject.hirings) || !selectedProject.hirings.some(h => (h.hiredFreelancerId?._id || h.hiredFreelancerId)?.toString() === (selectedProject.assignedEditor.id || selectedProject.assignedEditor._id)?.toString())) ? 1 : 0)
                   })
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
                   Click on any team member to open their dedicated milestone escrow pipeline.
                 </p>
               </div>
@@ -382,13 +382,13 @@ export const Payments = () => {
 
               if (combinedMembers.length === 0) {
                 return (
-                  <div className="p-8 text-center space-y-2 border border-dashed border-white/10 rounded-2xl">
-                    <p className="text-xs text-slate-400">
+                  <div className="p-8 text-center space-y-2 border-2 border-dashed border-[#382322]/20 dark:border-[#FDEBDE]/20 bg-white/60 dark:bg-[#1A1110]/60 rounded-2xl">
+                    <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
                       No team members hired for this project yet.
                     </p>
                     <button
                       onClick={() => navigate(`/creator/create-project?step=2&projectId=${selectedProject.id}`)}
-                      className="text-xs text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
+                      className="text-xs text-[#261615] dark:text-[#FFEBAA] font-mono font-bold underline hover:opacity-80 cursor-pointer"
                     >
                       Post a Hiring Role →
                     </button>
@@ -413,7 +413,7 @@ export const Payments = () => {
                             navigate(`/creator/create-project?step=2&projectId=${selectedProject.id}`);
                           }
                         }}
-                        className="p-5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/50 hover:bg-[#12182B] transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg hover:shadow-purple-950/20"
+                        className="p-5 rounded-2xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 hover:bg-[#FAF0E6] dark:hover:bg-[#261817] shadow-[3px_3px_0_#382322] transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                       >
                         <div className="flex items-center gap-3.5 min-w-0">
                           {hasHired ? (
@@ -421,46 +421,46 @@ export const Payments = () => {
                               src={freelancer.profileImage || freelancer.avatar || DEFAULT_PFP}
                               alt={freelancer.name || 'Team member'}
                               onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                              className="w-12 h-12 rounded-2xl object-cover border-2 border-purple-500/40 shrink-0"
+                              className="w-12 h-12 rounded-2xl object-cover border-2 border-[#382322] shrink-0"
                             />
                           ) : (
-                            <div className="w-12 h-12 rounded-2xl bg-purple-950/60 border border-purple-800/40 flex items-center justify-center shrink-0">
-                              <User className="w-6 h-6 text-purple-400" />
+                            <div className="w-12 h-12 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center shrink-0 text-[#261615]">
+                              <User className="w-6 h-6" />
                             </div>
                           )}
 
                           <div className="min-w-0 space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                              <h4 className="text-sm sm:text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] group-hover:underline transition-colors truncate">
                                 {hasHired ? (freelancer.name || freelancer.username) : 'Position Open / Unassigned'}
                               </h4>
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-950/60 text-purple-300 border border-purple-800/40">
+                              <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-md bg-[#FFEBAA] text-[#261615] border border-[#382322]">
                                 {item.title}
                               </span>
                               {hasHired && (
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
+                                <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-600/30">
                                   Active Team Member
                                 </span>
                               )}
                             </div>
 
-                            <p className="text-xs text-slate-400 line-clamp-1">
+                            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] line-clamp-1">
                               {item.description}
                             </p>
 
                             {item.deadline && (
-                              <div className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-0.5">
-                                <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                              <div className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5 pt-0.5 font-mono">
+                                <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                                 <span>Milestone Deadline: {new Date(item.deadline).toLocaleDateString()}</span>
                               </div>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-5 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/[0.06]">
+                        <div className="flex items-center justify-between sm:justify-end gap-5 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-[#382322]/10 dark:border-[#FDEBDE]/10">
                           <div className="text-left sm:text-right">
-                            <span className="text-[10px] text-slate-400 uppercase font-mono block">Allocated Budget</span>
-                            <span className="text-base font-extrabold text-emerald-400 font-mono">
+                            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] uppercase font-mono font-bold block">Allocated Budget</span>
+                            <span className="text-base font-black text-emerald-700 dark:text-emerald-400 font-mono">
                               ₹{hiringBudgetNum.toLocaleString()}
                             </span>
                           </div>
@@ -468,7 +468,7 @@ export const Payments = () => {
                           {hasHired ? (
                             <button
                               type="button"
-                              className="px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 group-hover:bg-emerald-600 text-emerald-300 group-hover:text-white border border-emerald-500/40 group-hover:border-emerald-500 transition-all flex items-center gap-1.5 shrink-0"
+                              className="px-4 py-2 rounded-xl text-xs font-mono font-bold bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] hover:bg-[#FFEBAA]/80 transition-all flex items-center gap-1.5 shrink-0"
                             >
                               <span>Open Escrow</span>
                               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -476,7 +476,7 @@ export const Payments = () => {
                           ) : (
                             <button
                               type="button"
-                              className="px-4 py-2 rounded-xl text-xs font-semibold bg-purple-600/20 group-hover:bg-purple-600 text-purple-300 group-hover:text-white border border-purple-500/40 group-hover:border-purple-500 transition-all flex items-center gap-1.5 shrink-0"
+                              className="px-4 py-2 rounded-xl text-xs font-mono font-bold bg-white dark:bg-[#261817] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] hover:bg-[#FFEBAA] transition-all flex items-center gap-1.5 shrink-0"
                             >
                               <span>Review Hiring</span>
                               <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -499,8 +499,8 @@ export const Payments = () => {
           {/* Page Title & Header Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Payments & Escrow Protection</h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <h2 className="text-xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">Payments & Escrow Protection</h2>
+              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
                 Bank-grade double-entry ledger with multi-stage escrow lock & 4-digit PIN authorization.
               </p>
             </div>
@@ -508,16 +508,16 @@ export const Payments = () => {
             <div className="flex items-center gap-2.5">
               <button
                 onClick={() => setIsPinModalOpen(true)}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#141A28] hover:bg-[#1A2234] text-slate-200 border border-white/[0.08] transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl text-xs font-mono font-bold bg-white dark:bg-[#261817] hover:bg-[#FAF0E6] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <KeyRound className="w-3.5 h-3.5 text-purple-400" />
+                <KeyRound className="w-3.5 h-3.5 text-[#261615] dark:text-[#FFEBAA]" />
                 {hasTransactionPin ? 'Change PIN' : 'Set Security PIN'}
               </button>
               <button
                 onClick={() => setIsTopUpOpen(true)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-900/40 transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl text-xs font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <Coins className="w-4 h-4 text-amber-300" />
+                <Coins className="w-4 h-4 text-[#261615]" />
                 Top Up Credits
               </button>
             </div>
@@ -526,54 +526,52 @@ export const Payments = () => {
           {/* Metric Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Wallet Balance */}
-            <div className="glass-card p-5 border border-amber-500/20 bg-gradient-to-br from-[#0B0E17] to-[#161324] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl" />
-              <span className="text-xs text-slate-400 flex items-center gap-1">
-                <Coins className="w-3.5 h-3.5 text-amber-400" /> Available Wallet Balance
+            <div className="glass-card brutal-card p-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFEBAA] shadow-[4px_4px_0_#382322] relative overflow-hidden">
+              <span className="text-xs text-[#261615] flex items-center gap-1.5 font-mono font-bold uppercase tracking-wider">
+                <Coins className="w-3.5 h-3.5 text-[#261615]" /> Available Wallet Balance
               </span>
-              <div className="text-2xl font-bold text-white mt-1 font-mono">
+              <div className="text-2xl font-black text-[#261615] mt-1 font-mono">
                 ₹{walletBalance.toLocaleString('en-IN')}
               </div>
-              <span className="text-[11px] text-amber-400 mt-1 block font-medium">
+              <span className="text-[11px] text-[#261615]/80 mt-1 block font-mono font-bold">
                 1 Credit = ₹1.00 (Testnet Enabled)
               </span>
             </div>
 
             {/* Active in Escrow */}
-            <div className="glass-card p-5 border border-purple-500/20 bg-gradient-to-br from-[#0B0E17] to-[#181228] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl" />
-              <span className="text-xs text-slate-400 flex items-center gap-1">
-                <Lock className="w-3.5 h-3.5 text-purple-400" /> Active in Escrow
+            <div className="glass-card brutal-card p-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#B1C8EA] shadow-[4px_4px_0_#382322] relative overflow-hidden">
+              <span className="text-xs text-[#261615] flex items-center gap-1.5 font-mono font-bold uppercase tracking-wider">
+                <Lock className="w-3.5 h-3.5 text-[#261615]" /> Active in Escrow
               </span>
-              <div className="text-2xl font-bold text-purple-400 mt-1 font-mono">
+              <div className="text-2xl font-black text-[#261615] mt-1 font-mono">
                 ₹{escrowLocked.toLocaleString('en-IN')}
               </div>
-              <span className="text-[11px] text-slate-400 mt-1 block">
+              <span className="text-[11px] text-[#261615]/80 mt-1 block font-mono font-bold">
                 Locked across active production milestones
               </span>
             </div>
 
             {/* Settled Releases */}
-            <div className="glass-card p-5 border border-emerald-500/20 bg-gradient-to-br from-[#0B0E17] to-[#0E1C22]">
-              <span className="text-xs text-slate-400">Total Settled Releases</span>
-              <div className="text-2xl font-bold text-emerald-400 mt-1 font-mono">
+            <div className="glass-card brutal-card p-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#201413] shadow-[4px_4px_0_#382322]">
+              <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Total Settled Releases</span>
+              <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
                 ₹{effectiveTotalSettled.toLocaleString('en-IN')}
               </div>
-              <span className="text-[11px] text-emerald-400/90 mt-1 flex items-center gap-1 font-medium">
+              <span className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-1 flex items-center gap-1 font-mono font-bold">
                 <ShieldCheck className="w-3.5 h-3.5" /> {effectiveClearedMilestones} milestones cleared to editors
               </span>
             </div>
           </div>
 
           {/* Projects Escrow Pipelines List */}
-          <div className="glass-card p-6 border border-white/[0.06] space-y-4">
+          <div className="glass-card brutal-card p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#201413] shadow-[4px_4px_0_#382322] space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <FolderGit2 className="w-4 h-4 text-purple-400" />
+                <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] flex items-center gap-2">
+                  <FolderGit2 className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
                   Projects Escrow Pipelines
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
                   Click on any project to manage its multi-stage escrow milestones, fund deposits, or authorize payouts.
                 </p>
               </div>
@@ -582,24 +580,24 @@ export const Payments = () => {
                 onClick={() => navigate('/creator/create-project')}
                 title="Create New Project"
                 aria-label="Create New Project"
-                className="p-2.5 rounded-xl border border-white/10 hover:border-purple-500/40 bg-white/5 hover:bg-white/10 text-white transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105 active:scale-95"
+                className="p-2.5 rounded-xl border-2 border-[#382322] bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center justify-center shrink-0 hover:scale-105 active:scale-95"
               >
-                <Plus className="w-4 h-4 text-purple-300" />
+                <Plus className="w-4 h-4" />
               </button>
             </div>
 
             {loading ? (
-              <div className="py-12 text-center text-xs text-slate-400">Loading project escrow records...</div>
+              <div className="py-12 text-center text-xs text-[#5C3A38] dark:text-[#D4B8A8]">Loading project escrow records...</div>
             ) : projects.length === 0 ? (
               <div className="py-12 text-center space-y-3">
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
                   No projects found. Create a project to initiate milestone-based escrow contracts.
                 </p>
                 <button
                   onClick={() => navigate('/creator/create-project')}
                   title="Create New Project"
                   aria-label="Create New Project"
-                  className="p-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white transition-all cursor-pointer inline-flex items-center justify-center shadow-lg shadow-purple-900/30 hover:scale-105 active:scale-95"
+                  className="p-3 rounded-xl bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[3px_3px_0_#382322] transition-all cursor-pointer inline-flex items-center justify-center hover:scale-105 active:scale-95 font-bold"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
@@ -612,48 +610,48 @@ export const Payments = () => {
                     <div
                       key={p.id}
                       onClick={() => handleSelectProject(p)}
-                      className="p-4 sm:p-5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 hover:bg-[#11182B] transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 hover:bg-[#FAF0E6] dark:hover:bg-[#261817] shadow-[3px_3px_0_#382322] transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="min-w-0 flex-1 space-y-1.5">
                         <div className="flex items-center gap-2.5 flex-wrap">
-                          <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                          <h4 className="text-sm sm:text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] group-hover:underline transition-colors truncate">
                             {p.title}
                           </h4>
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${p.statusColor}`}>
+                          <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-md ${p.statusColor}`}>
                             {p.status}
                           </span>
                         </div>
 
-                        <p className="text-xs text-slate-400 line-clamp-1">
+                        <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] line-clamp-1">
                           {p.description || 'No description provided.'}
                         </p>
 
-                        <div className="flex items-center gap-3 text-xs text-slate-400 pt-0.5 flex-wrap">
+                        <div className="flex items-center gap-3 text-xs text-[#5C3A38] dark:text-[#D4B8A8] pt-0.5 flex-wrap">
                           {hasEditor ? (
-                            <div className="flex items-center gap-1.5 text-purple-300 font-medium">
+                            <div className="flex items-center gap-1.5 text-[#261615] dark:text-[#FFEBAA] font-medium">
                               <img
                                 src={p.assignedEditor.avatar || DEFAULT_PFP}
                                 alt={p.assignedEditor.name}
-                                className="w-5 h-5 rounded-full object-cover border border-white/10 shrink-0"
+                                className="w-5 h-5 rounded-full object-cover border border-[#382322] shrink-0"
                               />
-                              <span>{p.assignedEditor.name}</span>
+                              <span className="font-semibold">{p.assignedEditor.name}</span>
                             </div>
                           ) : (
-                            <span className="text-amber-400/90 font-medium flex items-center gap-1">
+                            <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1">
                               <User className="w-3.5 h-3.5" />
                               Awaiting Freelancers
                             </span>
                           )}
                           <span>•</span>
-                          <span className="text-slate-400">
+                          <span className="text-[#5C3A38] dark:text-[#D4B8A8] font-mono">
                             {p.deadline ? `Due ${p.deadline}` : 'Active Pipeline'}
                           </span>
                         </div>
 
                         {/* Working Freelancers Sub-list inside Project Item */}
                         {Array.isArray(p.hirings) && p.hirings.length > 0 && (
-                          <div className="pt-2 border-t border-white/[0.04] space-y-1">
-                            <span className="text-[10px] font-semibold text-slate-400 block">
+                          <div className="pt-2 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10 space-y-1">
+                            <span className="text-[10px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] block">
                               Assigned Freelancer Roles ({p.hirings.length}):
                             </span>
                             <div className="flex flex-wrap gap-1.5">
@@ -668,14 +666,14 @@ export const Payments = () => {
                                       e.stopPropagation();
                                       handleSelectProject(p, f, hiring);
                                     }}
-                                    className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-purple-600/20 border border-white/[0.06] hover:border-purple-500/40 text-[11px] flex items-center gap-1.5 text-slate-300 hover:text-white transition-all cursor-pointer"
+                                    className="px-2.5 py-1 rounded-lg bg-[#FAF0E6] dark:bg-[#261817] hover:bg-[#FFEBAA] border border-[#382322]/20 text-[11px] flex items-center gap-1.5 text-[#261615] dark:text-[#FDEBDE] transition-all cursor-pointer font-mono"
                                   >
-                                    <span className="font-medium">{hiring.roleTitle}</span>
-                                    <span className="font-mono text-emerald-400 font-semibold">₹{Number(hiring.budget || 0).toLocaleString()}</span>
+                                    <span className="font-semibold">{hiring.roleTitle}</span>
+                                    <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">₹{Number(hiring.budget || 0).toLocaleString()}</span>
                                     {isHired ? (
-                                      <span className="text-[10px] text-purple-300 font-normal">({f.name || 'Assigned'})</span>
+                                      <span className="text-[10px] text-[#261615] dark:text-[#FFEBAA] font-normal">({f.name || 'Assigned'})</span>
                                     ) : (
-                                      <span className="text-[10px] text-amber-400/90">(Open)</span>
+                                      <span className="text-[10px] text-amber-700 dark:text-amber-400">(Open)</span>
                                     )}
                                   </button>
                                 );
@@ -685,17 +683,17 @@ export const Payments = () => {
                         )}
                       </div>
 
-                      <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/[0.06]">
+                      <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-[#382322]/10 dark:border-[#FDEBDE]/10">
                         <div className="text-left sm:text-right">
-                          <span className="text-[10px] text-slate-400 uppercase font-mono block">Budget</span>
-                          <span className="text-sm font-bold text-white font-mono">
+                          <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] uppercase font-mono font-bold block">Budget</span>
+                          <span className="text-sm font-black text-[#261615] dark:text-[#FDEBDE] font-mono">
                             {p.budget}
                           </span>
                         </div>
 
                         <button
                           type="button"
-                          className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600/15 group-hover:bg-purple-600 text-purple-300 group-hover:text-white border border-purple-500/30 group-hover:border-purple-500 transition-all flex items-center gap-1.5 shrink-0"
+                          className="px-3.5 py-2 rounded-xl text-xs font-mono font-bold bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] hover:bg-[#FFEBAA]/80 transition-all flex items-center gap-1.5 shrink-0"
                         >
                           <span>Milestones</span>
                           <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />

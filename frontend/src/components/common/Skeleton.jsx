@@ -24,7 +24,7 @@ export const SkeletonText = ({ lines = 2, className = '' }) => {
 
 export const SkeletonCard = ({ className = '' }) => {
   return (
-    <div className={`p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4 ${className}`}>
+    <div className={`p-5 rounded-2xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322]/20 space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <Skeleton className="w-10 h-10 rounded-xl" />
         <Skeleton className="w-20 h-5 rounded-full" />
@@ -33,7 +33,7 @@ export const SkeletonCard = ({ className = '' }) => {
         <Skeleton className="w-3/4 h-4.5" />
         <Skeleton className="w-1/2 h-3" />
       </div>
-      <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between">
+      <div className="pt-3 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-between">
         <Skeleton className="w-24 h-4" />
         <Skeleton className="w-16 h-4" />
       </div>
@@ -43,7 +43,7 @@ export const SkeletonCard = ({ className = '' }) => {
 
 export const SkeletonProjectCard = () => {
   return (
-    <div className="p-4 rounded-2xl bg-[#0F1422]/60 border border-white/[0.06] space-y-3.5">
+    <div className="p-4 rounded-2xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322]/20 space-y-3.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 w-3/4">
           <Skeleton className="w-11 h-11 rounded-2xl shrink-0" />
@@ -54,7 +54,7 @@ export const SkeletonProjectCard = () => {
         </div>
         <Skeleton className="w-16 h-6 rounded-full" />
       </div>
-      <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between">
+      <div className="pt-3 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-between">
         <Skeleton className="w-24 h-4" />
         <Skeleton className="w-20 h-2 rounded-full" />
       </div>
@@ -68,7 +68,7 @@ export const SkeletonRow = ({ count = 3, className = '' }) => {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="p-3.5 rounded-xl bg-[#101524]/60 border border-white/[0.04] flex items-center justify-between gap-4"
+          className="p-3.5 rounded-xl bg-white/70 dark:bg-[#201413]/70 border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15 flex items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3 flex-1">
             <Skeleton className="w-9 h-9 rounded-full shrink-0" />
@@ -86,7 +86,7 @@ export const SkeletonRow = ({ count = 3, className = '' }) => {
 
 export const SkeletonProfile = () => {
   return (
-    <div className="p-6 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-6">
+    <div className="p-6 rounded-2xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322]/20 space-y-6">
       <div className="flex items-center gap-4">
         <Skeleton className="w-20 h-20 rounded-2xl shrink-0" />
         <div className="space-y-2.5 flex-1">
@@ -95,9 +95,9 @@ export const SkeletonProfile = () => {
           <Skeleton className="w-1/4 h-3" />
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-white/[0.05]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="p-3 rounded-xl bg-white/[0.02] space-y-2">
+          <div key={i} className="p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] space-y-2">
             <Skeleton className="w-12 h-5 mx-auto" />
             <Skeleton className="w-20 h-3 mx-auto" />
           </div>
@@ -114,7 +114,7 @@ export const SkeletonProfile = () => {
 export const SidebarSkeleton = ({ className = '' }) => {
   return (
     <aside
-      className={`h-screen w-64 bg-[#07090F]/95 md:bg-[#07090F]/80 backdrop-blur-2xl border-r border-white/[0.06] flex flex-col justify-between p-3 shrink-0 select-none ${className}`}
+      className={`h-screen w-64 bg-[#FFF7F1] dark:bg-[#1A1110] border-r-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 flex flex-col justify-between p-3 shrink-0 select-none ${className}`}
     >
       <div>
         {/* Brand header placeholder */}
@@ -131,7 +131,7 @@ export const SidebarSkeleton = ({ className = '' }) => {
           {Array.from({ length: 9 }).map((_, i) => (
             <div
               key={i}
-              className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/[0.015] border border-white/[0.03]"
+              className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-white/50 dark:bg-white/[0.02] border border-[#382322]/10 dark:border-white/[0.03]"
             >
               <div className="flex items-center gap-3 flex-1">
                 <Skeleton className="w-4 h-4 rounded-md shrink-0" />
@@ -144,8 +144,8 @@ export const SidebarSkeleton = ({ className = '' }) => {
       </div>
 
       {/* Footer logout placeholder */}
-      <div className="pt-3 border-t border-white/[0.05]">
-        <div className="flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-white/[0.01]">
+      <div className="pt-3 border-t border-[#382322]/10 dark:border-white/[0.05]">
+        <div className="flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-white/40 dark:bg-white/[0.01]">
           <Skeleton className="w-4 h-4 rounded-md shrink-0" />
           <Skeleton className="w-16 h-3 rounded-md" />
         </div>
@@ -160,7 +160,7 @@ export const SidebarSkeleton = ({ className = '' }) => {
 ───────────────────────────────────────────────────── */
 export const HeaderSkeleton = () => {
   return (
-    <header className="flex flex-row items-center justify-between gap-4 py-4 md:py-6 px-4 md:px-8 bg-[#07090E] border-b border-white/[0.06] shrink-0">
+    <header className="flex flex-row items-center justify-between gap-4 py-4 md:py-6 px-4 md:px-8 bg-[#FFF7F1] dark:bg-[#1A1110] border-b-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shrink-0">
       <div className="flex items-center gap-2 md:hidden">
         <Skeleton className="w-9 h-9 rounded-xl" />
       </div>
@@ -267,7 +267,7 @@ export const DashboardSkeleton = () => {
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+        <div className="p-5 rounded-2xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322]/20 space-y-4">
           <div className="flex items-center justify-between">
             <Skeleton className="w-36 h-5 rounded-md" />
             <Skeleton className="w-20 h-4 rounded-md" />
@@ -289,7 +289,7 @@ export const WorkspaceSidebarSkeleton = () => {
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#0E1322]/50 border border-white/[0.03]"
+          className="flex items-center gap-3 px-3 py-3 rounded-xl bg-white/70 dark:bg-[#201413]/70 border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15"
         >
           <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
           <div className="flex-1 min-w-0 space-y-2">
@@ -312,9 +312,9 @@ export const WorkspaceSidebarSkeleton = () => {
 
 export const WorkspaceContentSkeleton = () => {
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#07090E] overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-[#FAF0E6] dark:bg-[#19100F] overflow-hidden">
       {/* Workspace Header */}
-      <div className="p-4 md:p-5 border-b border-white/[0.06] bg-[#0A0D16]/90 flex items-center justify-between gap-4">
+      <div className="p-4 md:p-5 border-b-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 bg-[#FFF7F1] dark:bg-[#1A1110] flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
           <div className="space-y-1.5">
@@ -329,7 +329,7 @@ export const WorkspaceContentSkeleton = () => {
       </div>
 
       {/* Tabs Row */}
-      <div className="px-5 py-2.5 border-b border-white/[0.05] bg-[#080B12] flex items-center gap-2">
+      <div className="px-5 py-2.5 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/15 bg-[#FFF7F1]/80 dark:bg-[#1A1110]/80 flex items-center gap-2">
         <Skeleton className="w-20 h-7 rounded-xl" />
         <Skeleton className="w-24 h-7 rounded-xl" />
         <Skeleton className="w-20 h-7 rounded-xl" />
@@ -338,7 +338,7 @@ export const WorkspaceContentSkeleton = () => {
       {/* Workspace Body / File Grid / Chat placeholder */}
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
         {/* Upload dropzone skeleton */}
-        <div className="p-8 rounded-2xl border-2 border-dashed border-white/[0.08] bg-white/[0.01] flex flex-col items-center justify-center gap-3">
+        <div className="p-8 rounded-2xl border-2 border-dashed border-[#382322]/30 dark:border-[#FDEBDE]/30 bg-white/40 dark:bg-white/[0.02] flex flex-col items-center justify-center gap-3">
           <Skeleton className="w-12 h-12 rounded-2xl" />
           <Skeleton className="w-48 h-4 rounded-md" />
           <Skeleton className="w-32 h-3 rounded-md" />
@@ -349,7 +349,7 @@ export const WorkspaceContentSkeleton = () => {
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="p-3.5 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] space-y-2.5"
+              className="p-3.5 rounded-xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15 space-y-2.5"
             >
               <Skeleton className="w-full h-24 rounded-lg" />
               <Skeleton className="w-3/4 h-3 rounded-md" />
@@ -367,7 +367,7 @@ export const WorkspaceContentSkeleton = () => {
 
 export const WorkspaceChatSkeleton = () => {
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#07090E] p-4 space-y-4">
+    <div className="flex-1 flex flex-col h-full bg-[#FAF0E6] dark:bg-[#19100F] p-4 space-y-4">
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
@@ -392,9 +392,9 @@ export const WorkspaceChatSkeleton = () => {
 
 export const WorkspaceSkeleton = () => {
   return (
-    <div className="flex h-full w-full overflow-hidden bg-[#07090E]">
-      <aside className="w-full lg:w-80 xl:w-96 border-r border-white/[0.07] bg-[#07090F] flex flex-col shrink-0">
-        <div className="p-4 border-b border-white/[0.06]">
+    <div className="flex h-full w-full overflow-hidden bg-[#FAF0E6] dark:bg-[#19100F]">
+      <aside className="w-full lg:w-80 xl:w-96 border-r-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 bg-[#FFF7F1] dark:bg-[#1A1110] flex flex-col shrink-0">
+        <div className="p-4 border-b-2 border-[#382322]/20 dark:border-[#FDEBDE]/20">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2.5">
               <Skeleton className="w-8 h-8 rounded-xl" />
@@ -434,7 +434,7 @@ export const PaymentsSkeleton = () => {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="p-5 rounded-2xl bg-[#0E1322]/70 border border-white/[0.06] space-y-3"
+            className="p-5 rounded-2xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322]/20 space-y-3"
           >
             <div className="flex items-center justify-between">
               <Skeleton className="w-28 h-3.5 rounded-md" />
@@ -448,7 +448,7 @@ export const PaymentsSkeleton = () => {
       </div>
 
       {/* Middle Escrow / Project Pipeline container */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+      <div className="p-5 sm:p-6 rounded-2xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322]/20 space-y-4">
         <div className="flex items-center justify-between">
           <Skeleton className="w-40 h-5 rounded-md" />
           <Skeleton className="w-24 h-4 rounded-md" />
@@ -457,7 +457,7 @@ export const PaymentsSkeleton = () => {
           {Array.from({ length: 2 }).map((_, i) => (
             <div
               key={i}
-              className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-3"
+              className="p-4 rounded-xl bg-[#FAF0E6]/50 dark:bg-white/[0.02] border border-[#382322]/10 dark:border-white/[0.04] space-y-3"
             >
               <div className="flex items-center justify-between">
                 <Skeleton className="w-36 h-4 rounded-md" />
@@ -474,7 +474,7 @@ export const PaymentsSkeleton = () => {
       </div>
 
       {/* Transaction History Rows */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-[#0E1322]/60 border border-white/[0.06] space-y-4">
+      <div className="p-5 sm:p-6 rounded-2xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322]/20 space-y-4">
         <div className="flex items-center justify-between">
           <Skeleton className="w-44 h-5 rounded-md" />
           <Skeleton className="w-20 h-4 rounded-md" />
@@ -483,7 +483,7 @@ export const PaymentsSkeleton = () => {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="p-3.5 rounded-xl bg-[#101524]/60 border border-white/[0.04] flex items-center justify-between gap-3"
+              className="p-3.5 rounded-xl bg-white/70 dark:bg-[#201413]/70 border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15 flex items-center justify-between gap-3"
             >
               <div className="flex items-center gap-3">
                 <Skeleton className="w-9 h-9 rounded-xl shrink-0" />
@@ -523,7 +523,7 @@ export const NotificationsSkeleton = () => {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="p-4 rounded-2xl bg-[#0E1322]/60 border border-white/[0.04] flex items-center justify-between gap-4"
+            className="p-4 rounded-2xl bg-white/80 dark:bg-[#201413]/80 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322]/20 flex items-center justify-between gap-4"
           >
             <div className="flex items-center gap-3.5 flex-1 min-w-0">
               <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
@@ -551,7 +551,7 @@ export const NotificationsSkeleton = () => {
 ───────────────────────────────────────────────────── */
 export const AppShellSkeleton = ({ children, isWorkspace = false }) => {
   return (
-    <div className="flex h-screen bg-[#07090E] text-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-[#FAF0E6] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] overflow-hidden">
       {/* Sidebar (Desktop visible, hidden on mobile) */}
       <div className="hidden md:block shrink-0">
         <SidebarSkeleton />

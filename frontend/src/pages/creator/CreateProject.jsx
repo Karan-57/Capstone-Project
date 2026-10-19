@@ -744,33 +744,35 @@ export const CreateProject = () => {
                 navigate('/creator/dashboard');
               }
             }}
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white border border-white/[0.06] transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl bg-white dark:bg-[#201413] text-[#382322] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] hover:bg-[#FFEBAA] transition-colors cursor-pointer"
             title={step === 2 ? 'Back to Step 1' : 'Back to Dashboard'}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 stroke-[2.5]" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-purple-400 bg-purple-950/40 px-2.5 py-0.5 rounded-md border border-purple-800/30">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#382322] bg-[#FFEBAA] px-2.5 py-0.5 rounded-md border-2 border-[#382322]">
                 {step === 1 ? 'Step 1 of 2: Project Scope' : 'Step 2 of 2: Post Hirings'}
               </span>
             </div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight mt-1">
+            <h1 className="text-2xl sm:text-3xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight mt-1.5">
               {step === 1 ? 'Create New Project' : 'Assemble Team & Post Hirings'}
             </h1>
           </div>
         </div>
 
         {/* Step Progression Pills */}
-        <div className="flex items-center gap-2 bg-[#141A28] p-1 rounded-xl border border-white/[0.06] text-xs">
+        <div className="flex items-center gap-2 bg-white dark:bg-[#201413] p-1.5 rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-xs">
           <button
             type="button"
             onClick={() => {
               setStep(1);
               setSearchParams({ step: '1', projectId: projectId || '' });
             }}
-            className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-              step === 1 ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+              step === 1
+                ? 'bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322]'
+                : 'text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE]'
             }`}
           >
             1. Scope & Budget
@@ -785,8 +787,10 @@ export const CreateProject = () => {
                 showAlert('Please complete Step 1 to generate your project.', 'info');
               }
             }}
-            className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-              step === 2 ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+            className={`px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+              step === 2
+                ? 'bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322]'
+                : 'text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE]'
             }`}
           >
             2. Post Hirings {hirings.length > 0 && `(${hirings.length})`}
@@ -800,16 +804,16 @@ export const CreateProject = () => {
       {step === 1 && (
         <form onSubmit={handleSaveStep1} className="space-y-7">
           {/* Section 1: Overview */}
-          <div className="glass-card p-6 md:p-7 space-y-5 border border-white/[0.08]">
-            <div className="flex items-center gap-2 pb-3 border-b border-white/[0.05]">
-              <Film className="w-4 h-4 text-purple-400" />
-              <h3 className="text-base font-bold text-white">Project Scope & Brief</h3>
+          <div className="brutal-card p-6 md:p-7 space-y-5 rounded-2xl">
+            <div className="flex items-center gap-2 pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
+              <Film className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
+              <h3 className="text-base font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Project Scope & Brief</h3>
             </div>
 
             {/* Title */}
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                Project Title <span className="text-purple-400">*</span>
+              <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
+                Project Title <span className="text-rose-600 dark:text-rose-400">*</span>
               </label>
               <input
                 type="text"
@@ -817,14 +821,14 @@ export const CreateProject = () => {
                 placeholder="e.g. 15-Min Cinematic Tech Documentary on Autonomous Agents"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all"
+                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] font-medium transition-all"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                Project Brief & Storyline Description <span className="text-purple-400">*</span>
+              <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
+                Project Brief & Storyline Description <span className="text-rose-600 dark:text-rose-400">*</span>
               </label>
               <textarea
                 rows={4}
@@ -832,7 +836,7 @@ export const CreateProject = () => {
                 placeholder="Describe your creative vision, story outline, target audience, and key deliverables..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-all resize-none leading-relaxed"
+                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] font-medium resize-none leading-relaxed transition-all"
               />
             </div>
 
@@ -840,8 +844,8 @@ export const CreateProject = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Category Dropdown */}
               <div className="relative" ref={categoryRef}>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Category <span className="text-purple-400">*</span>
+                <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
+                  Category <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
                 <button
                   type="button"
@@ -849,27 +853,27 @@ export const CreateProject = () => {
                     setIsCategoryOpen(!isCategoryOpen);
                     setIsStyleOpen(false);
                   }}
-                  className={`w-full px-4 py-2.5 rounded-xl bg-[#141A28] border text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
-                    isCategoryOpen ? 'border-purple-500 ring-2 ring-purple-500/20 text-white' : 'border-white/[0.08] text-slate-300'
+                  className={`w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
+                    isCategoryOpen ? 'ring-2 ring-[#382322] text-[#261615] dark:text-[#FDEBDE]' : 'text-[#261615] dark:text-[#FDEBDE]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {selectedCategoryObj ? (
                       <>
-                        <div className="w-6 h-6 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0">
-                          {React.createElement(selectedCategoryObj.icon, { className: 'w-3.5 h-3.5 text-purple-400' })}
+                        <div className="w-6 h-6 rounded-lg bg-[#FFEBAA] border border-[#382322] flex items-center justify-center shrink-0">
+                          {React.createElement(selectedCategoryObj.icon, { className: 'w-3.5 h-3.5 text-[#382322]' })}
                         </div>
-                        <span className="font-semibold text-white truncate">{selectedCategoryObj.label}</span>
+                        <span className="font-bold text-[#261615] dark:text-[#FDEBDE] truncate">{selectedCategoryObj.label}</span>
                       </>
                     ) : (
-                      <span className="text-slate-500">Select video category...</span>
+                      <span className="text-[#382322]/50 dark:text-[#FDEBDE]/50 font-medium">Select video category...</span>
                     )}
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isCategoryOpen ? 'rotate-180 text-purple-400' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-[#382322] dark:text-[#FDEBDE] shrink-0 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isCategoryOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-2 z-30 p-2 rounded-2xl bg-[#0B0F19]/95 backdrop-blur-xl border border-white/10 shadow-2xl space-y-1 max-h-72 overflow-y-auto">
+                  <div className="absolute left-0 right-0 top-full mt-2 z-30 p-2 rounded-2xl bg-[#FFF7F1] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FFEBAA]/40 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-1 max-h-72 overflow-y-auto">
                     {categoryOptions.map((opt) => {
                       const isSelected = category === opt.id;
                       const IconComp = opt.icon;
@@ -881,19 +885,19 @@ export const CreateProject = () => {
                             setIsCategoryOpen(false);
                           }}
                           className={`p-2.5 rounded-xl flex items-center justify-between cursor-pointer transition-all ${
-                            isSelected ? 'bg-purple-600/20 border border-purple-500/40 text-white' : 'hover:bg-white/[0.04] text-slate-300'
+                            isSelected ? 'bg-[#FFEBAA] dark:bg-[#382322] border-2 border-[#382322] text-[#261615] dark:text-[#FFEBAA] font-bold shadow-xs' : 'hover:bg-white/80 dark:hover:bg-white/10 text-[#382322] dark:text-[#FDEBDE]'
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-purple-500 text-white' : 'bg-white/[0.05] text-slate-400'}`}>
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-[#382322] ${isSelected ? 'bg-[#382322] text-[#FFEBAA]' : 'bg-[#FAF0E6] text-[#382322]'}`}>
                               <IconComp className="w-3.5 h-3.5" />
                             </div>
                             <div className="min-w-0">
-                              <span className="text-xs font-semibold">{opt.label}</span>
-                              <p className="text-[11px] text-slate-400 truncate mt-0.5">{opt.desc}</p>
+                              <span className="text-xs font-bold block">{opt.label}</span>
+                              <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] truncate mt-0.5">{opt.desc}</p>
                             </div>
                           </div>
-                          {isSelected && <Check className="w-4 h-4 text-purple-400 shrink-0 ml-2" />}
+                          {isSelected && <Check className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA] shrink-0 ml-2" />}
                         </div>
                       );
                     })}
@@ -903,7 +907,7 @@ export const CreateProject = () => {
 
               {/* Editing Style Dropdown */}
               <div className="relative" ref={styleRef}>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
                   Editing Style
                 </label>
                 <button
@@ -912,27 +916,27 @@ export const CreateProject = () => {
                     setIsStyleOpen(!isStyleOpen);
                     setIsCategoryOpen(false);
                   }}
-                  className={`w-full px-4 py-2.5 rounded-xl bg-[#141A28] border text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
-                    isStyleOpen ? 'border-purple-500 ring-2 ring-purple-500/20 text-white' : 'border-white/[0.08] text-slate-300'
+                  className={`w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
+                    isStyleOpen ? 'ring-2 ring-[#382322] text-[#261615] dark:text-[#FDEBDE]' : 'text-[#261615] dark:text-[#FDEBDE]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {selectedStyleObj ? (
                       <>
-                        <div className="w-6 h-6 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-                          {React.createElement(selectedStyleObj.icon, { className: 'w-3.5 h-3.5 text-indigo-400' })}
+                        <div className="w-6 h-6 rounded-lg bg-[#B1C8EA] border border-[#382322] flex items-center justify-center shrink-0">
+                          {React.createElement(selectedStyleObj.icon, { className: 'w-3.5 h-3.5 text-[#382322]' })}
                         </div>
-                        <span className="font-semibold text-white truncate">{selectedStyleObj.label}</span>
+                        <span className="font-bold text-[#261615] dark:text-[#FDEBDE] truncate">{selectedStyleObj.label}</span>
                       </>
                     ) : (
-                      <span className="text-slate-500">Select editing style...</span>
+                      <span className="text-[#382322]/50 dark:text-[#FDEBDE]/50 font-medium">Select editing style...</span>
                     )}
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${isStyleOpen ? 'rotate-180 text-purple-400' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-[#382322] dark:text-[#FDEBDE] shrink-0 transition-transform ${isStyleOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isStyleOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-2 z-30 p-2 rounded-2xl bg-[#0B0F19]/95 backdrop-blur-xl border border-white/10 shadow-2xl space-y-1 max-h-72 overflow-y-auto">
+                  <div className="absolute left-0 right-0 top-full mt-2 z-30 p-2 rounded-2xl bg-[#FFF7F1] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FFEBAA]/40 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-1 max-h-72 overflow-y-auto">
                     {editingStyleOptions.map((opt) => {
                       const isSelected = editingStyle === opt.id;
                       const IconComp = opt.icon;
@@ -944,19 +948,19 @@ export const CreateProject = () => {
                             setIsStyleOpen(false);
                           }}
                           className={`p-2.5 rounded-xl flex items-center justify-between cursor-pointer transition-all ${
-                            isSelected ? 'bg-purple-600/20 border border-purple-500/40 text-white' : 'hover:bg-white/[0.04] text-slate-300'
+                            isSelected ? 'bg-[#FFEBAA] dark:bg-[#382322] border-2 border-[#382322] text-[#261615] dark:text-[#FFEBAA] font-bold shadow-xs' : 'hover:bg-white/80 dark:hover:bg-white/10 text-[#382322] dark:text-[#FDEBDE]'
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-indigo-500 text-white' : 'bg-white/[0.05] text-slate-400'}`}>
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-[#382322] ${isSelected ? 'bg-[#382322] text-[#FFEBAA]' : 'bg-[#FAF0E6] text-[#382322]'}`}>
                               <IconComp className="w-3.5 h-3.5" />
                             </div>
                             <div className="min-w-0">
-                              <span className="text-xs font-semibold block">{opt.label}</span>
-                              <p className="text-[11px] text-slate-400 truncate mt-0.5">{opt.desc}</p>
+                              <span className="text-xs font-bold block">{opt.label}</span>
+                              <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] truncate mt-0.5">{opt.desc}</p>
                             </div>
                           </div>
-                          {isSelected && <Check className="w-4 h-4 text-purple-400 shrink-0 ml-2" />}
+                          {isSelected && <Check className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA] shrink-0 ml-2" />}
                         </div>
                       );
                     })}
@@ -967,34 +971,34 @@ export const CreateProject = () => {
           </div>
 
           {/* Section 2: Expected Video Duration */}
-          <div className="glass-card p-6 md:p-7 space-y-4 border border-white/[0.08]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
+          <div className="brutal-card p-6 md:p-7 space-y-4 rounded-2xl">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-purple-400" />
-                <h3 className="text-base font-bold text-white">Expected Video Duration</h3>
+                <Clock className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
+                <h3 className="text-base font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Expected Video Duration</h3>
               </div>
-              <span className="text-[11px] text-slate-400">Target runtime of the finished video</span>
+              <span className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-medium">Target runtime of the finished video</span>
             </div>
 
             <div className="relative" ref={expectedDurationRef}>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                Target Length <span className="text-purple-400">*</span>
+              <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
+                Target Length <span className="text-rose-600 dark:text-rose-400">*</span>
               </label>
               <button
                 type="button"
                 onClick={() => setIsExpectedDurationOpen(!isExpectedDurationOpen)}
-                className={`w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
-                  isExpectedDurationOpen ? 'border-purple-500 ring-2 ring-purple-500/20 text-white' : 'border-white/[0.08] text-slate-300'
+                className={`w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
+                  isExpectedDurationOpen ? 'ring-2 ring-[#382322] text-[#261615] dark:text-[#FDEBDE]' : 'text-[#261615] dark:text-[#FDEBDE]'
                 }`}
               >
-                <span className={expectedVideoDuration ? 'text-white font-medium' : 'text-slate-500'}>
+                <span className={expectedVideoDuration ? 'text-[#261615] dark:text-[#FDEBDE] font-bold' : 'text-[#382322]/50 dark:text-[#FDEBDE]/50 font-medium'}>
                   {expectedVideoDuration || 'Select Expected Duration...'}
                 </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isExpectedDurationOpen ? 'rotate-180 text-purple-400' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-[#382322] dark:text-[#FDEBDE] transition-transform ${isExpectedDurationOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isExpectedDurationOpen && (
-                <div className="absolute left-0 right-0 top-full mt-2 z-30 p-1.5 rounded-2xl bg-[#0B0F19]/95 backdrop-blur-xl border border-white/10 shadow-2xl space-y-0.5 max-h-60 overflow-y-auto">
+                <div className="absolute left-0 right-0 top-full mt-2 z-30 p-1.5 rounded-2xl bg-[#FFF7F1] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FFEBAA]/40 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-0.5 max-h-60 overflow-y-auto">
                   {expectedVideoDurationOptions.map((opt) => (
                     <div
                       key={opt}
@@ -1003,11 +1007,11 @@ export const CreateProject = () => {
                         setIsExpectedDurationOpen(false);
                       }}
                       className={`px-3 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
-                        expectedVideoDuration === opt ? 'bg-purple-600/20 text-white font-semibold' : 'hover:bg-white/[0.05] text-slate-300'
+                        expectedVideoDuration === opt ? 'bg-[#FFEBAA] text-[#261615] border border-[#382322] font-bold' : 'hover:bg-white/80 dark:hover:bg-white/10 text-[#382322] dark:text-[#FDEBDE]'
                       }`}
                     >
                       <span>{opt}</span>
-                      {expectedVideoDuration === opt && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                      {expectedVideoDuration === opt && <Check className="w-3.5 h-3.5 text-[#382322]" />}
                     </div>
                   ))}
                 </div>
@@ -1016,52 +1020,52 @@ export const CreateProject = () => {
           </div>
 
           {/* Section 3: Total Budget & Turnaround Duration with AI Market Research Suggestion */}
-          <div className="glass-card p-6 md:p-7 space-y-5 border border-white/[0.08]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.05]">
+          <div className="brutal-card p-6 md:p-7 space-y-5 rounded-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
               <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-base font-bold text-white">Total Project Budget & Turnaround</h3>
+                <DollarSign className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                <h3 className="text-base font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Total Project Budget & Turnaround</h3>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleAiSuggestBudgetTimeline}
                   disabled={isAiSuggestingScope}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600/25 via-indigo-600/25 to-purple-500/20 hover:from-purple-600/40 hover:to-indigo-600/40 border border-purple-500/40 text-purple-300 hover:text-white shadow-sm transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#FFEBAA] hover:bg-[#fff2cc] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Estimate budget and turnaround duration based on category, editing style, and runtime"
                 >
-                  <Sparkles className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform ${isAiSuggestingScope ? 'animate-spin' : ''}`} />
+                  <Sparkles className={`w-3.5 h-3.5 text-[#382322] group-hover:rotate-12 transition-transform ${isAiSuggestingScope ? 'animate-spin' : ''}`} />
                   <span>{isAiSuggestingScope ? 'Analyzing Market...' : 'AI Market Suggest'}</span>
                 </button>
               </div>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] leading-relaxed font-medium">
               Define the overall financial budget for this production. Use our AI pricing engine to analyze current freelance market rates for your selected category, editing style, and duration.
             </p>
 
             {/* AI Market Analysis Banner if suggestion is available */}
             {aiScopeSuggestion && (
-              <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-500/30 space-y-2">
+              <div className="p-3.5 rounded-xl bg-[#FFEBAA]/40 dark:bg-[#382322]/40 border-2 border-[#382322] space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-purple-300">
-                    <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <div className="flex items-center gap-2 text-xs font-bold text-[#261615] dark:text-[#FFEBAA]">
+                    <Sparkles className="w-3.5 h-3.5 text-[#382322] dark:text-[#FFEBAA]" />
                     <span>Live Market Benchmark ({aiScopeSuggestion.complexityScore || 'Standard'} Complexity)</span>
                   </div>
-                  <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                  <span className="text-xs font-mono text-emerald-800 dark:text-emerald-300 font-bold">
                     Range: {budgetCurrency === 'INR' ? '₹' : '$'}{aiScopeSuggestion.minBudget?.toLocaleString()} - {budgetCurrency === 'INR' ? '₹' : '$'}{aiScopeSuggestion.maxBudget?.toLocaleString()}
                   </span>
                 </div>
                 {aiScopeSuggestion.marketAnalysis && (
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                  <p className="text-[11px] text-[#261615] dark:text-[#FDEBDE] leading-relaxed">
                     {aiScopeSuggestion.marketAnalysis}
                   </p>
                 )}
                 {Array.isArray(aiScopeSuggestion.keyCostDrivers) && aiScopeSuggestion.keyCostDrivers.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="text-[10px] text-slate-400">Cost drivers:</span>
+                    <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-bold">Cost drivers:</span>
                     {aiScopeSuggestion.keyCostDrivers.map((driver, idx) => (
-                      <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.08] text-slate-300">
+                      <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322] text-[#261615] dark:text-[#FDEBDE] font-semibold">
                         {driver}
                       </span>
                     ))}
@@ -1073,11 +1077,11 @@ export const CreateProject = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Total Budget Input */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Total Project Budget <span className="text-purple-400">*</span>
+                <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
+                  Total Project Budget <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold pointer-events-none">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#382322] dark:text-[#FFEBAA] text-xs font-bold pointer-events-none">
                     <span>{budgetCurrency === 'INR' ? '₹' : '$'}</span>
                   </div>
                   <input
@@ -1086,12 +1090,12 @@ export const CreateProject = () => {
                     placeholder="e.g. 25000"
                     value={totalBudget}
                     onChange={(e) => setTotalBudget(e.target.value)}
-                    className="w-full pl-9 pr-16 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white font-semibold focus:outline-none focus:border-purple-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all"
+                    className="w-full pl-9 pr-16 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm text-[#261615] dark:text-[#FFEBAA] font-bold shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setBudgetCurrency(prev => prev === 'INR' ? 'USD' : 'INR')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-[10px] font-bold bg-white/[0.06] hover:bg-white/[0.12] rounded-lg text-purple-300 transition-colors cursor-pointer"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-[10px] font-bold bg-[#FFEBAA] text-[#261615] border border-[#382322] rounded-lg transition-colors cursor-pointer"
                   >
                     {budgetCurrency}
                   </button>
@@ -1100,24 +1104,24 @@ export const CreateProject = () => {
 
               {/* Project Delivery Duration */}
               <div className="relative" ref={projectDurationRef}>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
                   Project Turnaround Duration
                 </label>
                 <button
                   type="button"
                   onClick={() => setIsProjectDurationOpen(!isProjectDurationOpen)}
-                  className={`w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
-                    isProjectDurationOpen ? 'border-purple-500 ring-2 ring-purple-500/20 text-white' : 'border-white/[0.08] text-slate-300'
+                  className={`w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
+                    isProjectDurationOpen ? 'ring-2 ring-[#382322] text-[#261615] dark:text-[#FDEBDE]' : 'text-[#261615] dark:text-[#FDEBDE]'
                   }`}
                 >
-                  <span className={projectDuration ? 'text-white font-medium' : 'text-slate-500'}>
+                  <span className={projectDuration ? 'text-[#261615] dark:text-[#FDEBDE] font-bold' : 'text-[#382322]/50 dark:text-[#FDEBDE]/50 font-medium'}>
                     {projectDuration || 'Select Duration...'}
                   </span>
-                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isProjectDurationOpen ? 'rotate-180 text-purple-400' : ''}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 text-[#382322] dark:text-[#FDEBDE] transition-transform ${isProjectDurationOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isProjectDurationOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-2 z-30 p-1.5 rounded-2xl bg-[#0B0F19]/95 backdrop-blur-xl border border-white/10 shadow-2xl space-y-0.5 max-h-60 overflow-y-auto">
+                  <div className="absolute left-0 right-0 top-full mt-2 z-30 p-1.5 rounded-2xl bg-[#FFF7F1] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FFEBAA]/40 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-0.5 max-h-60 overflow-y-auto">
                     {projectDurationOptions.map((opt) => (
                       <div
                         key={opt}
@@ -1126,11 +1130,11 @@ export const CreateProject = () => {
                           setIsProjectDurationOpen(false);
                         }}
                         className={`px-3 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
-                          projectDuration === opt ? 'bg-purple-600/20 text-white font-semibold' : 'hover:bg-white/[0.05] text-slate-300'
+                          projectDuration === opt ? 'bg-[#FFEBAA] text-[#261615] border border-[#382322] font-bold' : 'hover:bg-white/80 dark:hover:bg-white/10 text-[#382322] dark:text-[#FDEBDE]'
                         }`}
                       >
                         <span>{opt}</span>
-                        {projectDuration === opt && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                        {projectDuration === opt && <Check className="w-3.5 h-3.5 text-[#382322]" />}
                       </div>
                     ))}
                   </div>
@@ -1140,17 +1144,17 @@ export const CreateProject = () => {
           </div>
 
           {/* Section 4: Reference Images & Moodboard */}
-          <div className="glass-card p-6 md:p-7 space-y-4 border border-white/[0.08]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/[0.05]">
+          <div className="bg-white dark:bg-[#201413] p-6 md:p-7 space-y-4 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
               <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-purple-400" />
-                <h3 className="text-base font-bold text-white">Reference Images & Moodboard</h3>
+                <Layers className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
+                <h3 className="text-base font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Reference Images & Moodboard</h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-950/60 text-purple-300 border border-purple-800/40">
+                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FFEBAA] text-[#261615] border border-[#382322]">
                   {selectedImages.length} / 3 Images
                 </span>
-                <span className="text-[11px] text-slate-400">Max 3 (PNG, JPG, WebP)</span>
+                <span className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">Max 3 (PNG, JPG, WebP)</span>
               </div>
             </div>
 
@@ -1172,8 +1176,8 @@ export const CreateProject = () => {
               {selectedImages.length > 0 && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {selectedImages.map((img, idx) => (
-                    <div key={img.id} className="relative group rounded-xl overflow-hidden border border-white/10 bg-[#0E1322] flex flex-col">
-                      <div className="aspect-video w-full overflow-hidden bg-slate-900 relative">
+                    <div key={img.id} className="relative group rounded-xl overflow-hidden border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-white dark:bg-[#261817] shadow-[2px_2px_0_#382322] flex flex-col">
+                      <div className="aspect-video w-full overflow-hidden bg-[#FAF0E6] dark:bg-[#19100F] relative">
                         <img
                           src={img.preview}
                           alt={`Reference image ${idx + 1}`}
@@ -1182,18 +1186,18 @@ export const CreateProject = () => {
                         <button
                           type="button"
                           onClick={() => removeImage(img.id)}
-                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 hover:bg-rose-600 text-white transition-colors cursor-pointer shadow-md"
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-[#261615]/80 hover:bg-rose-600 text-white transition-colors cursor-pointer shadow-md"
                           title="Remove image"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
-                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/75 text-[10px] font-mono text-purple-300">
+                        <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-[#261615]/80 text-[10px] font-mono text-[#FFEBAA]">
                           #{idx + 1}
                         </span>
                       </div>
                       <div className="p-2.5 flex items-center justify-between text-xs">
-                        <span className="text-slate-300 font-medium truncate max-w-[120px]">{img.name}</span>
-                        <span className="text-[10px] text-slate-500 font-mono">{img.size}</span>
+                        <span className="text-[#261615] dark:text-[#FDEBDE] font-medium truncate max-w-[120px]">{img.name}</span>
+                        <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono">{img.size}</span>
                       </div>
                     </div>
                   ))}
@@ -1217,16 +1221,16 @@ export const CreateProject = () => {
                   onClick={() => fileInputRef.current?.click()}
                   className={`p-6 border-2 border-dashed rounded-2xl text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${
                     isDraggingOver
-                      ? 'border-purple-400 bg-purple-950/30 ring-2 ring-purple-500/20'
-                      : 'border-white/10 hover:border-purple-500/40 bg-white/[0.01] hover:bg-white/[0.03]'
+                      ? 'border-[#382322] bg-[#FFEBAA]/30 ring-2 ring-[#382322]/20'
+                      : 'border-[#382322]/30 dark:border-[#FDEBDE]/30 hover:border-[#382322] bg-[#FAF0E6]/50 dark:bg-[#201413]/50 hover:bg-[#FFEBAA]/10'
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                  <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border border-[#382322] flex items-center justify-center text-[#261615] shadow-[2px_2px_0_#382322]">
                     <Upload className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-white">Click to browse or drag & drop reference images</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Visual storyboard stills, color palettes, or thumbnail inspiration ({selectedImages.length}/3)</p>
+                    <p className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE]">Click to browse or drag & drop reference images</p>
+                    <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Visual storyboard stills, color palettes, or thumbnail inspiration ({selectedImages.length}/3)</p>
                   </div>
                 </div>
               )}
@@ -1234,23 +1238,23 @@ export const CreateProject = () => {
           </div>
 
           {/* Section 5: Reference Links & Notes */}
-          <div className="glass-card p-6 md:p-7 space-y-4 border border-white/[0.08]">
-            <div className="flex items-center gap-2 pb-3 border-b border-white/[0.05]">
-              <LinkIcon className="w-4 h-4 text-purple-400" />
-              <h3 className="text-base font-bold text-white">Reference Inspiration Links</h3>
+          <div className="bg-white dark:bg-[#201413] p-6 md:p-7 space-y-4 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20">
+            <div className="flex items-center gap-2 pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
+              <LinkIcon className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
+              <h3 className="text-base font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Reference Inspiration Links</h3>
             </div>
 
             <div className="space-y-2.5">
               {referenceLinks.map((link, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-[#141A28]/60 border border-white/[0.05]">
+                <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] border border-[#382322]/20 dark:border-[#FDEBDE]/20">
                   <div className="flex items-center gap-2 min-w-0">
-                    <LinkIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="text-xs text-purple-300 truncate">{link}</span>
+                    <LinkIcon className="w-3.5 h-3.5 text-[#5C3A38] dark:text-[#D4B8A8] shrink-0" />
+                    <span className="text-xs text-[#261615] dark:text-[#FDEBDE] font-mono truncate">{link}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => removeReferenceLink(idx)}
-                    className="p-1 rounded-lg text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                    className="p-1 rounded-lg text-[#5C3A38] hover:text-rose-600 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -1263,9 +1267,9 @@ export const CreateProject = () => {
                   placeholder="Add YouTube, Vimeo, or Google Drive reference URL..."
                   value={newLink}
                   onChange={(e) => setNewLink(e.target.value)}
-                  className="flex-1 px-3.5 py-2 text-xs rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
+                  className="flex-1 px-3.5 py-2.5 text-xs rounded-xl bg-white dark:bg-[#261817] text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-1 focus:ring-[#382322] shadow-[2px_2px_0_#382322]"
                 />
-                <Button variant="subtle" size="sm" icon={Plus} onClick={addReferenceLink}>
+                <Button variant="secondary" size="sm" icon={Plus} onClick={addReferenceLink}>
                   Add Link
                 </Button>
               </div>
@@ -1273,11 +1277,11 @@ export const CreateProject = () => {
           </div>
 
           {/* Step 1 Save & Continue CTA */}
-          <div className="flex items-center justify-between p-5 rounded-2xl bg-[#0F1422] border border-white/[0.08]">
+          <div className="flex items-center justify-between p-5 rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20">
             <button
               type="button"
               onClick={() => navigate('/creator/dashboard')}
-              className="text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] transition-colors cursor-pointer"
             >
               Discard & Return
             </button>
@@ -1285,7 +1289,7 @@ export const CreateProject = () => {
             <button
               type="submit"
               disabled={isSavingStep1}
-              className="group relative inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 shadow-xl shadow-purple-900/50 hover:shadow-purple-700/70 border border-purple-400/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+              className="group relative inline-flex items-center gap-2 px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-[#261615] bg-[#FFEBAA] hover:bg-[#ffe38a] shadow-[3px_3px_0_#382322] border-2 border-[#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all disabled:opacity-50 cursor-pointer"
             >
               <span>{isSavingStep1 ? 'Saving Project Scope...' : 'Save & Continue to Step 2: Post Hirings'}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -1300,18 +1304,18 @@ export const CreateProject = () => {
       {step === 2 && (
         <div className="space-y-7">
           {/* Top Project Summary & Budget Allocation Card */}
-          <div className="glass-card p-6 md:p-7 space-y-5 border border-white/[0.08]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/[0.06]">
+          <div className="bg-white dark:bg-[#201413] p-6 md:p-7 space-y-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400 bg-purple-950/60 px-2.5 py-0.5 rounded border border-purple-800/40">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#261615] bg-[#FFEBAA] px-2.5 py-0.5 rounded border border-[#382322]">
                   {category || 'Production Project'}
                 </span>
-                <h2 className="text-xl font-black text-white mt-1.5">{title}</h2>
+                <h2 className="text-xl sm:text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] mt-1.5">{title}</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="text-xs font-semibold text-purple-400 hover:text-purple-300 underline underline-offset-4 self-start sm:self-auto cursor-pointer"
+                className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] underline underline-offset-4 self-start sm:self-auto cursor-pointer"
               >
                 Edit Scope Details
               </button>
@@ -1319,28 +1323,28 @@ export const CreateProject = () => {
 
             {/* Financial Ledger & Budget Tracker */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-[#141A28] border border-white/[0.06]">
-                <div className="text-[11px] font-semibold text-slate-400">Total Project Budget</div>
-                <div className="text-xl font-bold text-white mt-1">
+              <div className="p-4 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322]">
+                <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Total Project Budget</div>
+                <div className="text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] mt-1">
                   {budgetCurrency === 'INR' ? '₹' : '$'}{numericTotalBudget.toLocaleString()}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Set manually in Step 1</div>
+                <div className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Set manually in Step 1</div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#141A28] border border-white/[0.06]">
-                <div className="text-[11px] font-semibold text-slate-400">Allocated for Hirings</div>
-                <div className="text-xl font-bold text-purple-400 mt-1">
+              <div className="p-4 rounded-xl bg-[#B1C8EA]/30 dark:bg-[#B1C8EA]/10 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322]">
+                <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Allocated for Hirings</div>
+                <div className="text-2xl font-black font-serif text-[#261615] dark:text-[#FFEBAA] mt-1">
                   {budgetCurrency === 'INR' ? '₹' : '$'}{allocatedBudget.toLocaleString()}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">{hirings.length} role(s) defined</div>
+                <div className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">{hirings.length} role(s) defined</div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#141A28] border border-white/[0.06]">
-                <div className="text-[11px] font-semibold text-slate-400">Remaining Unallocated</div>
-                <div className={`text-xl font-bold mt-1 ${remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              <div className="p-4 rounded-xl bg-[#FFEBAA]/40 dark:bg-[#FFEBAA]/10 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322]">
+                <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Remaining Unallocated</div>
+                <div className={`text-2xl font-black font-serif mt-1 ${remainingBudget >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                   {budgetCurrency === 'INR' ? '₹' : '$'}{remainingBudget.toLocaleString()}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">
+                <div className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
                   {percentAllocated}% total allocated
                 </div>
               </div>
@@ -1348,18 +1352,18 @@ export const CreateProject = () => {
 
             {/* Allocation Progress Bar */}
             <div className="space-y-1.5">
-              <div className="flex justify-between text-[11px] text-slate-400">
+              <div className="flex justify-between text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">
                 <span>Budget Allocation Tracker</span>
                 <span>{percentAllocated}% Allocated</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-white/[0.06] overflow-hidden">
+              <div className="w-full h-3 rounded-full bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322] dark:border-[#FDEBDE]/30 overflow-hidden">
                 <div
                   className={`h-full transition-all duration-500 ${
                     percentAllocated > 100
                       ? 'bg-rose-500'
                       : percentAllocated > 80
                       ? 'bg-amber-400'
-                      : 'bg-gradient-to-r from-purple-500 to-emerald-400'
+                      : 'bg-[#FFEBAA] border-r border-[#382322]'
                   }`}
                   style={{ width: `${Math.min(100, percentAllocated)}%` }}
                 />
@@ -1368,14 +1372,14 @@ export const CreateProject = () => {
           </div>
 
           {/* Section: ACTIVE HIRINGS (with '+' button) */}
-          <div className="glass-card p-6 md:p-7 space-y-5 border border-white/[0.08]">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.05]">
+          <div className="bg-white dark:bg-[#201413] p-6 md:p-7 space-y-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
               <div>
                 <div className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-purple-400" />
-                  <h3 className="text-base font-bold text-white">Active Hirings & Role Openings</h3>
+                  <Briefcase className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
+                  <h3 className="text-base font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Active Hirings & Role Openings</h3>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
                   Post specific roles (e.g. Video Editor, Thumbnail Designer, Sound Engineer) for this project.
                 </p>
               </div>
@@ -1384,7 +1388,7 @@ export const CreateProject = () => {
               <button
                 type="button"
                 onClick={() => handleOpenHiringModal()}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-900/40 border border-purple-400/40 transition-all cursor-pointer shrink-0"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-[#261615] bg-[#FFEBAA] hover:bg-[#ffe38a] border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 <span>Post New Role / Hiring</span>
@@ -1393,15 +1397,15 @@ export const CreateProject = () => {
 
             {/* Active Hirings List Cards */}
             {isLoadingHirings ? (
-              <div className="text-center py-10 text-xs text-slate-400">Loading project hirings...</div>
+              <div className="text-center py-10 text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Loading project hirings...</div>
             ) : hirings.length === 0 ? (
-              <div className="p-8 border-2 border-dashed border-white/10 rounded-2xl text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 mx-auto flex items-center justify-center text-purple-400">
+              <div className="p-8 border-2 border-dashed border-[#382322]/30 dark:border-[#FDEBDE]/30 rounded-2xl text-center space-y-3 bg-[#FAF0E6]/50 dark:bg-[#201413]/50">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] mx-auto flex items-center justify-center text-[#261615] shadow-[2px_2px_0_#382322]">
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white">No Hiring Positions Posted Yet</h4>
-                  <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+                  <h4 className="text-sm font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">No Hiring Positions Posted Yet</h4>
+                  <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 max-w-md mx-auto">
                     Click <strong>"+ Post New Role / Hiring"</strong> above to open positions for Video Editors, Thumbnail Designers, Sound Designers, Scriptwriters, and more.
                   </p>
                 </div>
@@ -1411,25 +1415,25 @@ export const CreateProject = () => {
                 {hirings.map((hiring) => (
                   <div
                     key={hiring._id}
-                    className="p-5 rounded-2xl bg-[#141A28]/80 border border-white/[0.08] hover:border-purple-500/30 transition-all space-y-3"
+                    className="p-5 rounded-2xl bg-[#FAF0E6] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-3"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <h4 className="text-sm font-bold text-white">{hiring.roleTitle}</h4>
-                        <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-purple-950/60 text-purple-300 border border-purple-800/40">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <h4 className="text-sm font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">{hiring.roleTitle}</h4>
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#FFEBAA] text-[#261615] border border-[#382322]">
                           {hiring.status === 'hired' ? 'Hired' : 'Open for Freelancers'}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-extrabold text-emerald-400">
+                        <span className="text-base font-extrabold font-serif text-emerald-700 dark:text-emerald-400">
                           {hiring.currency === 'INR' ? '₹' : '$'}{Number(hiring.budget).toLocaleString()}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleDeleteHiring(hiring._id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-[#5C3A38] dark:text-[#D4B8A8] hover:text-rose-600 transition-colors cursor-pointer"
                           title="Remove role position"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1438,7 +1442,7 @@ export const CreateProject = () => {
                     </div>
 
                     {hiring.description && (
-                      <p className="text-xs text-slate-300 leading-relaxed">
+                      <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] leading-relaxed">
                         {hiring.description}
                       </p>
                     )}
@@ -1446,8 +1450,8 @@ export const CreateProject = () => {
                     {/* Metadata tags */}
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       {hiring.firstDeadline && (
-                        <div className="flex items-center gap-1.5 text-[11px] text-amber-300 bg-amber-950/30 px-2.5 py-1 rounded-lg border border-amber-800/30">
-                          <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#261615] bg-[#FFEBAA] px-2.5 py-1 rounded-lg border border-[#382322]">
+                          <Calendar className="w-3.5 h-3.5 text-[#261615]" />
                           <span>Deadline: {new Date(hiring.firstDeadline).toLocaleDateString()}</span>
                         </div>
                       )}
@@ -1455,7 +1459,7 @@ export const CreateProject = () => {
                       {Array.isArray(hiring.requiredSkills) && hiring.requiredSkills.map((sk) => (
                         <span
                           key={sk}
-                          className="text-[11px] text-purple-300 bg-purple-950/50 px-2 py-0.5 rounded-md border border-purple-800/30"
+                          className="text-[11px] font-semibold text-[#261615] dark:text-[#FDEBDE] bg-white dark:bg-[#201413] px-2 py-0.5 rounded-md border border-[#382322]/30 dark:border-[#FDEBDE]/30"
                         >
                           {sk}
                         </span>
@@ -1464,7 +1468,7 @@ export const CreateProject = () => {
                       {Array.isArray(hiring.requiredTools) && hiring.requiredTools.map((tl) => (
                         <span
                           key={tl}
-                          className="text-[11px] text-indigo-300 bg-indigo-950/50 px-2 py-0.5 rounded-md border border-indigo-800/30"
+                          className="text-[11px] font-semibold text-[#261615] dark:text-[#FDEBDE] bg-[#B1C8EA]/30 dark:bg-[#B1C8EA]/20 px-2 py-0.5 rounded-md border border-[#382322]/30 dark:border-[#FDEBDE]/30"
                         >
                           {tl}
                         </span>
@@ -1477,29 +1481,29 @@ export const CreateProject = () => {
           </div>
 
           {/* Section: HIRED FREELANCERS */}
-          <div className="glass-card p-6 md:p-7 space-y-4 border border-white/[0.08]">
-            <div className="flex items-center gap-2 pb-3 border-b border-white/[0.05]">
-              <Users className="w-4 h-4 text-purple-400" />
-              <h3 className="text-base font-bold text-white">Hired Freelancers for this Project</h3>
+          <div className="bg-white dark:bg-[#201413] p-6 md:p-7 space-y-4 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20">
+            <div className="flex items-center gap-2 pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
+              <Users className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
+              <h3 className="text-base font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Hired Freelancers for this Project</h3>
             </div>
 
             {hiredFreelancers.length === 0 ? (
-              <div className="p-5 rounded-xl bg-[#141A28]/40 border border-white/[0.05] text-xs text-slate-400 text-center">
+              <div className="p-5 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] border border-[#382322]/20 dark:border-[#FDEBDE]/20 text-xs text-[#5C3A38] dark:text-[#D4B8A8] text-center">
                 No freelancers hired yet. Applications will appear in your project dashboard and applications inbox once freelancers apply to your active hirings.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {hiredFreelancers.map((hf) => (
-                  <div key={hf.hiringId} className="p-3.5 rounded-xl bg-[#141A28] border border-white/[0.08] flex items-center gap-3">
+                  <div key={hf.hiringId} className="p-3.5 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] flex items-center gap-3">
                     <img
                       src={hf.freelancer?.profileImage || '/default-pfp.png'}
                       alt={hf.freelancer?.name || 'Freelancer'}
-                      className="w-10 h-10 rounded-xl object-cover border border-purple-500/40"
+                      className="w-10 h-10 rounded-xl object-cover border-2 border-[#382322]"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-bold text-white truncate">{hf.freelancer?.name || 'Freelancer'}</div>
-                      <div className="text-[11px] text-purple-300 truncate">{hf.roleTitle}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">
+                      <div className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] truncate">{hf.freelancer?.name || 'Freelancer'}</div>
+                      <div className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] truncate">{hf.roleTitle}</div>
+                      <div className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono mt-0.5">
                         Agreed Budget: {hf.currency === 'INR' ? '₹' : '$'}{hf.budget}
                       </div>
                     </div>
@@ -1510,11 +1514,11 @@ export const CreateProject = () => {
           </div>
 
           {/* Bottom Action Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-5 rounded-2xl bg-[#0F1422] border border-white/[0.08]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-5 rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20">
             <button
               type="button"
               onClick={() => navigate('/creator/projects')}
-              className="text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] transition-colors cursor-pointer"
             >
               View in All Projects
             </button>
@@ -1546,24 +1550,24 @@ export const CreateProject = () => {
       {/* HIRING FORM MODAL (TRIGGERED BY "+ Post New Role / Hiring")               */}
       {/* ========================================================================= */}
       {isHiringModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-2xl glass-card p-6 md:p-8 border border-purple-500/40 shadow-2xl relative space-y-5 my-8">
+        <div className="fixed inset-0 z-50 bg-[#261615]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
+          <div className="w-full max-w-2xl bg-[#FFF7F1] dark:bg-[#261817] p-6 md:p-8 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#FDEBDE]/20 relative space-y-5 my-8">
             <button
               type="button"
               onClick={() => setIsHiringModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-5 right-5 p-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer shadow-[2px_2px_0_#382322]"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div>
-              <span className="text-[11px] font-bold text-purple-400 uppercase tracking-wider bg-purple-950/60 px-2.5 py-0.5 rounded border border-purple-800/40">
+              <span className="text-[11px] font-bold text-[#261615] uppercase tracking-wider bg-[#FFEBAA] px-2.5 py-0.5 rounded border border-[#382322]">
                 New Hiring Opening
               </span>
-              <h2 className="text-xl font-black text-white mt-1.5">
+              <h2 className="text-xl sm:text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] mt-1.5">
                 Post Role for {title || 'Project'}
               </h2>
-              <p className="text-xs text-slate-300 mt-1">
+              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1">
                 Select a content-creator role from the catalog, specify deliverables, skills, budget, and first milestone deadline.
               </p>
             </div>
@@ -1571,14 +1575,14 @@ export const CreateProject = () => {
             <form onSubmit={handlePostHiringSubmit} className="space-y-4 pt-1">
               {/* Select Role from Catalog (clean titles without parentheses) */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Select Role <span className="text-purple-400">*</span>
+                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
+                  Select Role <span className="text-rose-500">*</span>
                 </label>
                 <select
                   required
                   value={selectedRoleId}
                   onChange={(e) => handleRoleSelectChange(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500 transition-all cursor-pointer"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-semibold text-[#261615] dark:text-[#FDEBDE] shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] transition-all cursor-pointer"
                 >
                   <option value="">-- Choose Role from Catalog --</option>
                   {availableRoles.map((r) => (
@@ -1591,7 +1595,7 @@ export const CreateProject = () => {
 
               {/* Role Deliverables / Description */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
                   Role Deliverables & Scope Details
                 </label>
                 <textarea
@@ -1599,32 +1603,32 @@ export const CreateProject = () => {
                   placeholder="Detail what this freelancer must deliver (e.g. 1st rough cut with sound FX, color-graded delivery, 2 revisions included)..."
                   value={hiringDescription}
                   onChange={(e) => setHiringDescription(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none leading-relaxed"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] resize-none leading-relaxed"
                 />
               </div>
 
               {/* Required Skills & Software Tags */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-300 block">
-                  Required Skills & Tools <span className="text-purple-400">*</span>
+                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block">
+                  Required Skills & Tools <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {hiringSkills.map((sk) => (
                     <span
                       key={sk}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-950/50 text-purple-300 border border-purple-800/40 text-[11px]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFEBAA] text-[#261615] border border-[#382322] text-[11px] font-bold"
                     >
                       {sk}
-                      <button type="button" onClick={() => removeHiringSkill(sk)} className="hover:text-rose-400">&times;</button>
+                      <button type="button" onClick={() => removeHiringSkill(sk)} className="hover:text-rose-600">&times;</button>
                     </span>
                   ))}
                   {hiringTools.map((tl) => (
                     <span
                       key={tl}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-950/50 text-indigo-300 border border-indigo-800/40 text-[11px]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#B1C8EA] text-[#261615] border border-[#382322] text-[11px] font-bold"
                     >
                       {tl}
-                      <button type="button" onClick={() => removeHiringTool(tl)} className="hover:text-rose-400">&times;</button>
+                      <button type="button" onClick={() => removeHiringTool(tl)} className="hover:text-rose-600">&times;</button>
                     </span>
                   ))}
                 </div>
@@ -1635,9 +1639,9 @@ export const CreateProject = () => {
                     placeholder="Add specific skill/tool (e.g. DaVinci Resolve, Blender)..."
                     value={newHiringSkill}
                     onChange={(e) => setNewHiringSkill(e.target.value)}
-                    className="flex-1 px-3 py-1.5 rounded-lg bg-[#141A28] text-xs text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
+                    className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-[#201413] text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322]"
                   />
-                  <Button variant="subtle" size="sm" icon={Plus} onClick={addHiringSkill}>
+                  <Button variant="secondary" size="sm" icon={Plus} onClick={addHiringSkill}>
                     Add
                   </Button>
                 </div>
@@ -1647,11 +1651,11 @@ export const CreateProject = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Role Budget */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                    Budget for this Role <span className="text-purple-400">*</span>
+                  <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
+                    Budget for this Role <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8]">
                       {budgetCurrency === 'INR' ? '₹' : '$'}
                     </span>
                     <input
@@ -1660,11 +1664,11 @@ export const CreateProject = () => {
                       placeholder="e.g. 8000"
                       value={hiringBudget}
                       onChange={(e) => setHiringBudget(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white font-bold focus:outline-none focus:border-purple-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold text-[#261615] dark:text-[#FDEBDE] shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
                   {remainingBudget > 0 && (
-                    <span className="text-[10px] text-slate-400 mt-1 block">
+                    <span className="text-[10px] font-semibold text-[#5C3A38] dark:text-[#D4B8A8] mt-1 block">
                       Remaining in project budget: {budgetCurrency === 'INR' ? '₹' : '$'}{remainingBudget.toLocaleString()}
                     </span>
                   )}
@@ -1673,11 +1677,11 @@ export const CreateProject = () => {
                 {/* First Cut Deadline with Custom Date Picker */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-slate-300">
+                    <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE]">
                       First Milestone Deadline
                     </label>
                     {maxProjectTurnaroundDays && (
-                      <span className="text-[10px] text-purple-400 font-medium">
+                      <span className="text-[10px] text-[#382322] dark:text-[#FFEBAA] font-bold">
                         Max: {maxProjectTurnaroundDays} days
                       </span>
                     )}
@@ -1690,7 +1694,7 @@ export const CreateProject = () => {
                     placeholder="Pick milestone deadline..."
                   />
                   {currentDurationStr && (
-                    <span className="text-[10px] text-slate-400 mt-1 block">
+                    <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-1 block">
                       Turnaround limit: within {currentDurationStr}
                     </span>
                   )}
@@ -1699,7 +1703,7 @@ export const CreateProject = () => {
 
               {/* Specific References or Notes for this Role */}
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
                   Specific References or Notes for this Role
                 </label>
                 <textarea
@@ -1707,26 +1711,26 @@ export const CreateProject = () => {
                   placeholder="e.g. Reference video link, sound pack link, must provide source project files..."
                   value={hiringNotes}
                   onChange={(e) => setHiringNotes(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] resize-none"
                 />
               </div>
 
               {/* Milestones Escrow Breakdown for this Role */}
               {previewMilestones.length > 0 && (
-                <div className="p-4 rounded-2xl bg-[#0F1422] border border-white/[0.08] space-y-3">
+                <div className="p-4 rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <div className="w-6 h-6 rounded-lg bg-[#FFEBAA] border border-[#382322] flex items-center justify-center">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#261615]" />
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-white">Role Milestones & Escrow Allocation</h4>
-                        <p className="text-[11px] text-slate-400">
+                        <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Role Milestones & Escrow Allocation</h4>
+                        <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
                           Tailored 3-phase verification roadmap for {hiringRoleTitle}.
                         </p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#FFEBAA] text-[#261615] border border-[#382322]">
                       3 Milestones • 100% Budget
                     </span>
                   </div>
@@ -1735,32 +1739,32 @@ export const CreateProject = () => {
                     {previewMilestones.map((m) => (
                       <div
                         key={m.id}
-                        className="p-3 rounded-xl bg-[#141A28] border border-white/[0.05] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                        className="p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] border border-[#382322]/20 dark:border-[#FDEBDE]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
                       >
                         <div className="space-y-0.5 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded-full bg-white/[0.08] text-[10px] font-bold text-slate-300 flex items-center justify-center shrink-0">
+                            <span className="w-4 h-4 rounded-full bg-[#382322] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
                               {m.index}
                             </span>
-                            <span className="text-xs font-semibold text-white truncate">
+                            <span className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] truncate">
                               {m.title}
                             </span>
-                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-purple-950/60 text-purple-300 border border-purple-800/40 shrink-0">
+                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#FFEBAA] text-[#261615] border border-[#382322] shrink-0">
                               {Math.round(m.percent * 100)}%
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-400 pl-6 leading-tight">
+                          <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] pl-6 leading-tight">
                             {m.description}
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-6 sm:pl-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-white/[0.04]">
+                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-6 sm:pl-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-[#382322]/10">
                           {m.deadline && (
-                            <span className="text-[10px] text-amber-300 font-mono">
+                            <span className="text-[10px] text-[#261615] dark:text-[#FFEBAA] font-mono font-bold">
                               Due: {new Date(m.deadline).toLocaleDateString()}
                             </span>
                           )}
-                          <span className="text-xs font-mono font-bold text-emerald-400">
+                          <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">
                             {budgetCurrency === 'INR' ? '₹' : '$'}{m.amount.toLocaleString()}
                           </span>
                         </div>
@@ -1771,45 +1775,45 @@ export const CreateProject = () => {
               )}
 
               {/* AI Budget & Deadline Suggestion Section (Bottom of Form) */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-950/40 via-[#141A28] to-indigo-950/30 border border-purple-500/30 space-y-3">
+              <div className="p-4 rounded-2xl bg-[#B1C8EA]/20 dark:bg-[#B1C8EA]/10 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
-                      <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                    <div className="w-6 h-6 rounded-lg bg-[#FFEBAA] border border-[#382322] flex items-center justify-center">
+                      <Sparkles className="w-3.5 h-3.5 text-[#261615]" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-white">AI Budget & Deadline Suggestion</h4>
-                      <p className="text-[11px] text-slate-400">
+                      <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">AI Budget & Deadline Suggestion</h4>
+                      <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
                         Suggests fair budget & delivery date using role, skills, and project scope.
                       </p>
                     </div>
                   </div>
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#382322] ${
                     canAiSuggest
-                      ? 'bg-emerald-950/60 text-emerald-300 border-emerald-800/40'
-                      : 'bg-amber-950/60 text-amber-300 border-amber-800/40'
+                      ? 'bg-[#FFEBAA] text-[#261615]'
+                      : 'bg-white dark:bg-[#201413] text-[#5C3A38] dark:text-[#D4B8A8]'
                   }`}>
                     {canAiSuggest ? 'Ready for AI' : 'Criteria Required'}
                   </span>
                 </div>
 
                 {/* Inherited Project Scope Metadata */}
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-300 pt-0.5">
-                  <span className="text-slate-400">Project Context:</span>
-                  <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.06] text-purple-300">
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold text-[#261615] dark:text-[#FDEBDE] pt-0.5">
+                  <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Project Context:</span>
+                  <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
                     Category: {effectiveCategory || 'From Project'}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.06] text-indigo-300">
+                  <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
                     Style: {effectiveStyle || 'From Project'}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-white/[0.05] border border-white/[0.06] text-slate-200">
+                  <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
                     Length: {effectiveDuration || 'From Project'}
                   </span>
                 </div>
 
                 {!canAiSuggest && (
-                  <div className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-800/30 text-[11px] text-amber-200 flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/40 text-[11px] text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
                     <p className="leading-relaxed">
                       Select a <strong>Role</strong> and add at least one <strong>Skill or Tool</strong> to enable AI suggestions. The project category, editing style, and video length are automatically inherited.
                     </p>
@@ -1821,38 +1825,38 @@ export const CreateProject = () => {
                   type="button"
                   onClick={handleAiSuggestHiring}
                   disabled={isAiSuggestingHiring || !canAiSuggest}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 text-white shadow-md shadow-purple-900/30 border border-purple-400/40 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group"
                 >
-                  <Sparkles className={`w-3.5 h-3.5 text-purple-200 group-hover:rotate-12 transition-transform ${isAiSuggestingHiring ? 'animate-spin' : ''}`} />
+                  <Sparkles className={`w-3.5 h-3.5 text-[#261615] group-hover:rotate-12 transition-transform ${isAiSuggestingHiring ? 'animate-spin' : ''}`} />
                   <span>{isAiSuggestingHiring ? 'AI Computing Budget & Deadline...' : '✨ Suggest Budget & First Deadline with AI'}</span>
                 </button>
 
                 {/* AI Results Display Card */}
                 {aiSuggestionData && (
-                  <div className="p-3.5 rounded-xl bg-[#0F1420] border border-purple-500/40 space-y-2 text-xs animate-fade-in">
-                    <div className="flex items-center justify-between border-b border-white/[0.06] pb-2">
-                      <span className="font-semibold text-emerald-400 flex items-center gap-1.5 text-xs">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <div className="p-3.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] space-y-2 text-xs animate-fade-in">
+                    <div className="flex items-center justify-between border-b border-[#382322]/10 dark:border-[#FDEBDE]/10 pb-2">
+                      <span className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 text-xs">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                         AI Recommendations Applied to Inputs Above
                       </span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       <div className="space-y-0.5">
-                        <div className="text-[11px] text-slate-400">Suggested Budget:</div>
-                        <div className="text-sm font-bold text-emerald-400">
+                        <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Suggested Budget:</div>
+                        <div className="text-sm font-black font-serif text-emerald-700 dark:text-emerald-400">
                           {budgetCurrency === 'INR' ? '₹' : '$'}{Number(aiSuggestionData.suggestedBudget).toLocaleString()}
                         </div>
                         {aiSuggestionData.budgetRationale && (
-                          <p className="text-[10px] text-slate-400 leading-tight">{aiSuggestionData.budgetRationale}</p>
+                          <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] leading-tight">{aiSuggestionData.budgetRationale}</p>
                         )}
                       </div>
                       <div className="space-y-0.5">
-                        <div className="text-[11px] text-slate-400">Suggested First Deadline:</div>
-                        <div className="text-sm font-bold text-amber-300">
+                        <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Suggested First Deadline:</div>
+                        <div className="text-sm font-black font-serif text-[#261615] dark:text-[#FFEBAA]">
                           ~{aiSuggestionData.suggestedDeadlineDays || 4} Days ({new Date(aiSuggestionData.suggestedFirstDeadline).toLocaleDateString()})
                         </div>
                         {aiSuggestionData.timelineRationale && (
-                          <p className="text-[10px] text-slate-400 leading-tight">{aiSuggestionData.timelineRationale}</p>
+                          <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] leading-tight">{aiSuggestionData.timelineRationale}</p>
                         )}
                       </div>
                     </div>
@@ -1861,18 +1865,18 @@ export const CreateProject = () => {
               </div>
 
               {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.06]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
                 <button
                   type="button"
                   onClick={() => setIsHiringModalOpen(false)}
-                  className="px-4 py-2 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isPostingHiring}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-900/40 transition-all cursor-pointer disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] font-bold text-xs uppercase tracking-wider border-2 border-[#382322] shadow-[3px_3px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-50"
                 >
                   {isPostingHiring ? 'Posting Opening...' : 'Post Hiring Position'}
                 </button>
@@ -1886,40 +1890,38 @@ export const CreateProject = () => {
       {/* FINAL COMPLETION MODAL                                                    */}
       {/* ========================================================================= */}
       {showFinalModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-lg glass-card p-8 border border-purple-500/40 shadow-2xl relative text-center space-y-5">
-            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-emerald-500 p-0.5 mx-auto shadow-lg shadow-purple-900/50 flex items-center justify-center">
-              <div className="w-full h-full rounded-[22px] bg-[#0A0D15] flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-emerald-400 animate-bounce" />
-              </div>
+        <div className="fixed inset-0 z-50 bg-[#261615]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg bg-[#FFF7F1] dark:bg-[#261817] p-8 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#FDEBDE]/20 relative text-center space-y-5">
+            <div className="w-16 h-16 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] p-0.5 mx-auto shadow-[3px_3px_0_#382322] flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-[#261615]" />
             </div>
 
             <div>
-              <span className="text-[11px] font-bold text-purple-400 uppercase tracking-widest bg-purple-950/60 px-3 py-1 rounded-full border border-purple-800/40">
+              <span className="text-[11px] font-bold text-[#261615] uppercase tracking-widest bg-[#FFEBAA] px-3 py-1 rounded-full border border-[#382322]">
                 Project & Team Configured
               </span>
-              <h2 className="text-2xl font-black text-white mt-2 tracking-tight">
+              <h2 className="text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] mt-2 tracking-tight">
                 Project & Hirings are Live! 🚀
               </h2>
-              <p className="text-xs text-slate-300 mt-1.5 max-w-md mx-auto leading-relaxed">
+              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1.5 max-w-md mx-auto leading-relaxed">
                 Your production brief and {hirings.length} hiring position(s) are active on Collabo. Freelancers and editors can now discover and apply to your roles.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#141A28]/80 border border-white/[0.08] text-left text-xs space-y-2">
-              <div className="flex justify-between items-center pb-2 border-b border-white/[0.05]">
-                <span className="text-slate-400">Project:</span>
-                <span className="font-semibold text-white truncate max-w-[220px]">{title}</span>
+            <div className="p-4 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-left text-xs space-y-2">
+              <div className="flex justify-between items-center pb-2 border-b border-[#382322]/10 dark:border-[#FDEBDE]/10">
+                <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Project:</span>
+                <span className="font-bold text-[#261615] dark:text-[#FDEBDE] truncate max-w-[220px]">{title}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">Total Budget:</span>
-                <span className="font-bold text-emerald-400">
+                <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Total Budget:</span>
+                <span className="font-extrabold font-serif text-emerald-700 dark:text-emerald-400">
                   {budgetCurrency === 'INR' ? '₹' : '$'}{numericTotalBudget.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">Open Role Openings:</span>
-                <span className="font-semibold text-purple-300">{hirings.length} Positions</span>
+                <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Open Role Openings:</span>
+                <span className="font-bold text-[#261615] dark:text-[#FFEBAA]">{hirings.length} Positions</span>
               </div>
             </div>
 

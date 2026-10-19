@@ -21,13 +21,13 @@ export const Button = ({
   };
 
   const variantStyles = {
-    primary: "bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-900/30",
-    secondary: "bg-purple-900/30 hover:bg-purple-800/40 text-purple-300 border border-purple-600/30",
-    accept: "bg-emerald-600 hover:bg-emerald-500 text-white font-medium shadow-sm shadow-emerald-950",
-    reject: "bg-rose-600 hover:bg-rose-500 text-white font-medium shadow-sm shadow-rose-950",
-    outline: "bg-transparent hover:bg-white/[0.05] text-slate-300 hover:text-white border border-white/[0.12]",
-    subtle: "bg-white/[0.05] hover:bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.06]",
-    ghost: "bg-transparent hover:bg-white/[0.06] text-slate-400 hover:text-slate-100",
+    primary: "bg-[#382322] hover:bg-[#261615] text-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] dark:bg-[#FFEBAA] dark:hover:bg-[#fff0c2] dark:text-[#261615] dark:border-[#FFEBAA] dark:shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px]",
+    secondary: "bg-[#FFEBAA] hover:bg-[#fff2cc] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] dark:bg-[#2D1C1B] dark:hover:bg-[#382322] dark:text-[#FFEBAA] dark:border-[#FFEBAA]/50 dark:shadow-[2px_2px_0_#000]",
+    accept: "bg-emerald-600 hover:bg-emerald-500 text-white font-semibold border-2 border-emerald-900 shadow-[2px_2px_0_#064e3b]",
+    reject: "bg-rose-600 hover:bg-rose-500 text-white font-semibold border-2 border-rose-900 shadow-[2px_2px_0_#881337]",
+    outline: "bg-transparent hover:bg-[#382322]/10 text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 dark:hover:bg-white/5",
+    subtle: "bg-[#FAF0E6] dark:bg-[#281B1A] hover:bg-[#F5D7C2] dark:hover:bg-[#33201F] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/20 dark:border-[#FDEBDE]/20",
+    ghost: "bg-transparent hover:bg-[#382322]/10 dark:hover:bg-white/10 text-[#382322] dark:text-[#FDEBDE]",
   };
 
   return (

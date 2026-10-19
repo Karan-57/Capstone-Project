@@ -296,8 +296,8 @@ export default function AuthModal({
     <div
       className={
         isFullPage
-          ? "min-h-screen bg-[#07090E] flex flex-col items-center justify-center p-4 py-8 sm:py-12 relative overflow-y-auto"
-          : "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn overflow-y-auto"
+          ? "min-h-screen bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] flex flex-col items-center justify-center p-4 py-8 sm:py-12 relative overflow-y-auto"
+          : "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto text-[#261615] dark:text-[#FDEBDE]"
       }
     >
       {/* Background Glows */}

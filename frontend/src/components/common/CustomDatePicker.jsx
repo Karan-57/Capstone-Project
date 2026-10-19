@@ -139,15 +139,15 @@ export const CustomDatePicker = ({
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border text-xs text-left flex items-center justify-between transition-all cursor-pointer ${
+        className={`w-full px-3.5 py-2.5 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-left flex items-center justify-between transition-all cursor-pointer shadow-[2px_2px_0_#382322] ${
           isOpen
-            ? 'border-purple-500 ring-2 ring-purple-500/20 text-white'
-            : 'border-white/[0.08] hover:border-white/[0.16] text-slate-200'
+            ? 'ring-2 ring-[#FFEBAA]'
+            : 'hover:bg-[#FDEBDE] dark:hover:bg-[#2A1B19]'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <CalendarIcon className="w-4 h-4 text-purple-400 shrink-0" />
-          <span className={`truncate font-medium ${value ? 'text-white' : 'text-slate-400'}`}>
+          <CalendarIcon className="w-4 h-4 text-[#261615] dark:text-[#FFEBAA] shrink-0" />
+          <span className={`truncate font-bold font-mono ${value ? 'text-[#261615] dark:text-[#FDEBDE]' : 'text-[#5C3A38] dark:text-[#D4B8A8]'}`}>
             {value ? formatDisplay(value) : placeholder}
           </span>
         </div>
@@ -157,7 +157,7 @@ export const CustomDatePicker = ({
               e.stopPropagation();
               if (onChange) onChange('');
             }}
-            className="p-1 hover:bg-white/10 rounded-md text-slate-400 hover:text-rose-400 transition-colors"
+            className="p-1 hover:bg-[#FFEBAA] dark:hover:bg-[#382322] text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FFEBAA] transition-colors cursor-pointer"
             title="Clear date"
           >
             <X className="w-3.5 h-3.5" />
@@ -167,17 +167,17 @@ export const CustomDatePicker = ({
 
       {/* Calendar Dropdown Popover */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 z-50 w-72 p-3.5 rounded-2xl bg-[#0B0F19]/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-purple-950/50 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute left-0 top-full mt-2 z-50 w-72 p-4 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[6px_6px_0_#382322] dark:shadow-[6px_6px_0_#000] text-[#261615] dark:text-[#FDEBDE] animate-in fade-in zoom-in-95 duration-150">
           {/* Header Month / Year controls */}
           <div className="flex items-center justify-between mb-3 px-1">
-            <span className="text-xs font-bold text-white tracking-wide">
-              {monthNames[month]} <span className="text-purple-400">{year}</span>
+            <span className="text-xs font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-wide">
+              {monthNames[month]} <span className="font-mono text-[#8A5200] dark:text-[#FFEBAA]">{year}</span>
             </span>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={prevMonth}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-slate-300 hover:text-white transition-colors"
+                className="p-1.5 border border-[#382322]/20 dark:border-[#FDEBDE]/20 bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FDEBDE] transition-colors cursor-pointer"
                 title="Previous month"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -185,7 +185,7 @@ export const CustomDatePicker = ({
               <button
                 type="button"
                 onClick={nextMonth}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] text-slate-300 hover:text-white transition-colors"
+                className="p-1.5 border border-[#382322]/20 dark:border-[#FDEBDE]/20 bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FDEBDE] transition-colors cursor-pointer"
                 title="Next month"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export const CustomDatePicker = ({
           {/* Weekday labels */}
           <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
             {daysOfWeek.map((day) => (
-              <span key={day} className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider py-1">
+              <span key={day} className="text-[10px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] uppercase tracking-wider py-1">
                 {day}
               </span>
             ))}
@@ -208,7 +208,7 @@ export const CustomDatePicker = ({
             {Array.from({ length: firstDayOfMonth }).map((_, idx) => (
               <span
                 key={`prev-${idx}`}
-                className="h-8 flex items-center justify-center text-[11px] text-slate-600 select-none"
+                className="h-8 flex items-center justify-center text-[11px] font-mono text-[#5C3A38]/40 dark:text-[#D4B8A8]/40 select-none"
               >
                 {daysInPrevMonth - firstDayOfMonth + idx + 1}
               </span>
@@ -227,13 +227,13 @@ export const CustomDatePicker = ({
                   key={`day-${day}`}
                   disabled={disabledDay}
                   onClick={() => handleSelectDay(day)}
-                  className={`h-8 rounded-lg text-xs font-medium transition-all flex items-center justify-center relative ${
+                  className={`h-8 text-xs font-mono font-bold transition-all flex items-center justify-center relative cursor-pointer ${
                     selected
-                      ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-900/50 scale-105'
+                      ? 'bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] scale-105'
                       : disabledDay
-                      ? 'text-slate-600 cursor-not-allowed opacity-40'
-                      : 'text-slate-200 hover:bg-white/[0.08] hover:text-white'
-                  } ${today && !selected ? 'border border-purple-500/50 text-purple-300 font-semibold' : ''}`}
+                      ? 'text-[#5C3A38]/30 dark:text-[#D4B8A8]/30 cursor-not-allowed'
+                      : 'text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFF7F1] dark:hover:bg-[#2A1B19]'
+                  } ${today && !selected ? 'border border-[#382322] dark:border-[#FFEBAA] text-[#261615] dark:text-[#FFEBAA]' : ''}`}
                 >
                   {day}
                 </button>
@@ -242,7 +242,7 @@ export const CustomDatePicker = ({
           </div>
 
           {/* Quick shortcuts / Helper row */}
-          <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
+          <div className="mt-3 pt-2.5 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-between text-[11px] font-mono">
             <button
               type="button"
               onClick={() => {
@@ -254,12 +254,12 @@ export const CustomDatePicker = ({
                   }
                 }
               }}
-              className="text-purple-400 hover:text-purple-300 transition-colors font-medium cursor-pointer"
+              className="font-bold uppercase tracking-wider text-[#8A5200] dark:text-[#FFEBAA] hover:underline cursor-pointer"
             >
               Today
             </button>
             {maxDate && (
-              <span className="text-slate-400 text-[10px]">
+              <span className="text-[#5C3A38] dark:text-[#D4B8A8] text-[10px]">
                 Max: {formatDisplay(maxDate)}
               </span>
             )}

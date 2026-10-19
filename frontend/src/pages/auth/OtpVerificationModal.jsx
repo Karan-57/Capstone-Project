@@ -219,43 +219,40 @@ export default function OtpVerificationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn">
-      {/* Glow aura */}
-      <div className="absolute w-96 h-96 rounded-full bg-gradient-to-tr from-purple-600/20 to-blue-500/20 blur-3xl pointer-events-none" />
-
-      <div className="relative w-full max-w-md bg-[#0F1424] border border-white/10 rounded-2xl shadow-2xl p-6 sm:p-8 text-center overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn text-[#261615] dark:text-[#FDEBDE]">
+      <div className="relative w-full max-w-md bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] p-6 sm:p-8 text-center overflow-hidden">
         {/* Subtle accent bar at top */}
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${accentGradient}`} />
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#FFEBAA] border-b border-[#382322]" />
 
         {/* Icon & Heading */}
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4 text-purple-400 shadow-inner">
-          <ShieldCheck className="w-7 h-7" />
+        <div className="mx-auto w-14 h-14 bg-[#FFEBAA] border-2 border-[#382322] shadow-[3px_3px_0_#382322] flex items-center justify-center mb-4 text-[#261615]">
+          <ShieldCheck className="w-7 h-7 text-[#261615]" />
         </div>
 
-        <h3 className="text-xl font-bold text-white tracking-tight flex items-center justify-center gap-1.5">
+        <h3 className="text-xl sm:text-2xl font-serif font-black text-[#261615] dark:text-[#FDEBDE] tracking-tight flex items-center justify-center gap-1.5">
           Verify Your Email
-          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+          <Sparkles className="w-4 h-4 text-[#8A5200] dark:text-[#FFEBAA]" />
         </h3>
 
-        <p className="text-xs text-slate-400 mt-1.5 max-w-xs mx-auto leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#5C3A38] dark:text-[#D4B8A8] mt-1.5 max-w-xs mx-auto leading-relaxed font-sans">
           We sent a 6-digit confirmation code to{" "}
-          <span className="text-slate-200 font-semibold">{email || "your email address"}</span>
+          <span className="text-[#261615] dark:text-[#FDEBDE] font-bold underline decoration-[#FFEBAA]">{email || "your email address"}</span>
         </p>
 
         {/* Messages */}
         {errorMsg && (
-          <div className="mt-4 p-2.5 rounded-xl text-xs bg-rose-500/10 border border-rose-500/25 text-rose-400 font-medium animate-shake">
+          <div className="mt-4 p-2.5 bg-[#FFE4E6] dark:bg-[#881337] border-2 border-[#382322] text-[#9F1239] dark:text-[#FECDD3] text-xs font-bold animate-shake font-sans">
             {errorMsg}
           </div>
         )}
         {successMsg && (
-          <div className="mt-4 p-2.5 rounded-xl text-xs bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 font-medium flex items-center justify-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <div className="mt-4 p-2.5 bg-[#D1FAE5] dark:bg-[#064E3B] border-2 border-[#382322] text-[#065F46] dark:text-[#A7F3D0] text-xs font-bold flex items-center justify-center gap-1.5 font-sans">
+            <CheckCircle2 className="w-4 h-4 text-[#059669]" />
             {successMsg}
           </div>
         )}
 
-        {/* Form with 6 aesthetic inputs */}
+        {/* Form with 6 inputs */}
         <form onSubmit={handleManualSubmit} className="mt-6">
           <div className="flex items-center justify-center gap-2 sm:gap-3">
             {digits.map((digit, idx) => {
@@ -272,19 +269,17 @@ export default function OtpVerificationModal({
                     onFocus={() => setActiveIdx(idx)}
                     onChange={(e) => handleChange(idx, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(idx, e)}
-                    className={`w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold rounded-xl outline-none transition-all duration-200 font-mono ${
+                    className={`w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-bold font-mono outline-none transition-all duration-200 border-2 ${
                       isFilled
-                        ? "bg-emerald-950/40 text-emerald-300 border-2 border-emerald-500/80 shadow-[0_0_12px_rgba(16,185,129,0.35)] scale-102"
+                        ? "bg-[#D1FAE5] dark:bg-[#064E3B] text-[#065F46] dark:text-[#A7F3D0] border-[#065F46] shadow-[2px_2px_0_#065F46]"
                         : isActive
-                        ? isCreator
-                          ? "bg-purple-950/30 text-white border-2 border-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
-                          : "bg-blue-950/30 text-white border-2 border-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.3)]"
-                        : "bg-white/[0.04] text-white border border-white/10 hover:border-white/20"
+                        ? "bg-[#FFEBAA] text-[#261615] border-[#382322] shadow-[3px_3px_0_#382322]"
+                        : "bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322]"
                     }`}
                   />
                   {/* Green signal check pip when number is entered */}
                   {isFilled && (
-                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] shadow-sm animate-scaleIn">
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#059669] text-white flex items-center justify-center text-[10px] border border-[#382322] font-bold">
                       ✓
                     </span>
                   )}
@@ -297,11 +292,11 @@ export default function OtpVerificationModal({
           <button
             type="submit"
             disabled={isVerifying || digits.join("").length !== 6}
-            className={`mt-6 w-full py-3 px-4 rounded-xl text-white text-sm font-semibold tracking-wide transition-all duration-300 shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r ${accentGradient}`}
+            className="mt-6 w-full py-3 px-4 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[3px_3px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:translate-x-0.5 active:translate-y-0.5"
           >
             {isVerifying ? (
               <>
-                <RotateCw className="w-4 h-4 animate-spin" />
+                <RotateCw className="w-4 h-4 animate-spin text-[#261615]" />
                 <span>Verifying Security Code...</span>
               </>
             ) : (
@@ -314,11 +309,11 @@ export default function OtpVerificationModal({
         </form>
 
         {/* Resend and cancel actions */}
-        <div className="mt-5 flex items-center justify-between text-xs text-slate-400">
+        <div className="mt-5 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider">
           <button
             type="button"
             onClick={onCancel}
-            className="hover:text-slate-200 transition-colors cursor-pointer"
+            className="text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] transition-colors cursor-pointer"
           >
             Back to Sign In
           </button>
@@ -327,18 +322,16 @@ export default function OtpVerificationModal({
             type="button"
             disabled={resendCooldown > 0 || isResending}
             onClick={handleResend}
-            className={`flex items-center gap-1 font-semibold transition-colors cursor-pointer ${
+            className={`flex items-center gap-1 transition-colors cursor-pointer ${
               resendCooldown > 0
-                ? "text-slate-500 cursor-not-allowed"
-                : isCreator
-                ? "text-purple-400 hover:text-purple-300"
-                : "text-blue-400 hover:text-blue-300"
+                ? "text-[#5C3A38]/50 dark:text-[#D4B8A8]/50 cursor-not-allowed"
+                : "text-[#8A5200] dark:text-[#FFEBAA] hover:underline"
             }`}
           >
             {isResending ? (
               <RotateCw className="w-3.5 h-3.5 animate-spin" />
             ) : resendCooldown > 0 ? (
-              `Resend Code (${formatCooldown(resendCooldown)})`
+              `Resend (${formatCooldown(resendCooldown)})`
             ) : (
               "Resend Code"
             )}

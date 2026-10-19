@@ -146,7 +146,7 @@ export const EditorEditProfile = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-7 pb-16 animate-fade-in">
+    <div className="max-w-3xl mx-auto space-y-7 pb-16 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
       <SEO
         title="Edit Editor Profile"
         description="Showcase your video editing showreel, software expertise, rates, and portfolio highlights."
@@ -155,16 +155,19 @@ export const EditorEditProfile = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={() => navigate('/editor/profile')}
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-400 hover:text-white border border-white/[0.06] transition-colors"
+            className="p-2 rounded-xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-purple-400 bg-purple-950/40 px-2 py-0.5 rounded-md border border-purple-800/30">
-              Editor Portfolio Hub
-            </span>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight mt-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#261615] bg-[#FFEBAA] px-2.5 py-0.5 rounded-md border-2 border-[#382322] shadow-[2px_2px_0_#382322]">
+                Editor Portfolio Hub
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">
               Edit Editor Profile & Showreel
             </h1>
           </div>
@@ -173,7 +176,7 @@ export const EditorEditProfile = () => {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Avatar */}
-        <div className="glass-card p-5 sm:p-6 border border-white/[0.08] flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5">
+        <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-5 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-5">
           <div className="relative group shrink-0">
             <img
               src={avatar || DEFAULT_PFP}
@@ -183,7 +186,7 @@ export const EditorEditProfile = () => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
               }}
-              className="w-20 h-20 rounded-2xl object-cover border-2 border-purple-500/40"
+              className="w-20 h-20 rounded-2xl object-cover border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[2px_2px_0_#382322] bg-[#FAF0E6]"
             />
             <input
               type="file"
@@ -201,14 +204,14 @@ export const EditorEditProfile = () => {
             </button>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Editor Avatar</h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Upload custom picture from your PC or use default profile picture.
+            <h3 className="text-sm sm:text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Editor Avatar</h3>
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
+              Upload custom picture from your computer or use default profile picture.
             </p>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="mt-2 text-xs font-semibold text-purple-400 hover:text-purple-300 underline underline-offset-2 flex items-center justify-center sm:justify-start gap-1 cursor-pointer"
+              className="mt-2 text-xs font-mono font-bold text-[#261615] dark:text-[#FFEBAA] underline underline-offset-2 flex items-center justify-center sm:justify-start gap-1 cursor-pointer"
             >
               <UploadCloud className="w-3.5 h-3.5" />
               {isUploadingImg ? 'Uploading from PC...' : 'Upload from PC'}
@@ -217,10 +220,10 @@ export const EditorEditProfile = () => {
         </div>
 
         {/* Identity & Bio */}
-        <div className="glass-card p-5 sm:p-7 space-y-4 border border-white/[0.08]">
+        <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-5 sm:p-7 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
                 Full Name / Studio
               </label>
               <input
@@ -228,12 +231,12 @@ export const EditorEditProfile = () => {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
                 Professional Title
               </label>
               <input
@@ -241,82 +244,82 @@ export const EditorEditProfile = () => {
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
+            <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5 flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-purple-400" />
+                <Phone className="w-3.5 h-3.5 text-[#261615] dark:text-[#FFEBAA]" />
                 Phone Number
               </span>
-              <span className="text-[11px] text-slate-500 font-normal">Optional</span>
+              <span className="text-[11px] font-normal text-[#5C3A38] dark:text-[#D4B8A8]">Optional</span>
             </label>
             <input
               type="tel"
               placeholder="+91 98765 43210"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500 placeholder:text-slate-600"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all placeholder:text-[#5C3A38]/50"
             />
-            <p className="text-[11px] text-slate-500 mt-1">
+            <p className="text-[11px] font-mono text-[#5C3A38] dark:text-[#D4B8A8] mt-1">
               Used for client communication. Manage who can view your number in Settings (Public, Hired Only, or Private).
             </p>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+            <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
               Bio & Pitch to Clients
             </label>
             <textarea
               rows={3}
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500 resize-none leading-relaxed"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-medium text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] resize-none leading-relaxed transition-all"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
                 Hourly Rate
               </label>
               <input
                 type="text"
                 value={hourlyRate}
                 onChange={(e) => setHourlyRate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
                 Standard Video Flat Rate
               </label>
               <input
                 type="text"
                 value={perVideoRate}
                 onChange={(e) => setPerVideoRate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* Content Creator Sub-Roles & Specializations */}
-        <div className="glass-card p-5 sm:p-7 space-y-4 border border-white/[0.08]" ref={roleDropdownRef}>
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.05]">
+        <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-5 sm:p-7 space-y-4" ref={roleDropdownRef}>
+          <div className="flex items-center justify-between pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/20">
             <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 text-purple-400" />
-              <h3 className="text-base font-bold text-white">Freelancer Creator Sub-Roles</h3>
+              <Tag className="w-4 h-4 text-[#261615] dark:text-[#FFEBAA]" />
+              <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Freelancer Creator Sub-Roles</h3>
             </div>
-            <span className="text-[11px] text-slate-400 font-mono">
+            <span className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8]">
               {subRoles.length} selected
             </span>
           </div>
 
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
             Select the specific content-creation roles you specialize in. Creators search and hire freelancers by these roles.
           </p>
 
@@ -326,14 +329,14 @@ export const EditorEditProfile = () => {
               {subRoles.map((roleTitle) => (
                 <span
                   key={roleTitle}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/20 text-purple-200 border border-purple-500/30 text-xs font-semibold shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] text-xs font-mono font-bold shadow-[2px_2px_0_#382322]"
                 >
-                  <Check className="w-3.5 h-3.5 text-purple-400" />
+                  <Check className="w-3.5 h-3.5 text-[#261615]" />
                   {roleTitle}
                   <button
                     type="button"
                     onClick={() => removeSubRole(roleTitle)}
-                    className="ml-1 text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                    className="ml-1 text-[#261615]/70 hover:text-rose-600 transition-colors cursor-pointer"
                     title="Remove role"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -346,7 +349,7 @@ export const EditorEditProfile = () => {
           {/* Searchable Dropdown Trigger & Input */}
           <div className="relative">
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-[#5C3A38] dark:text-[#D4B8A8] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search creator roles (e.g. Thumbnail Designer, Sound Designer, Scriptwriter)..."
@@ -356,12 +359,12 @@ export const EditorEditProfile = () => {
                   setRoleSearchQuery(e.target.value);
                   setIsRoleDropdownOpen(true);
                 }}
-                className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500 transition-all placeholder:text-slate-500"
+                className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all placeholder:text-[#5C3A38]/50"
               />
               <button
                 type="button"
                 onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] p-1 cursor-pointer"
               >
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -369,7 +372,7 @@ export const EditorEditProfile = () => {
 
             {/* Dropdown Menu */}
             {isRoleDropdownOpen && (
-              <div className="absolute z-30 left-0 right-0 mt-2 max-h-64 overflow-y-auto rounded-xl bg-[#0F1420] border border-purple-500/30 shadow-2xl backdrop-blur-xl p-2 space-y-1">
+              <div className="absolute z-30 left-0 right-0 mt-2 max-h-64 overflow-y-auto rounded-xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] p-2 space-y-1">
                 {availableRoles
                   .filter((r) =>
                     r.title.toLowerCase().includes(roleSearchQuery.toLowerCase()) ||
@@ -385,33 +388,33 @@ export const EditorEditProfile = () => {
                         onClick={() => toggleSubRole(role.title)}
                         className={`w-full flex items-center justify-between text-left px-3 py-2.5 rounded-lg text-xs transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-purple-600/25 text-purple-200 border border-purple-500/30'
-                            : 'hover:bg-white/[0.05] text-slate-200'
+                            ? 'bg-[#FFEBAA] text-[#261615] border border-[#382322] font-bold'
+                            : 'hover:bg-[#FAF0E6] dark:hover:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE]'
                         }`}
                       >
                         <div className="flex-1 min-w-0 pr-3">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white">{role.title}</span>
+                            <span className="font-bold text-[#261615] dark:text-[#FDEBDE]">{role.title}</span>
                             {role.category && (
-                              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-white/[0.06] text-slate-400 border border-white/[0.05]">
+                              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-[#FAF0E6] dark:bg-[#19100F] text-[#5C3A38] dark:text-[#D4B8A8] border border-[#382322]/20">
                                 {role.category}
                               </span>
                             )}
                           </div>
                           {role.description && (
-                            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                            <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] truncate mt-0.5">
                               {role.description}
                             </p>
                           )}
                         </div>
                         <div className="shrink-0">
                           {isSelected ? (
-                            <div className="w-5 h-5 rounded-md bg-purple-600 flex items-center justify-center text-white">
+                            <div className="w-5 h-5 rounded-md bg-[#382322] text-[#FFEBAA] flex items-center justify-center">
                               <Check className="w-3.5 h-3.5" />
                             </div>
                           ) : (
-                            <div className="w-5 h-5 rounded-md border border-white/[0.2] flex items-center justify-center text-transparent hover:border-purple-400">
-                              <Plus className="w-3.5 h-3.5 text-slate-400" />
+                            <div className="w-5 h-5 rounded-md border-2 border-[#382322]/30 flex items-center justify-center text-transparent hover:border-[#382322]">
+                              <Plus className="w-3.5 h-3.5 text-[#5C3A38]" />
                             </div>
                           )}
                         </div>
@@ -424,7 +427,7 @@ export const EditorEditProfile = () => {
                   r.category?.toLowerCase().includes(roleSearchQuery.toLowerCase()) ||
                   r.description?.toLowerCase().includes(roleSearchQuery.toLowerCase())
                 ).length === 0 && (
-                  <div className="text-center py-4 text-xs text-slate-400">
+                  <div className="text-center py-4 text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8]">
                     No matching roles found.
                   </div>
                 )}
@@ -434,14 +437,14 @@ export const EditorEditProfile = () => {
         </div>
 
         {/* Showreel Section */}
-        <div className="glass-card p-5 sm:p-7 space-y-4 border border-white/[0.08]">
-          <div className="flex items-center gap-2 pb-3 border-b border-white/[0.05]">
-            <Film className="w-4 h-4 text-purple-400" />
-            <h3 className="text-base font-bold text-white">Featured 2026 Showreel</h3>
+        <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-5 sm:p-7 space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/20">
+            <Film className="w-4 h-4 text-[#261615] dark:text-[#FFEBAA]" />
+            <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Featured 2026 Showreel</h3>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+            <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
               Showreel Title (Optional)
             </label>
             <input
@@ -449,12 +452,12 @@ export const EditorEditProfile = () => {
               placeholder="e.g. My 2026 Production Showreel"
               value={showreelTitle}
               onChange={(e) => setShowreelTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+            <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
               Showreel Embed / Video URL (YouTube, Vimeo, or MP4)
             </label>
             <input
@@ -462,25 +465,25 @@ export const EditorEditProfile = () => {
               placeholder="https://youtube.com/watch?v=... or MP4 URL"
               value={showreelUrl}
               onChange={(e) => setShowreelUrl(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
             />
           </div>
         </div>
 
         {/* Skills & Software Stack */}
-        <div className="glass-card p-5 sm:p-7 space-y-4 border border-white/[0.08]">
-          <h3 className="text-base font-bold text-white">Software Tools & Proficiencies</h3>
+        <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-5 sm:p-7 space-y-4">
+          <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Software Tools & Proficiencies</h3>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill) => (
               <span
                 key={skill}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/50 text-purple-300 border border-purple-800/40 text-xs font-medium"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 text-xs font-mono font-bold shadow-sm"
               >
                 {skill}
                 <button
                   type="button"
                   onClick={() => removeSkill(skill)}
-                  className="hover:text-rose-400 cursor-pointer"
+                  className="hover:text-rose-600 cursor-pointer"
                 >
                   &times;
                 </button>
@@ -494,9 +497,9 @@ export const EditorEditProfile = () => {
               placeholder="Add tool (e.g. Blender, Final Cut Pro, Boris FX)..."
               value={newSkill}
               onChange={(e) => setNewSkill(e.target.value)}
-              className="flex-1 px-3.5 py-2 rounded-xl bg-[#141A28] text-xs text-white border border-white/[0.08] focus:outline-none focus:border-purple-500"
+              className="flex-1 px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] text-xs font-semibold text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
             />
-            <Button variant="subtle" size="sm" icon={Plus} onClick={addSkill} className="shrink-0">
+            <Button variant="secondary" size="sm" icon={Plus} onClick={addSkill} className="shrink-0">
               Add Tool
             </Button>
           </div>
@@ -507,7 +510,7 @@ export const EditorEditProfile = () => {
           <button
             type="button"
             onClick={() => navigate('/editor/profile')}
-            className="text-xs text-slate-400 hover:text-white py-2 text-center"
+            className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] py-2 text-center cursor-pointer"
           >
             Cancel
           </button>
@@ -515,9 +518,10 @@ export const EditorEditProfile = () => {
             type="submit"
             variant="primary"
             icon={Save}
-            className="px-6 py-2.5 w-full sm:w-auto"
+            disabled={isSaving}
+            className="px-6 py-2.5 w-full sm:w-auto cursor-pointer"
           >
-            {savedSuccess ? 'Showreel & Profile Updated ✓' : 'Save Changes'}
+            {savedSuccess ? 'Showreel & Profile Updated ✓' : isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </form>

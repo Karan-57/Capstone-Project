@@ -52,14 +52,11 @@ const PageLoader = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#07090E] flex flex-col items-center justify-center gap-4">
-      <div className="relative w-12 h-12 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 animate-pulse blur-md opacity-40" />
-        <div className="w-10 h-10 rounded-xl bg-[#0B0E17] border border-purple-500/30 flex items-center justify-center relative">
-          <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-        </div>
+    <div className="min-h-screen bg-[#FFF7F1] dark:bg-[#19100F] flex flex-col items-center justify-center gap-4">
+      <div className="w-12 h-12 bg-[#FFEBAA] border-2 border-[#382322] dark:border-[#FDEBDE]/40 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#382322] border-t-transparent rounded-full animate-spin" />
       </div>
-      <span className="text-xs font-medium text-slate-400 tracking-wider">Loading...</span>
+      <span className="text-xs font-bold font-mono uppercase tracking-widest text-[#261615] dark:text-[#FDEBDE]">Loading studio...</span>
     </div>
   );
 };

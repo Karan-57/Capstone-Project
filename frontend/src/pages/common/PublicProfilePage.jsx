@@ -168,32 +168,32 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 space-y-6 animate-pulse">
-        <div className="h-40 rounded-3xl bg-white/[0.04]" />
+        <div className="h-40 rounded-3xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20" />
         <div className="flex items-center gap-4">
-          <div className="w-24 h-24 rounded-2xl bg-white/[0.06]" />
+          <div className="w-24 h-24 rounded-2xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20" />
           <div className="space-y-2 flex-1">
-            <div className="h-6 w-48 bg-white/[0.08] rounded-md" />
-            <div className="h-4 w-32 bg-white/[0.04] rounded-md" />
+            <div className="h-6 w-48 bg-[#FAF0E6] dark:bg-[#19100F] rounded-md" />
+            <div className="h-4 w-32 bg-[#FAF0E6] dark:bg-[#19100F] rounded-md" />
           </div>
         </div>
-        <div className="h-24 rounded-2xl bg-white/[0.03]" />
+        <div className="h-24 rounded-2xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20" />
       </div>
     );
   }
 
   if (loadError || !profile) {
     return (
-      <div className="max-w-2xl mx-auto py-20 px-4 text-center space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto text-rose-400">
+      <div className="max-w-2xl mx-auto py-20 px-4 text-center space-y-4 text-[#261615] dark:text-[#FDEBDE]">
+        <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border-2 border-rose-500 flex items-center justify-center mx-auto text-rose-600 shadow-[2px_2px_0_#382322]">
           <AlertCircle className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-bold text-white">Profile Not Found</h2>
-        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+        <h2 className="text-xl sm:text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Profile Not Found</h2>
+        <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] max-w-sm mx-auto">
           {loadError || 'The profile you are looking for does not exist or may have been removed.'}
         </p>
         <button
           onClick={() => navigate(`/${currentRole}/search`)}
-          className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 transition-colors"
+          className="px-5 py-2.5 rounded-xl text-xs font-mono font-bold text-[#261615] bg-[#FFEBAA] border-2 border-[#382322] shadow-[3px_3px_0_#382322] hover:bg-[#FFEBAA]/80 transition-all cursor-pointer"
         >
           Return to Search
         </button>
@@ -202,19 +202,13 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
   }
 
   const isCreator = profile.role === 'creator';
-  const roleLabel = isCreator ? 'Creator' : 'Freelancer';
-  const roleGradient = isCreator
-    ? 'from-purple-900/60 via-indigo-950/40 to-[#07090E]'
-    : 'from-cyan-950/60 via-blue-950/40 to-[#07090E]';
-  const ringColor = isCreator
-    ? 'border-purple-500 ring-purple-600/30'
-    : 'border-cyan-500 ring-cyan-600/30';
+  const roleLabel = isCreator ? 'Creator Studio' : 'Freelancer Specialist';
 
   const ratingScore = profile.rating != null ? Number(profile.rating).toFixed(1) : '0.0';
   const totalReviewsCount = profile.totalReviews != null ? profile.totalReviews : reviewsData.length;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto w-full px-2 sm:px-4 pb-12 animate-fade-in">
+    <div className="space-y-6 max-w-4xl mx-auto w-full px-2 sm:px-4 pb-12 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
       <SEO
         title={`${profile.name} (@${profile.username}) - Collabo Profile`}
         description={profile.bio || `View ${profile.name}'s profile on Collabo.`}
@@ -224,26 +218,22 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
       <div className="flex items-center justify-between pt-1">
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] hover:bg-[#FFEBAA] transition-all cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Search
+          <ArrowLeft className="w-4 h-4" /> Back
         </button>
 
-        <span className="text-xs text-slate-500 font-mono">
+        <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] font-mono">
           collabo.app/@{profile.username}
         </span>
       </div>
 
       {/* Profile Card Banner */}
-      <div className="glass-card border border-white/[0.08] rounded-3xl overflow-hidden shadow-2xl">
+      <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] overflow-hidden">
         {/* Banner Cover */}
-        <div className={`h-32 sm:h-44 bg-gradient-to-r ${roleGradient} relative p-6 flex items-end justify-between border-b border-white/[0.06]`}>
+        <div className="h-32 sm:h-44 bg-[#FFEBAA] dark:bg-[#2D1C1B] relative p-6 flex items-end justify-between border-b-2 border-[#382322] dark:border-[#FDEBDE]/20">
           <div className="absolute top-4 right-4">
-            <span className={`text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border backdrop-blur-md ${
-              isCreator
-                ? 'bg-purple-500/20 text-purple-200 border-purple-500/40'
-                : 'bg-cyan-500/20 text-cyan-200 border-cyan-500/40'
-            }`}>
+            <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-md uppercase tracking-wider border-2 border-[#382322] shadow-[2px_2px_0_#382322] bg-[#B1C8EA] text-[#261615]">
               {roleLabel}
             </span>
           </div>
@@ -254,8 +244,8 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
           {/* Header Row: Avatar, Names, Message CTA */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-16 sm:-mt-20">
             <div className="flex items-end gap-4 min-w-0">
-              {/* Strictly Constrained Avatar (Prevents any oversized image overflow) */}
-              <div className={`relative w-20 h-20 min-w-[80px] min-h-[80px] max-w-[80px] max-h-[80px] sm:w-24 sm:h-24 sm:min-w-[96px] sm:min-h-[96px] sm:max-w-[96px] sm:max-h-[96px] rounded-2xl overflow-hidden shrink-0 border-4 bg-[#0B0F19] shadow-2xl ring-4 ${ringColor}`}>
+              {/* Avatar */}
+              <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] max-w-[80px] max-h-[80px] sm:w-24 sm:h-24 sm:min-w-[96px] sm:min-h-[96px] sm:max-w-[96px] sm:max-h-[96px] rounded-2xl overflow-hidden shrink-0 border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6]">
                 <img
                   src={profile.profileImage || DEFAULT_PFP}
                   alt={profile.name ? `${profile.name} photo` : 'User profile photo'}
@@ -266,19 +256,19 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                   }}
                   className="w-full h-full object-cover block rounded-xl"
                 />
-                <span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-[#0B0F19] z-10" />
+                <span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-[#382322] z-10" />
               </div>
 
               <div className="mb-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl sm:text-2xl font-bold text-white truncate">
+                  <h1 className="text-xl sm:text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate">
                     {profile.name}
                   </h1>
-                  <CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0" />
                 </div>
-                <p className="text-xs sm:text-sm text-slate-400 font-mono mt-0.5 truncate">
+                <p className="text-xs sm:text-sm text-[#5C3A38] dark:text-[#D4B8A8] font-mono mt-0.5 truncate">
                   @{profile.username}
-                  {profile.title && <span className="text-slate-400 font-sans ml-2">• {profile.title}</span>}
+                  {profile.title && <span className="font-sans ml-2 text-[#261615] dark:text-[#FDEBDE] font-semibold">• {profile.title}</span>}
                 </p>
               </div>
             </div>
@@ -289,7 +279,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                 <button
                   onClick={handleMessage}
                   disabled={isMessaging}
-                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-500 hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-900/40 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs font-mono font-bold text-[#261615] bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 border-2 border-[#382322] shadow-[3px_3px_0_#382322] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>{isMessaging ? 'Opening Chat...' : 'Message'}</span>
@@ -298,7 +288,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
               {isSelf && (
                 <button
                   onClick={() => navigate(isCreator ? '/creator/edit-profile' : '/editor/edit-profile')}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] hover:bg-[#FFEBAA] transition-all cursor-pointer"
                 >
                   Edit My Profile
                 </button>
@@ -307,33 +297,33 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
           </div>
 
           {/* Real Stats Bar */}
-          <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-center">
+          <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 text-center">
             <div>
-              <div className="flex items-center justify-center gap-1.5 text-base sm:text-lg font-bold text-amber-300">
-                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+              <div className="flex items-center justify-center gap-1.5 text-base sm:text-lg font-black font-mono text-amber-700 dark:text-amber-300">
+                <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
                 <span>{ratingScore}</span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Rating Score</div>
+              <div className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Rating Score</div>
             </div>
             <div>
-              <div className="text-base sm:text-lg font-bold text-white">
+              <div className="text-base sm:text-lg font-black font-mono text-[#261615] dark:text-[#FDEBDE]">
                 {totalReviewsCount}
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Total Reviews</div>
+              <div className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Total Reviews</div>
             </div>
             <div>
-              <div className="text-base sm:text-lg font-bold text-purple-300 capitalize truncate">
+              <div className="text-base sm:text-lg font-black font-serif text-[#261615] dark:text-[#FFEBAA] capitalize truncate">
                 {profile.category || (isCreator ? 'Content' : 'Video Editing')}
               </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">Category</div>
+              <div className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Category</div>
             </div>
           </div>
 
           {/* About / Bio */}
           {profile.bio && (
             <div className="space-y-1.5 pt-1">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">About</h3>
-              <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-line bg-white/[0.02] p-4 rounded-2xl border border-white/[0.04]">
+              <h3 className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] uppercase tracking-wider">About</h3>
+              <p className="text-xs sm:text-sm text-[#261615] dark:text-[#FDEBDE] leading-relaxed whitespace-pre-line bg-white dark:bg-[#1A1110] p-4 rounded-xl border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20">
                 {profile.bio}
               </p>
             </div>
@@ -342,12 +332,12 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
           {/* Skills / Subroles */}
           {((profile.subRoles && profile.subRoles.length > 0) || (profile.skills && profile.skills.length > 0)) && (
             <div className="space-y-2 pt-1">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Expertise & Skills</h3>
-              <div className="flex flex-wrap gap-1.5">
+              <h3 className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] uppercase tracking-wider">Expertise & Skills</h3>
+              <div className="flex flex-wrap gap-2">
                 {(profile.subRoles || []).map((sub, idx) => (
                   <span
                     key={`sub-${idx}`}
-                    className="px-3 py-1 rounded-xl text-xs font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20"
+                    className="px-3 py-1 rounded-lg text-xs font-mono font-bold bg-[#FFEBAA] text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322]"
                   >
                     {sub}
                   </span>
@@ -355,7 +345,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                 {(profile.skills || []).map((sk, idx) => (
                   <span
                     key={`sk-${idx}`}
-                    className="px-3 py-1 rounded-xl text-xs font-medium bg-white/[0.04] text-slate-300 border border-white/[0.08]"
+                    className="px-3 py-1 rounded-lg text-xs font-mono font-bold bg-[#FAF0E6] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/20 dark:border-[#FDEBDE]/20 shadow-sm"
                   >
                     {sk}
                   </span>
@@ -364,26 +354,25 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
             </div>
           )}
 
-          {/* SECTION: Collaboration-Gated Rating
-              ONLY rendered if the current user has collaborated with this person! */}
+          {/* SECTION: Collaboration-Gated Rating */}
           {!isSelf && collabStatus?.collaborated && (
-            <div className="p-5 rounded-2xl bg-[#0E1322] border border-white/[0.08] space-y-4">
+            <div className="p-5 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-amber-400" />
-                  <h3 className="text-sm font-bold text-white">Rate {profile.name}</h3>
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                  <h3 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Rate {profile.name}</h3>
                 </div>
-                <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-md border border-emerald-500/20">
+                <span className="flex items-center gap-1 text-[11px] font-mono font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-md border border-emerald-600/30">
                   <ShieldCheck className="w-3.5 h-3.5" /> Verified Collaborator
                 </span>
               </div>
 
               {/* Case A: Already submitted review */}
               {!collabStatus.canRate && collabStatus.existingReview && (
-                <div className="p-4 rounded-xl bg-emerald-500/[0.06] border border-emerald-500/20 space-y-2">
+                <div className="p-4 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-emerald-300 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" /> You already reviewed this collaborator
+                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" /> You already reviewed this collaborator
                     </span>
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((st) => (
@@ -391,15 +380,15 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                           key={st}
                           className={`w-3.5 h-3.5 ${
                             st <= (collabStatus.existingReview.rating || 5)
-                              ? 'fill-amber-400 text-amber-400'
-                              : 'text-slate-600'
+                              ? 'fill-amber-500 text-amber-500'
+                              : 'text-stone-300'
                           }`}
                         />
                       ))}
                     </div>
                   </div>
                   {collabStatus.existingReview.reviewText && (
-                    <p className="text-xs text-slate-300 italic">
+                    <p className="text-xs text-[#261615] dark:text-[#FDEBDE] italic">
                       "{collabStatus.existingReview.reviewText}"
                     </p>
                   )}
@@ -410,15 +399,15 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
               {collabStatus.canRate && (
                 <form onSubmit={handleRatingSubmit} className="space-y-4 pt-1">
                   {reviewSuccessMsg && (
-                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border-2 border-emerald-500 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                       <span>{reviewSuccessMsg}</span>
                     </div>
                   )}
 
                   {reviewErrorMsg && (
-                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <div className="p-3 rounded-xl bg-rose-500/10 border-2 border-rose-500 text-xs text-rose-700 dark:text-rose-400 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{reviewErrorMsg}</span>
                     </div>
                   )}
@@ -426,10 +415,10 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                   {/* Star Rating Selector */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs font-medium text-slate-300">
-                        Overall Rating: <span className="text-amber-400 font-semibold">{starLabels[hoverRating || rating]}</span>
+                      <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE]">
+                        Overall Rating: <span className="text-amber-700 dark:text-amber-300">{starLabels[hoverRating || rating]}</span>
                       </label>
-                      <span className="text-xs font-mono font-bold text-amber-300">
+                      <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-300">
                         {(hoverRating || rating)} / 5.0
                       </span>
                     </div>
@@ -446,8 +435,8 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                           <Star
                             className={`w-7 h-7 ${
                               starIdx <= (hoverRating || rating)
-                                ? 'fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]'
-                                : 'text-slate-600 hover:text-slate-400'
+                                ? 'fill-amber-500 text-amber-500'
+                                : 'text-stone-300 dark:text-stone-600'
                             }`}
                           />
                         </button>
@@ -457,7 +446,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
 
                   {/* Feedback Textarea */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    <label className="block text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] mb-1.5">
                       Feedback & Comments
                     </label>
                     <textarea
@@ -465,7 +454,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                       value={reviewText}
                       onChange={(e) => setReviewText(e.target.value)}
                       placeholder={`Share your experience collaborating with ${profile.name}...`}
-                      className="w-full bg-[#07090E] border border-white/[0.08] rounded-xl p-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                      className="w-full bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-xl p-3 text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#5C3A38]/50 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all resize-none"
                     />
                   </div>
 
@@ -474,9 +463,9 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                     {!isCreator ? (
                       <>
                         <div>
-                          <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                          <div className="flex justify-between text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mb-1">
                             <span>Delivery Speed</span>
-                            <span className="text-slate-200 font-mono">{speed}/10</span>
+                            <span className="text-[#261615] dark:text-[#FDEBDE]">{speed}/10</span>
                           </div>
                           <input
                             type="range"
@@ -484,13 +473,13 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                             max="10"
                             value={speed}
                             onChange={(e) => setSpeed(Number(e.target.value))}
-                            className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                            className="w-full accent-[#382322] dark:accent-[#FFEBAA] h-2 bg-[#FAF0E6] dark:bg-[#19100F] rounded-lg cursor-pointer"
                           />
                         </div>
                         <div>
-                          <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                          <div className="flex justify-between text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mb-1">
                             <span>Quality of Cut</span>
-                            <span className="text-slate-200 font-mono">{quality}/10</span>
+                            <span className="text-[#261615] dark:text-[#FDEBDE]">{quality}/10</span>
                           </div>
                           <input
                             type="range"
@@ -498,16 +487,16 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                             max="10"
                             value={quality}
                             onChange={(e) => setQuality(Number(e.target.value))}
-                            className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                            className="w-full accent-[#382322] dark:accent-[#FFEBAA] h-2 bg-[#FAF0E6] dark:bg-[#19100F] rounded-lg cursor-pointer"
                           />
                         </div>
                       </>
                     ) : (
                       <>
                         <div>
-                          <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                          <div className="flex justify-between text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mb-1">
                             <span>Boundary Respect</span>
-                            <span className="text-slate-200 font-mono">{boundaryRespect}/10</span>
+                            <span className="text-[#261615] dark:text-[#FDEBDE]">{boundaryRespect}/10</span>
                           </div>
                           <input
                             type="range"
@@ -515,13 +504,13 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                             max="10"
                             value={boundaryRespect}
                             onChange={(e) => setBoundaryRespect(Number(e.target.value))}
-                            className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                            className="w-full accent-[#382322] dark:accent-[#FFEBAA] h-2 bg-[#FAF0E6] dark:bg-[#19100F] rounded-lg cursor-pointer"
                           />
                         </div>
                         <div>
-                          <div className="flex justify-between text-[11px] text-slate-400 mb-1">
+                          <div className="flex justify-between text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mb-1">
                             <span>Communication Behaviour</span>
-                            <span className="text-slate-200 font-mono">{behaviour}/10</span>
+                            <span className="text-[#261615] dark:text-[#FDEBDE]">{behaviour}/10</span>
                           </div>
                           <input
                             type="range"
@@ -529,7 +518,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                             max="10"
                             value={behaviour}
                             onChange={(e) => setBehaviour(Number(e.target.value))}
-                            className="w-full accent-purple-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                            className="w-full accent-[#382322] dark:accent-[#FFEBAA] h-2 bg-[#FAF0E6] dark:bg-[#19100F] rounded-lg cursor-pointer"
                           />
                         </div>
                       </>
@@ -540,7 +529,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                   <button
                     type="submit"
                     disabled={isSubmittingReview}
-                    className="w-full py-2.5 rounded-xl font-semibold text-xs text-white bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-900/40 transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full py-2.5 rounded-xl font-mono font-bold text-xs text-[#261615] bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 border-2 border-[#382322] shadow-[3px_3px_0_#382322] transition-all cursor-pointer disabled:opacity-50"
                   >
                     {isSubmittingReview ? 'Submitting Rating...' : 'Submit Rating & Review'}
                   </button>
@@ -551,13 +540,13 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
 
           {/* SECTION: Past Reviews List */}
           <div className="space-y-3 pt-2">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <h3 className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] uppercase tracking-wider">
               Reviews & Ratings ({reviewsData.length})
             </h3>
 
             {reviewsData.length === 0 ? (
-              <div className="p-6 text-center rounded-2xl bg-white/[0.02] border border-white/[0.04]">
-                <p className="text-xs text-slate-400">
+              <div className="p-6 text-center rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20">
+                <p className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8]">
                   No public reviews recorded yet. Reviews will show here as projects complete.
                 </p>
               </div>
@@ -568,7 +557,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                   return (
                     <div
                       key={rev._id}
-                      className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-2"
+                      className="p-3.5 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -580,26 +569,26 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = DEFAULT_PFP;
                             }}
-                            className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0"
+                            className="w-7 h-7 rounded-full object-cover border-2 border-[#382322] shrink-0"
                           />
                           <div className="min-w-0">
-                            <span className="text-xs font-semibold text-white truncate block">
+                            <span className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] truncate block">
                               {reviewer.name || 'Collaborator'}
                             </span>
-                            <span className="text-[10px] text-slate-500 font-mono">
+                            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono">
                               @{reviewer.username || 'user'}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center gap-1 shrink-0 text-amber-500">
                           {[1, 2, 3, 4, 5].map((st) => (
                             <Star
                               key={st}
                               className={`w-3 h-3 ${
                                 st <= (rev.rating || 5)
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'text-slate-600'
+                                  ? 'fill-current'
+                                  : 'text-stone-300 dark:text-stone-600'
                               }`}
                             />
                           ))}
@@ -607,13 +596,13 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                       </div>
 
                       {rev.reviewText && (
-                        <p className="text-xs text-slate-300 leading-relaxed">
+                        <p className="text-xs text-[#261615] dark:text-[#FDEBDE] leading-relaxed">
                           {rev.reviewText}
                         </p>
                       )}
 
                       {rev.projectId?.title && (
-                        <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                        <div className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono flex items-center gap-1">
                           <Briefcase className="w-3 h-3" />
                           <span>Project: {rev.projectId.title}</span>
                         </div>

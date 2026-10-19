@@ -230,16 +230,16 @@ function FileRow({ file, onDelete, canDelete }) {
   const fileDate = formatTime(file.createdAt);
 
   return (
-    <div className="p-3 rounded-xl bg-[#111625] border border-white/[0.06] hover:border-purple-500/30 transition-all flex items-center justify-between gap-3 group">
+    <div className="p-3.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] hover:shadow-[3px_3px_0_#382322] transition-all flex items-center justify-between gap-3 group">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="w-9 h-9 rounded-lg bg-[#182033] border border-white/5 flex items-center justify-center shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-[#FFEBAA] border border-[#382322] flex items-center justify-center shrink-0">
           <FileIcon type={fileType} />
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-white truncate group-hover:text-purple-300 transition-colors">
+          <p className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] truncate group-hover:text-[#382322] transition-colors">
             {fileName}
           </p>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+          <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5 font-mono">
             {fileSize} · {uploaderName} · {fileDate}
           </p>
         </div>
@@ -251,7 +251,7 @@ function FileRow({ file, onDelete, canDelete }) {
             target="_blank"
             rel="noopener noreferrer"
             title="Download / View"
-            className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+            className="p-1.5 rounded-lg bg-[#FAF0E6] dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/20 transition-all cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
           </a>
@@ -260,7 +260,7 @@ function FileRow({ file, onDelete, canDelete }) {
           <button
             onClick={() => onDelete(file._id)}
             title="Delete file"
-            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-400 transition-all cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-rose-100 text-[#5C3A38] hover:text-rose-600 transition-all cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -396,13 +396,13 @@ function ChatPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#090C16]">
+    <div className="flex flex-col h-full bg-[#FAF0E6] dark:bg-[#19100F]">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-white/[0.06] bg-[#0E1322] flex items-center justify-between gap-3 shrink-0">
+      <div className="px-4 py-3 border-b-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-white dark:bg-[#201413] shadow-[0_2px_0_#382322] flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onBack}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] hover:bg-[#FFEBAA]/50 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -414,16 +414,16 @@ function ChatPanel({
               onError={(e) => {
                 e.currentTarget.src = DEFAULT_PFP;
               }}
-              className="w-8 h-8 rounded-full object-cover border border-white/10"
+              className="w-8 h-8 rounded-full object-cover border-2 border-[#382322]"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <div className="w-8 h-8 rounded-full bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615]">
               <Users className="w-4 h-4" />
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-sm font-bold text-white truncate">{title}</p>
-            {subtitle && <p className="text-[11px] text-slate-400 truncate">{subtitle}</p>}
+            <p className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate">{title}</p>
+            {subtitle && <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] truncate">{subtitle}</p>}
           </div>
         </div>
 
@@ -433,9 +433,9 @@ function ChatPanel({
               type="button"
               onClick={onOpenMilestones}
               title="Milestones & Escrow"
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] border-2 border-[#382322] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#261615]" />
               <span className="hidden sm:inline">Milestones</span>
             </button>
           )}
@@ -445,7 +445,7 @@ function ChatPanel({
               type="button"
               onClick={onOpenMedia}
               title="Media & Links"
-              className="p-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all cursor-pointer shrink-0 shadow-sm"
+              className="p-2 rounded-xl bg-white dark:bg-[#201413] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 transition-all cursor-pointer shrink-0 shadow-[2px_2px_0_#382322]"
             >
               <Film className="w-4 h-4" />
             </button>
@@ -458,7 +458,7 @@ function ChatPanel({
         {loading && <WorkspaceChatSkeleton />}
 
         {!loading && messages.length === 0 && (
-          <div className="py-12 text-center text-xs text-slate-500">
+          <div className="py-12 text-center text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8]">
             No messages yet. Say hello to kick off collaboration! 👋
           </div>
         )}
@@ -501,39 +501,23 @@ function ChatPanel({
                   onError={(e) => {
                     e.currentTarget.src = DEFAULT_PFP;
                   }}
-                  className={`w-7 h-7 rounded-full object-cover shrink-0 mb-0.5 border ${
-                    isMe
-                      ? userRole === 'editor'
-                        ? 'border-blue-500/40 ring-1 ring-blue-500/30'
-                        : 'border-purple-500/40 ring-1 ring-purple-500/30'
-                      : 'border-white/10'
-                  }`}
+                  className="w-7 h-7 rounded-full object-cover shrink-0 mb-0.5 border-2 border-[#382322]"
                 />
 
                 <div className={`flex flex-col gap-1 min-w-0 ${isMe ? 'items-end' : 'items-start'}`}>
                   <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <span
-                      className={`text-[11px] font-semibold tracking-tight ${
-                        isMe
-                          ? userRole === 'editor'
-                            ? 'text-sky-300'
-                            : 'text-purple-300'
-                          : 'text-slate-300'
-                      }`}
-                    >
+                    <span className="text-[11px] font-bold text-[#261615] dark:text-[#FDEBDE]">
                       {senderName}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">{msgTime}</span>
+                    <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono">{msgTime}</span>
                   </div>
 
                   {msg.text && (
                     <div
-                      className={`px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-md break-words ${
+                      className={`px-4 py-2.5 rounded-2xl text-xs leading-relaxed break-words border-2 border-[#382322] shadow-[2px_2px_0_#382322] ${
                         isMe
-                          ? userRole === 'editor'
-                            ? 'bg-gradient-to-r from-blue-600 to-sky-600 text-white rounded-br-xs shadow-blue-900/30'
-                            : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-br-xs shadow-purple-900/30'
-                          : 'bg-[#182030] text-slate-100 border border-white/[0.08] rounded-bl-xs shadow-black/40'
+                          ? 'bg-[#FFEBAA] text-[#261615] rounded-br-xs font-medium'
+                          : 'bg-white dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] dark:border-[#FDEBDE]/30 rounded-bl-xs'
                       }`}
                     >
                       {msg.text}
@@ -544,18 +528,16 @@ function ChatPanel({
                     msg.attachments.map((att, attIdx) => (
                       <div
                         key={attIdx}
-                        className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-xs shadow-sm ${
+                        className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl border-2 border-[#382322] text-xs shadow-[2px_2px_0_#382322] ${
                           isMe
-                            ? userRole === 'editor'
-                              ? 'bg-blue-900/40 border-blue-500/40 text-white'
-                              : 'bg-indigo-900/40 border-indigo-500/40 text-white'
-                            : 'bg-[#182030] border-white/[0.08] text-slate-200'
+                            ? 'bg-[#B1C8EA] text-[#261615]'
+                            : 'bg-white dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] dark:border-[#FDEBDE]/30'
                         }`}
                       >
-                        <Paperclip className="w-3.5 h-3.5 shrink-0 text-purple-300" />
+                        <Paperclip className="w-3.5 h-3.5 shrink-0 text-[#261615] dark:text-[#FDEBDE]" />
                         <div className="min-w-0">
-                          <p className="font-semibold truncate">{att.name || 'Attachment'}</p>
-                          {att.size && <p className="text-[10px] opacity-70">{formatFileSize(att.size)}</p>}
+                          <p className="font-bold truncate">{att.name || 'Attachment'}</p>
+                          {att.size && <p className="text-[10px] opacity-70 font-mono">{formatFileSize(att.size)}</p>}
                         </div>
                         {att.url && (
                           <a
@@ -563,7 +545,7 @@ function ChatPanel({
                             target="_blank"
                             rel="noopener noreferrer"
                             title="Open file"
-                            className="shrink-0 opacity-80 hover:opacity-100 ml-1"
+                            className="shrink-0 opacity-80 hover:opacity-100 ml-1 text-[#261615] dark:text-[#FDEBDE]"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -581,14 +563,14 @@ function ChatPanel({
       {/* Input Bar */}
       <form
         onSubmit={send}
-        className="p-3 border-t border-white/[0.06] bg-[#0E1322] flex items-center gap-2 shrink-0"
+        className="p-3 border-t-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-white dark:bg-[#201413] flex items-center gap-2 shrink-0 shadow-[0_-2px_0_#382322]"
       >
         <label
-          className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer transition-colors"
+          className="p-2 text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] rounded-xl cursor-pointer transition-colors"
           title="Attach file to Space & Chat"
         >
           {isAttaching ? (
-            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+            <Loader2 className="w-4 h-4 animate-spin text-[#261615] dark:text-[#FFEBAA]" />
           ) : (
             <Paperclip className="w-4 h-4" />
           )}
@@ -605,12 +587,12 @@ function ChatPanel({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Message team..."
-          className="flex-1 px-4 py-2 text-xs rounded-xl bg-[#151C2C] text-slate-100 border border-white/[0.07] focus:outline-none focus:border-purple-500 placeholder:text-slate-500"
+          className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-[#FAF0E6] dark:bg-[#261817] text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-1 focus:ring-[#382322] shadow-[2px_2px_0_#382322]"
         />
         <button
           type="submit"
           disabled={!input.trim() || sending}
-          className="p-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition-all cursor-pointer"
+          className="p-2.5 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-40 transition-all cursor-pointer"
         >
           {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </button>
@@ -746,22 +728,22 @@ function ProjectMediaAndLinksScreen({
   const countLinks = items.filter((i) => i.fileType === 'link').length;
 
   return (
-    <div className="flex flex-col h-full bg-[#080B14] min-w-0">
+    <div className="flex flex-col h-full bg-[#FAF0E6] dark:bg-[#19100F] min-w-0">
       {/* Header */}
-      <div className="px-5 py-3.5 border-b border-white/[0.08] bg-[#0C101C]/90 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+      <div className="px-5 py-3.5 border-b-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-white dark:bg-[#201413] shadow-[0_2px_0_#382322] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 hover:text-white transition-all cursor-pointer shrink-0"
+            className="p-1.5 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/20 transition-all cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615] shrink-0 shadow-[2px_2px_0_#382322]">
             <Film className="w-4 h-4" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-sm font-bold text-white truncate">{title}</h2>
-            <p className="text-[11px] text-slate-400 truncate">
+            <h2 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate">{title}</h2>
+            <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] truncate">
               {subtitle || `${items.length} items sorted by latest date`}
             </p>
           </div>
@@ -770,18 +752,18 @@ function ProjectMediaAndLinksScreen({
         {/* Search */}
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#5C3A38] dark:text-[#D4B8A8] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search media & links..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded-xl bg-[#141A28] text-xs text-white placeholder-slate-500 border border-white/[0.08] focus:outline-none focus:border-purple-500 w-48 sm:w-60"
+              className="pl-8 pr-3 py-1.5 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] w-48 sm:w-60"
             />
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -789,7 +771,7 @@ function ProjectMediaAndLinksScreen({
       </div>
 
       {/* Tabs */}
-      <div className="px-5 py-2.5 border-b border-white/[0.06] bg-[#0A0E1A] flex items-center gap-2 overflow-x-auto shrink-0">
+      <div className="px-5 py-2.5 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10 bg-white dark:bg-[#201413] flex items-center gap-2 overflow-x-auto shrink-0">
         {[
           { id: 'all', label: `All (${items.length})` },
           { id: 'video', label: `Videos (${countVideos})` },
@@ -801,10 +783,10 @@ function ProjectMediaAndLinksScreen({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+            className={`px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
               activeTab === tab.id
-                ? 'bg-purple-600 text-white shadow-sm shadow-purple-900/40'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#FFEBAA] text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322]'
+                : 'text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] hover:bg-[#FAF0E6] dark:hover:bg-white/5'
             }`}
           >
             {tab.label}
@@ -815,10 +797,10 @@ function ProjectMediaAndLinksScreen({
       {/* Grid Content */}
       <div className="flex-1 overflow-y-auto p-5">
         {filtered.length === 0 ? (
-          <div className="py-20 text-center flex flex-col items-center justify-center text-slate-500">
-            <Film className="w-10 h-10 text-slate-700 mb-3" />
-            <p className="text-sm font-semibold text-slate-400">No media or links found</p>
-            <p className="text-xs text-slate-500 mt-1 max-w-sm">
+          <div className="py-20 text-center flex flex-col items-center justify-center text-[#5C3A38] dark:text-[#D4B8A8]">
+            <Film className="w-10 h-10 text-[#382322]/40 mb-3" />
+            <p className="text-sm font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">No media or links found</p>
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 max-w-sm">
               {searchQuery
                 ? 'No items matched your search query.'
                 : 'Files dropped in Space or links shared in this project will appear here automatically.'}
@@ -835,21 +817,21 @@ function ProjectMediaAndLinksScreen({
                 return (
                   <div
                     key={item.id}
-                    className="p-4 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 flex flex-col justify-between gap-3 transition-all group hover:bg-[#11182B]"
+                    className="p-4 rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col justify-between gap-3 transition-all group"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#B1C8EA] text-[#261615] border border-[#382322]">
                           {item.domain || 'External Link'}
                         </span>
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono">
                           {formatTime(item.date)}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-2">
+                      <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE] transition-colors line-clamp-2">
                         {item.title}
                       </h4>
-                      <p className="text-[11px] text-slate-400 mt-1 truncate font-mono">
+                      <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] mt-1 truncate font-mono">
                         {item.url}
                       </p>
                     </div>
@@ -858,7 +840,7 @@ function ProjectMediaAndLinksScreen({
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-semibold bg-white/[0.04] hover:bg-purple-600 hover:text-white text-slate-300 border border-white/[0.08] transition-all cursor-pointer"
+                      className="inline-flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-bold bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] border border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       Open Link
@@ -871,34 +853,34 @@ function ProjectMediaAndLinksScreen({
                 return (
                   <div
                     key={item.id}
-                    className="rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 overflow-hidden flex flex-col justify-between transition-all group hover:bg-[#11182B]"
+                    className="rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] overflow-hidden flex flex-col justify-between transition-all group"
                   >
-                    <div className="relative aspect-video bg-[#07090F] overflow-hidden flex items-center justify-center">
+                    <div className="relative aspect-video bg-[#FAF0E6] dark:bg-[#19100F] overflow-hidden flex items-center justify-center border-b-2 border-[#382322]">
                       <img
                         src={item.url}
                         alt={item.title}
                         loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-[10px] font-mono text-white">
+                      <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-[#261615]/80 text-[10px] font-mono text-[#FFEBAA]">
                         {formatFileSize(item.size)}
                       </span>
                     </div>
 
                     <div className="p-3">
-                      <h4 className="text-xs font-bold text-white truncate group-hover:text-purple-300 transition-colors">
+                      <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE] truncate transition-colors">
                         {item.title}
                       </h4>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
                         {item.uploaderName} · {formatTime(item.date)}
                       </p>
 
-                      <div className="mt-2.5 pt-2 border-t border-white/[0.04] flex items-center justify-between gap-1.5">
+                      <div className="mt-2.5 pt-2 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-between gap-1.5">
                         <a
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 py-1 rounded-lg text-center text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-200 transition-colors flex items-center justify-center gap-1"
+                          className="flex-1 py-1 rounded-lg text-center text-xs font-bold bg-[#FAF0E6] dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/20 transition-colors flex items-center justify-center gap-1"
                         >
                           <ExternalLink className="w-3 h-3" /> View
                         </a>
@@ -907,7 +889,7 @@ function ProjectMediaAndLinksScreen({
                           download
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                          className="p-1.5 rounded-lg bg-[#FAF0E6] dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/20 transition-colors"
                           title="Download"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -915,7 +897,7 @@ function ProjectMediaAndLinksScreen({
                         {canDelete && (
                           <button
                             onClick={() => onDeleteFile(item.id)}
-                            className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg hover:bg-rose-100 text-[#5C3A38] hover:text-rose-600 transition-colors cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -931,40 +913,40 @@ function ProjectMediaAndLinksScreen({
                 return (
                   <div
                     key={item.id}
-                    className="rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 overflow-hidden flex flex-col justify-between transition-all group hover:bg-[#11182B]"
+                    className="rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] overflow-hidden flex flex-col justify-between transition-all group"
                   >
-                    <div className="relative aspect-video bg-gradient-to-tr from-purple-950/40 to-[#0A0D18] flex items-center justify-center border-b border-white/[0.04]">
-                      <div className="w-12 h-12 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300 group-hover:scale-110 transition-transform">
-                        <FileVideo className="w-6 h-6 text-rose-400" />
+                    <div className="relative aspect-video bg-[#FAF0E6] dark:bg-[#19100F] flex items-center justify-center border-b-2 border-[#382322]">
+                      <div className="w-12 h-12 rounded-full bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615] group-hover:scale-110 transition-transform shadow-[2px_2px_0_#382322]">
+                        <FileVideo className="w-6 h-6 text-[#261615]" />
                       </div>
-                      <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-black/70 backdrop-blur-sm text-[10px] font-mono text-white">
+                      <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-[#261615]/80 text-[10px] font-mono text-[#FFEBAA]">
                         {formatFileSize(item.size)}
                       </span>
                     </div>
 
                     <div className="p-3">
-                      <h4 className="text-xs font-bold text-white truncate group-hover:text-purple-300 transition-colors">
+                      <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE] truncate transition-colors">
                         {item.title}
                       </h4>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
                         {item.uploaderName} · {formatTime(item.date)}
                       </p>
 
-                      <div className="mt-2.5 pt-2 border-t border-white/[0.04] flex items-center justify-between gap-1.5">
+                      <div className="mt-2.5 pt-2 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-between gap-1.5">
                         <a
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 py-1 rounded-lg text-center text-xs font-semibold bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 transition-colors flex items-center justify-center gap-1"
+                          className="flex-1 py-1 rounded-lg text-center text-xs font-bold bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] border border-[#382322] transition-colors flex items-center justify-center gap-1 shadow-[1px_1px_0_#382322]"
                         >
-                          <Play className="w-3 h-3 text-purple-400" /> Watch / Stream
+                          <Play className="w-3 h-3 text-[#261615]" /> Watch / Stream
                         </a>
                         <a
                           href={item.url}
                           download
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                          className="p-1.5 rounded-lg bg-[#FAF0E6] dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/20 transition-colors"
                           title="Download"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -972,7 +954,7 @@ function ProjectMediaAndLinksScreen({
                         {canDelete && (
                           <button
                             onClick={() => onDeleteFile(item.id)}
-                            className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg hover:bg-rose-100 text-[#5C3A38] hover:text-rose-600 transition-colors cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -988,24 +970,24 @@ function ProjectMediaAndLinksScreen({
               return (
                 <div
                   key={item.id}
-                  className="p-4 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 flex flex-col justify-between gap-3 transition-all group hover:bg-[#11182B]"
+                  className="p-4 rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col justify-between gap-3 transition-all group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#182033] border border-white/5 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border border-[#382322] flex items-center justify-center shrink-0">
                       <FileIcon type={item.fileType} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-bold text-white truncate group-hover:text-purple-300 transition-colors">
+                      <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE] truncate transition-colors">
                         {item.title}
                       </h4>
-                      <p className="text-[10px] text-slate-400 mt-0.5 font-mono">
+                      <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5 font-mono">
                         {formatFileSize(item.size)} · {formatTime(item.date)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/[0.04]">
-                    <span className="text-[11px] text-slate-400 truncate">
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10">
+                    <span className="text-[11px] font-semibold text-[#5C3A38] dark:text-[#D4B8A8] truncate">
                       {item.uploaderName}
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -1013,7 +995,7 @@ function ProjectMediaAndLinksScreen({
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+                        className="p-1.5 rounded-lg bg-[#FAF0E6] dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/20 transition-colors"
                         title="Download / View"
                       >
                         <Download className="w-3.5 h-3.5" />
@@ -1021,7 +1003,7 @@ function ProjectMediaAndLinksScreen({
                       {canDelete && (
                         <button
                           onClick={() => onDeleteFile(item.id)}
-                          className="p-1.5 rounded-lg hover:bg-rose-500/20 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg hover:bg-rose-100 text-[#5C3A38] hover:text-rose-600 transition-colors cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1094,35 +1076,35 @@ function FreelancerMilestonesScreen({
   const effectiveMilestones = hiringMatch?.milestones?.length ? hiringMatch.milestones : targetMember.milestones;
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto bg-[#09090E]">
+    <div className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto bg-[#FAF0E6] dark:bg-[#19100F]">
       {/* Header */}
-      <header className="px-5 py-4 border-b border-white/[0.06] bg-[#0C101C]/90 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 sticky top-0 z-20">
+      <header className="px-5 py-4 border-b-2 border-[#382322] dark:border-[#FDEBDE]/20 bg-[#FFF7F1]/95 dark:bg-[#1A1110]/95 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 sticky top-0 z-20">
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
             onClick={onBack}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-medium"
+            className="p-2 rounded-xl bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono font-bold"
             title="Back to conversation"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Back to Chat</span>
           </button>
 
-          <div className="h-6 w-px bg-white/10 hidden sm:block" />
+          <div className="h-6 w-px bg-[#382322]/20 dark:bg-[#FDEBDE]/20 hidden sm:block" />
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-sm font-bold text-white truncate">
+              <h2 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate">
                 {isCreator ? `${targetMember.name} — Milestones & Escrow` : 'My Milestones & Deliverables'}
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[1px_1px_0_#382322]">
                 {effectiveRoleTitle}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
-              <span>Project: <strong className="text-slate-200">{workspace.projectId?.title || 'Production'}</strong></span>
+            <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5 flex items-center gap-2 flex-wrap">
+              <span>Project: <strong className="text-[#261615] dark:text-[#FDEBDE]">{workspace.projectId?.title || 'Production'}</strong></span>
               <span>·</span>
-              <span>Role Budget: <strong className="text-emerald-400 font-mono">₹{Number(effectiveBudget).toLocaleString('en-IN')}</strong></span>
+              <span>Role Budget: <strong className="text-emerald-700 dark:text-emerald-400 font-mono font-bold">₹{Number(effectiveBudget).toLocaleString('en-IN')}</strong></span>
             </p>
           </div>
         </div>
@@ -1468,13 +1450,13 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
     return (
       <div className="flex-1 flex flex-col min-w-0 h-full">
         {loadingDm ? (
-          <div className="flex-1 flex flex-col h-full bg-[#07090E]">
-            <div className="p-4 border-b border-white/[0.06] bg-[#0C101C] flex items-center justify-between">
+          <div className="flex-1 flex flex-col h-full bg-[#FAF0E6] dark:bg-[#19100F]">
+            <div className="p-4 border-b-2 border-[#382322] dark:border-[#FDEBDE]/20 bg-[#FFF7F1] dark:bg-[#1A1110] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/[0.05] animate-pulse" />
+                <div className="w-10 h-10 rounded-full bg-[#382322]/10 dark:bg-[#FDEBDE]/10 animate-pulse" />
                 <div className="space-y-1.5">
-                  <div className="w-32 h-4 bg-white/[0.06] rounded-md animate-pulse" />
-                  <div className="w-20 h-3 bg-white/[0.03] rounded-md animate-pulse" />
+                  <div className="w-32 h-4 bg-[#382322]/15 dark:bg-[#FDEBDE]/15 rounded-md animate-pulse" />
+                  <div className="w-20 h-3 bg-[#382322]/10 dark:bg-[#FDEBDE]/10 rounded-md animate-pulse" />
                 </div>
               </div>
             </div>
@@ -1507,36 +1489,36 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
 
   // ── DEFAULT PROJECT WORKSPACE VIEW ──
   return (
-    <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#09090E]">
+    <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#FAF0E6] dark:bg-[#19100F]">
       {/* Header */}
-      <header className="px-5 py-4 border-b border-white/[0.06] bg-[#0C101C]/90 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 sticky top-0 z-20">
+      <header className="px-5 py-4 border-b-2 border-[#382322] dark:border-[#FDEBDE]/20 bg-[#FFF7F1]/95 dark:bg-[#1A1110]/95 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 sticky top-0 z-20">
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onBack}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer lg:hidden"
+            className="p-1.5 rounded-lg text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer lg:hidden"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615] shrink-0 shadow-[2px_2px_0_#382322]">
             <FolderGit2 className="w-5 h-5" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-sm font-bold text-white truncate">{projectTitle}</h1>
-              <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${badgeInfo.className}`}>
+              <h1 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate">{projectTitle}</h1>
+              <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-mono font-bold ${badgeInfo.className}`}>
                 {badgeInfo.label}
               </span>
-              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25 font-mono flex items-center gap-1.5 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[1px_1px_0_#382322] font-mono flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
                 {projectMetrics.progressPercent}% Completed
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+            <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5 flex items-center gap-2 flex-wrap">
               <span>{projectCategory}</span>
               <span>·</span>
               <span>Due {projectDeadline}</span>
               <span>·</span>
-              <span className="text-purple-300">
+              <span className="font-semibold text-[#261615] dark:text-[#FFEBAA]">
                 {members.map((m) => m.name.split(' ')[0]).join(', ')}
               </span>
             </p>
@@ -1549,7 +1531,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
             setMediaScope({ type: 'project' });
             setShowMediaScreen(true);
           }}
-          className="p-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 transition-all cursor-pointer shrink-0 shadow-sm"
+          className="p-2 rounded-xl bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all cursor-pointer shrink-0"
           title="Media & Links"
         >
           <Film className="w-4 h-4" />
@@ -1559,44 +1541,44 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
       <div className="p-5 space-y-7">
         {/* ── TOP: PROJECT-WIDE ESCROW PROGRESS & FUNDS (ALL ROLES COMBINED) ── */}
         <section>
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0E1322] border border-white/[0.08] shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Left: Overall Project Funds */}
             <div className="flex items-center gap-4 sm:gap-6 w-full md:w-auto justify-between md:justify-start">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border-2 border-emerald-600/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Project Released</span>
-                  <div className="text-base sm:text-lg font-bold text-emerald-400 font-mono leading-tight">
+                  <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Project Released</span>
+                  <div className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 font-mono leading-tight">
                     ₹{projectMetrics.totalReleased.toLocaleString('en-IN')}
                   </div>
                 </div>
               </div>
 
-              <div className="h-7 w-px bg-white/[0.08] hidden sm:block" />
+              <div className="h-7 w-px bg-[#382322]/15 dark:bg-[#FDEBDE]/15 hidden sm:block" />
 
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615] shrink-0 shadow-[1px_1px_0_#382322]">
                   <Lock className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">In Escrow</span>
-                  <div className="text-base sm:text-lg font-bold text-purple-300 font-mono leading-tight">
+                  <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">In Escrow</span>
+                  <div className="text-base sm:text-lg font-black text-[#261615] dark:text-[#FDEBDE] font-mono leading-tight">
                     ₹{projectMetrics.totalInEscrow.toLocaleString('en-IN')}
                   </div>
                 </div>
               </div>
 
-              <div className="h-7 w-px bg-white/[0.08] hidden sm:block" />
+              <div className="h-7 w-px bg-[#382322]/15 dark:bg-[#FDEBDE]/15 hidden sm:block" />
 
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-slate-300 shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-white dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FDEBDE]/30 flex items-center justify-center text-[#261615] dark:text-[#FDEBDE] shrink-0">
                   <Coins className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Project Budget</span>
-                  <div className="text-base sm:text-lg font-bold text-white font-mono leading-tight">
+                  <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Project Budget</span>
+                  <div className="text-base sm:text-lg font-black text-[#261615] dark:text-[#FDEBDE] font-mono leading-tight">
                     ₹{projectMetrics.totalBudget.toLocaleString('en-IN')}
                   </div>
                 </div>
@@ -1606,14 +1588,14 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
             {/* Right: Project-wide Overall Progress */}
             <div className="w-full md:w-64 lg:w-72 shrink-0">
               <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
-                <span className="text-slate-300 text-[11px]">
+                <span className="text-[#261615] dark:text-[#FDEBDE] text-[11px] font-mono font-bold">
                   Project Progress ({projectMetrics.totalCompletedMilestones}/{projectMetrics.totalMilestonesCount} Milestones)
                 </span>
-                <span className="text-purple-300 font-mono font-bold text-xs">{projectMetrics.progressPercent}%</span>
+                <span className="text-[#261615] dark:text-[#FFEBAA] font-mono font-bold text-xs">{projectMetrics.progressPercent}%</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-[#182030] overflow-hidden">
+              <div className="w-full h-2.5 rounded-full bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 transition-all duration-500 rounded-full"
+                  className="h-full bg-emerald-500 transition-all duration-500 rounded-full"
                   style={{ width: `${projectMetrics.progressPercent}%` }}
                 />
               </div>
@@ -1624,9 +1606,9 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
         {/* ── SECTION 1: SPACE (Drop Zone & Files) ── */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
-            <h3 className="text-sm font-bold text-white tracking-wide">
-              Space <span className="text-xs font-normal text-slate-400">— Project Media & Assets</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-[#382322] dark:bg-[#FFEBAA]" />
+            <h3 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-wide">
+              Space <span className="text-xs font-normal text-[#5C3A38] dark:text-[#D4B8A8] font-sans">— Project Media & Assets</span>
             </h3>
           </div>
 
@@ -1665,31 +1647,31 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
             }}
             role="button"
             tabIndex={0}
-            className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 outline-none select-none cursor-pointer group ${
+            className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 outline-none select-none cursor-pointer group ${
               isDraggingOverSpace
-                ? 'border-purple-400 bg-purple-500/10 scale-[1.01]'
-                : 'border-white/10 hover:border-purple-500/50 bg-[#0E1322]/80 hover:bg-[#10152A]'
+                ? 'border-[#382322] bg-[#FFEBAA]/30 scale-[1.01]'
+                : 'border-[#382322]/40 dark:border-[#FDEBDE]/30 hover:border-[#382322] bg-white/70 dark:bg-[#201413]/70 hover:bg-[#FFEBAA]/20'
             }`}
           >
             <div className="flex flex-col items-center max-w-xs mx-auto pointer-events-none">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600/25 to-indigo-600/25 border border-purple-500/30 flex items-center justify-center text-purple-300 mb-3.5 shadow-lg shadow-purple-900/20 group-hover:scale-105 transition-transform">
+              <div className="w-14 h-14 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center text-[#261615] mb-3.5 group-hover:scale-105 transition-transform">
                 {isUploading ? (
-                  <Loader2 className="w-7 h-7 animate-spin text-purple-400" />
+                  <Loader2 className="w-7 h-7 animate-spin text-[#261615]" />
                 ) : (
                   <UploadCloud className="w-7 h-7" />
                 )}
               </div>
-              <h4 className="text-sm font-bold text-white mb-1">
+              <h4 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] mb-1">
                 {isUploading
                   ? 'Uploading assets to Space...'
                   : isDraggingOverSpace
                   ? 'Drop to upload into Space'
                   : 'Click anywhere or drop files to upload'}
               </h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] leading-relaxed">
                 Directly uploads to ImageKit storage. Supports MP4, MOV, WAV, LUTs, PNGs and more.
               </p>
-              <div className="flex items-center gap-2 mt-3 text-[11px] text-purple-400 font-medium flex-wrap justify-center pointer-events-auto">
+              <div className="flex items-center gap-2 mt-3 text-[11px] text-[#261615] dark:text-[#FFEBAA] font-medium flex-wrap justify-center pointer-events-auto">
                 <button
                   type="button"
                   disabled={isUploading}
@@ -1697,11 +1679,11 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                     e.stopPropagation();
                     fileInputRef.current?.click();
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-2.5 py-1 rounded-lg bg-[#FFEBAA] border border-[#382322] text-[#261615] font-mono font-bold hover:bg-[#FFEBAA]/80 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Browse Files
                 </button>
-                <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#261817] border border-[#382322]/30 text-[#261615] dark:text-[#FDEBDE] font-mono font-semibold">
                   ⌘V / Ctrl+V
                 </span>
               </div>
@@ -1733,7 +1715,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                     setMediaScope({ type: 'project' });
                     setShowMediaScreen(true);
                   }}
-                  className="w-full py-2.5 text-xs font-semibold text-purple-400 hover:text-purple-300 border border-white/[0.06] hover:border-purple-500/30 rounded-xl bg-[#0E1322] hover:bg-[#11182A] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] rounded-xl bg-white dark:bg-[#201413] hover:bg-[#FFEBAA] dark:hover:bg-[#261817] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Grid3X3 className="w-3.5 h-3.5" />
                   View all {files.length} files in Media & Links Grid
@@ -1742,7 +1724,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
               )}
             </div>
           ) : (
-            <div className="mt-4 p-4 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] text-center text-xs text-slate-500">
+            <div className="mt-4 p-4 rounded-xl bg-white/60 dark:bg-[#201413]/60 border-2 border-dashed border-[#382322]/20 dark:border-[#FDEBDE]/20 text-center text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
               No files uploaded to Space yet. Drop raw video assets, music, or notes above.
             </div>
           )}
@@ -1750,54 +1732,54 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
 
         {/* ── SECTION 2: GROUP CHAT (Instagram DM row) ── */}
         <section>
-          <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-            <Users className="w-4 h-4 text-purple-400" />
+          <h3 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] mb-3 flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
             Team Group
           </h3>
 
           <div
             onClick={() => setActiveView('group')}
-            className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/30 cursor-pointer transition-all group"
+            className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] hover:bg-[#FAF0E6] dark:hover:bg-[#261817] cursor-pointer transition-all group"
           >
             {/* Group avatar */}
             <div className="relative w-11 h-11 shrink-0">
-              <div className="w-full h-full rounded-full bg-gradient-to-tr from-purple-600/40 to-indigo-600/40 border border-purple-500/30 flex items-center justify-center text-purple-300">
+              <div className="w-full h-full rounded-full bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615]">
                 <Users className="w-5 h-5" />
               </div>
-              <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0E1322] absolute bottom-0 right-0 shadow-[0_0_6px_#34D399]" />
+              <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#FFF7F1] dark:border-[#201413] absolute bottom-0 right-0 shadow-[0_0_6px_#34D399]" />
             </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
-                <p className="text-sm font-bold text-white truncate group-hover:text-purple-300 transition-colors">
+                <p className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate group-hover:underline">
                   {projectTitle} — Team
                 </p>
                 {groupLastMsg?.createdAt && (
-                  <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-2">
+                  <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono shrink-0 ml-2">
                     {formatTime(groupLastMsg.createdAt)}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400 truncate">
+              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] truncate">
                 {groupLastMsg?.text || 'Tap to open project team chat'}
               </p>
-              <p className="text-[11px] text-purple-400 mt-0.5">{members.length} members</p>
+              <p className="text-[11px] font-mono font-bold text-[#261615] dark:text-[#FFEBAA] mt-0.5">{members.length} members</p>
             </div>
 
-            <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 shrink-0 transition-colors" />
+            <ChevronRight className="w-4 h-4 text-[#382322] dark:text-[#FDEBDE] group-hover:translate-x-0.5 shrink-0 transition-transform" />
           </div>
         </section>
 
         {/* ── SECTION 3: ONE-ON-ONE DM LIST ── */}
         <section>
-          <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-            <User className="w-4 h-4 text-indigo-400" />
+          <h3 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] mb-3 flex items-center gap-2">
+            <User className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
             Team Members
           </h3>
 
           <div className="space-y-2">
             {otherMembers.length === 0 ? (
-              <div className="p-4 rounded-xl bg-[#0E1322]/50 border border-white/[0.04] text-center text-xs text-slate-500">
+              <div className="p-4 rounded-xl bg-white/60 dark:bg-[#201413]/60 border-2 border-dashed border-[#382322]/20 dark:border-[#FDEBDE]/20 text-center text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
                 {isCreator
                   ? 'Waiting for editor assignment. Once an editor is accepted for this gig, their 1-on-1 chat will appear here.'
                   : 'No other collaborators in this workspace yet.'}
@@ -1807,7 +1789,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                 <div
                   key={member._id}
                   onClick={() => handleOpenDm(member)}
-                  className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-indigo-500/30 cursor-pointer transition-all group"
+                  className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] hover:bg-[#FAF0E6] dark:hover:bg-[#261817] cursor-pointer transition-all group"
                 >
                   <div className="relative w-11 h-11 shrink-0">
                     <img
@@ -1817,22 +1799,22 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                       onError={(e) => {
                         e.currentTarget.src = DEFAULT_PFP;
                       }}
-                      className="w-full h-full rounded-full object-cover border border-white/10"
+                      className="w-full h-full rounded-full object-cover border-2 border-[#382322]"
                     />
-                    <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0E1322] absolute bottom-0 right-0 shadow-[0_0_6px_#34D399]" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#FFF7F1] dark:border-[#201413] absolute bottom-0 right-0 shadow-[0_0_6px_#34D399]" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
-                      <p className="text-sm font-semibold text-white truncate group-hover:text-indigo-300 transition-colors">
+                      <p className="text-sm font-bold text-[#261615] dark:text-[#FDEBDE] truncate group-hover:underline">
                         {member.name}
                       </p>
                     </div>
-                    <p className="text-[11px] text-purple-400 font-medium">{member.role}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Tap to start a private chat</p>
+                    <p className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#FFEBAA]">{member.role}</p>
+                    <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Tap to start a private chat</p>
                   </div>
 
-                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 shrink-0 transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-[#382322] dark:text-[#FDEBDE] group-hover:translate-x-0.5 shrink-0 transition-transform" />
                 </div>
               ))
             )}
@@ -1905,7 +1887,7 @@ export const Workspace = () => {
   });
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-[#07090E]">
+    <div className="flex h-full w-full overflow-hidden bg-[#FAF0E6] dark:bg-[#19100F]">
       <SEO
         title="Production Workspace"
         description="Collaborative video production workspace with direct messaging, versioned file delivery, and timestamped feedback."
@@ -1915,45 +1897,45 @@ export const Workspace = () => {
       <aside
         className={`${
           selectedWorkspaceId ? 'hidden lg:flex' : 'flex'
-        } w-full lg:w-80 xl:w-96 border-r border-white/[0.07] bg-[#07090F] flex-col shrink-0`}
+        } w-full lg:w-80 xl:w-96 border-r-2 border-[#382322] dark:border-[#FDEBDE]/20 bg-[#FFF7F1] dark:bg-[#1A1110] flex-col shrink-0`}
       >
         {/* Header */}
-        <div className="p-4 border-b border-white/[0.06] bg-[#0B0E18]/80 backdrop-blur-md">
+        <div className="p-4 border-b-2 border-[#382322] dark:border-[#FDEBDE]/20 bg-[#FFF7F1] dark:bg-[#1A1110]">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+              <div className="w-8 h-8 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615] shadow-[1px_1px_0_#382322]">
                 <Layers className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-white tracking-wide">Workspace</h2>
-                <p className="text-[11px] text-slate-400">Ongoing team productions</p>
+                <h2 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-wide">Workspace</h2>
+                <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">Ongoing team productions</p>
               </div>
             </div>
-            <span className="px-2 py-0.5 text-[11px] font-semibold font-mono rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">
+            <span className="px-2.5 py-0.5 text-[11px] font-bold font-mono rounded-full bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[1px_1px_0_#382322]">
               {workspaces.length} Active
             </span>
           </div>
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#382322] dark:text-[#D4B8A8] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search projects..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-[#141A28] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-purple-500 placeholder:text-slate-500 transition-all"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-[#261817] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] placeholder:text-[#5C3A38]/60 dark:placeholder:text-[#D4B8A8]/60 transition-all font-mono"
             />
           </div>
         </div>
 
         {/* Workspace rows */}
-        <div className="flex-1 overflow-y-auto divide-y divide-white/[0.03]">
+        <div className="flex-1 overflow-y-auto divide-y-2 divide-[#382322]/10 dark:divide-[#FDEBDE]/10">
           {loading ? (
             <WorkspaceSidebarSkeleton />
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-slate-500 gap-2">
-              <FolderGit2 className="w-8 h-8 text-slate-600 mb-1" />
-              <p className="font-semibold text-slate-400">No workspaces found</p>
-              <p className="text-[11px] text-slate-600">
+            <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-[#5C3A38] dark:text-[#D4B8A8] gap-2">
+              <FolderGit2 className="w-8 h-8 text-[#382322]/50 dark:text-[#D4B8A8]/50 mb-1" />
+              <p className="font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">No workspaces found</p>
+              <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
                 Workspaces are automatically set up when a project is created or an application is accepted.
               </p>
             </div>
@@ -2013,37 +1995,37 @@ export const Workspace = () => {
                   onClick={() => setSelectedWorkspaceId(ws._id)}
                   className={`flex items-center gap-3.5 px-4 py-3.5 cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-purple-950/30 border-l-4 border-purple-500'
-                      : 'hover:bg-white/[0.025] border-l-4 border-transparent'
+                      ? 'bg-[#FFEBAA]/40 dark:bg-[#261817] border-l-4 border-[#382322] dark:border-[#FFEBAA]'
+                      : 'hover:bg-[#FAF0E6] dark:hover:bg-[#201413] border-l-4 border-transparent'
                   }`}
                 >
                   {/* Icon */}
-                  <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615] shrink-0 shadow-[2px_2px_0_#382322]">
                     <FolderGit2 className="w-5 h-5" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-1 mb-0.5">
-                      <p className="text-xs font-bold text-white truncate leading-snug">{title}</p>
+                      <p className="text-xs font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate leading-snug">{title}</p>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium inline-block ${badgeInfo.className}`}>
                         {badgeInfo.label}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-md font-mono font-bold bg-white dark:bg-[#19100F] text-[#261615] dark:text-[#FFEBAA] border border-[#382322]/30">
                         {wsProgress}%
                       </span>
                       {ws.fileCount > 0 && (
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono">
                           {ws.fileCount} file{ws.fileCount > 1 ? 's' : ''}
                         </span>
                       )}
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="w-full h-1 bg-white/[0.06] rounded-full mt-2 overflow-hidden">
+                    <div className="w-full h-1.5 bg-[#FAF0E6] dark:bg-[#261817] border border-[#382322]/20 rounded-full mt-2 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full transition-all duration-300"
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-300"
                         style={{ width: `${wsProgress}%` }}
                       />
                     </div>
@@ -2060,10 +2042,10 @@ export const Workspace = () => {
                           onError={(e) => {
                             e.currentTarget.src = DEFAULT_PFP;
                           }}
-                          className="w-4 h-4 rounded-full border border-[#07090F] object-cover ring-1 ring-white/10"
+                          className="w-4 h-4 rounded-full border-2 border-[#382322] object-cover"
                         />
                       ))}
-                      <span className="text-[10px] text-slate-500 ml-1">
+                      <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] ml-1 font-mono">
                         {members.length} member{members.length > 1 ? 's' : ''}
                       </span>
                     </div>
@@ -2088,13 +2070,13 @@ export const Workspace = () => {
           onBack={() => setSelectedWorkspaceId(null)}
         />
       ) : (
-        <div className="flex-1 hidden lg:flex flex-col items-center justify-center text-center bg-[#0A0D15]/80 gap-4 p-8">
-          <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+        <div className="flex-1 hidden lg:flex flex-col items-center justify-center text-center bg-[#FAF0E6] dark:bg-[#19100F] gap-4 p-8">
+          <div className="w-16 h-16 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[3px_3px_0_#382322] flex items-center justify-center text-[#261615]">
             <FolderGit2 className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Select a Workspace</h3>
-            <p className="text-sm text-slate-400 mt-1 max-w-sm">
+            <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Select a Workspace</h3>
+            <p className="text-sm text-[#5C3A38] dark:text-[#D4B8A8] mt-1 max-w-sm">
               Click any active project workspace from the left sidebar to access Space assets, team group chat, and private collaborator DMs.
             </p>
           </div>

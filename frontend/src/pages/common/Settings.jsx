@@ -2,32 +2,27 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield,
-  Eye,
   Bell,
-  Volume2,
-  Lock,
   Smartphone,
   Save,
-  CheckCircle2,
   ArrowRight,
-  UserCheck,
-  Mail,
   Moon,
-  ExternalLink,
-  KeyRound,
-  Sparkles
+  Sun,
+  Palette
 } from 'lucide-react';
 import Button from '../../components/common/Button';
 import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
 import { useUserSettings } from '../../hooks/useUserSettings';
 import { useAlert } from '../../context/AlertContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export const Settings = ({ role: propRole }) => {
   const navigate = useNavigate();
   const { role: authRole, currentUser } = useAuth();
   const role = propRole || authRole || 'creator';
   const { showAlert } = useAlert();
+  const { theme, setTheme, toggleTheme, isDark } = useTheme();
 
   const {
     loading,
@@ -88,28 +83,28 @@ export const Settings = ({ role: propRole }) => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-7 pb-16 animate-fade-in">
+    <div className="max-w-4xl mx-auto space-y-7 pb-16 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
       <SEO
         title="Settings"
         description="Manage application preferences, communication privacy, and notification alerts."
       />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/[0.06]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/20">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-purple-400 bg-purple-950/40 px-2 py-0.5 rounded-md border border-purple-800/30">
-              Preferences
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#261615] bg-[#FFEBAA] px-2.5 py-0.5 rounded-md border-2 border-[#382322] shadow-[2px_2px_0_#382322]">
+              Studio Preferences
             </span>
-            <span className="text-xs text-slate-500 font-mono capitalize">
+            <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] font-mono capitalize">
               • {role} Workspace
             </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">
             Application Settings
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Configure contact privacy, communication alerts, and security options.
+          <p className="text-xs sm:text-sm text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
+            Configure contact privacy, communication alerts, security credentials, and studio theme.
           </p>
         </div>
 
@@ -126,16 +121,16 @@ export const Settings = ({ role: propRole }) => {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* ── SECTION 1: PHONE NUMBER & CONTACT PRIVACY ── */}
-        <section className="glass-card p-6 border border-white/[0.08] rounded-2xl space-y-5">
+        <section className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-6 sm:p-7 space-y-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center text-[#261615] shrink-0">
                 <Smartphone className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Phone Number Visibility</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Control who is allowed to view your phone number on Collabo.
+                <h3 className="text-sm sm:text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Phone Number Visibility</h3>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
+                  Control who is allowed to view your direct phone number on Collabo.
                 </p>
               </div>
             </div>
@@ -143,23 +138,23 @@ export const Settings = ({ role: propRole }) => {
             <button
               type="button"
               onClick={() => navigate(role === 'creator' ? '/creator/edit-profile' : '/editor/edit-profile')}
-              className="text-xs text-purple-400 hover:text-purple-300 font-medium flex items-center gap-1 cursor-pointer shrink-0"
+              className="text-xs font-mono font-bold text-[#261615] dark:text-[#FFEBAA] hover:underline flex items-center gap-1 cursor-pointer shrink-0"
             >
-              <span>Edit Number</span>
+              <span>Edit Profile</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Current Phone Status Banner */}
-          <div className="p-3.5 rounded-xl bg-[#141A28] border border-white/[0.06] flex items-center justify-between gap-3 flex-wrap">
+          <div className="p-3.5 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2.5">
-              <span className="text-xs text-slate-400">Current Registered Number:</span>
-              <span className="text-xs font-mono font-bold text-slate-200">
+              <span className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Current Registered Number:</span>
+              <span className="text-xs font-mono font-black text-[#261615] dark:text-[#FDEBDE]">
                 {phoneNumber || currentUser?.phoneNumber || currentUser?.phone || 'Not provided'}
               </span>
             </div>
             {!phoneNumber && !(currentUser?.phoneNumber || currentUser?.phone) && (
-              <span className="text-[11px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+              <span className="text-[11px] font-mono font-bold text-amber-800 dark:text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-md border border-amber-600/30">
                 Add in Edit Profile
               </span>
             )}
@@ -173,35 +168,37 @@ export const Settings = ({ role: propRole }) => {
                 <div
                   key={opt.id}
                   onClick={() => handlePhoneVisibilityChange(opt.id)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
+                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-purple-950/30 border-purple-500 shadow-md shadow-purple-950/40'
-                      : 'bg-[#101524]/60 border-white/[0.06] hover:border-purple-500/30 hover:bg-[#121829]'
+                      ? 'bg-[#FFEBAA] dark:bg-[#2D1C1B] border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322]'
+                      : 'bg-white dark:bg-[#1A1110] border-[#382322]/20 dark:border-[#FDEBDE]/20 hover:border-[#382322] shadow-[2px_2px_0_#382322]/10'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-bold text-white">{opt.title}</span>
+                      <span className="text-xs font-black font-serif text-[#261615] dark:text-[#FDEBDE]">{opt.title}</span>
                       {opt.recommended && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-300 bg-purple-500/20 px-1.5 py-0.5 rounded border border-purple-500/30">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#261615] bg-[#B1C8EA] px-1.5 py-0.5 rounded border border-[#382322]">
                           Recommended
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">{opt.desc}</p>
+                    <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] leading-relaxed">{opt.desc}</p>
                   </div>
 
-                  <div className="mt-3 flex items-center gap-2">
+                  <div className="mt-4 flex items-center gap-2">
                     <div
-                      className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
                         isSelected
-                          ? 'border-purple-500 bg-purple-600'
-                          : 'border-white/20 bg-transparent'
+                          ? 'border-[#382322] bg-[#382322] dark:border-[#FFEBAA] dark:bg-[#FFEBAA]'
+                          : 'border-[#382322]/40 bg-transparent'
                       }`}
                     >
-                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      {isSelected && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#FFEBAA] dark:bg-[#261615]" />
+                      )}
                     </div>
-                    <span className="text-[11px] text-slate-400 font-medium">
+                    <span className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8]">
                       {isSelected ? 'Active Selection' : 'Select'}
                     </span>
                   </div>
@@ -212,38 +209,42 @@ export const Settings = ({ role: propRole }) => {
         </section>
 
         {/* ── SECTION 2: NOTIFICATIONS & COMMUNICATION PREFERENCES ── */}
-        <section className="glass-card p-6 border border-white/[0.08] rounded-2xl space-y-4">
+        <section className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-6 sm:p-7 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-[#B1C8EA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center text-[#261615] shrink-0">
               <Bell className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Notifications & Alerts</h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Manage email digests, workspace push alerts, and audio cues.
+              <h3 className="text-sm sm:text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Notifications & Alerts</h3>
+              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
+                Manage email digests, workspace milestone push alerts, and audio cues.
               </p>
             </div>
           </div>
 
-          <div className="divide-y divide-white/[0.06] pt-1">
+          <div className="divide-y-2 divide-[#382322]/10 dark:divide-[#FDEBDE]/10 pt-1">
             {/* Email Notifications */}
             <div className="py-3.5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold text-white">Email Milestone Alerts</p>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE]">Email Milestone Alerts</p>
+                <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
                   Receive email alerts when milestones are approved, deliverables submitted, or escrow released.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => handleToggle('emailNotifications')}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  currentSettings.emailNotifications ? 'bg-purple-600' : 'bg-slate-700'
+                className={`w-12 h-6.5 rounded-full border-2 border-[#382322] transition-colors relative cursor-pointer ${
+                  currentSettings.emailNotifications
+                    ? 'bg-[#FFEBAA] shadow-[2px_2px_0_#382322]'
+                    : 'bg-[#FAF0E6] dark:bg-[#19100F]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
-                    currentSettings.emailNotifications ? 'left-6' : 'left-1'
+                  className={`w-4 h-4 rounded-full border border-[#382322] absolute top-0.5 transition-transform ${
+                    currentSettings.emailNotifications
+                      ? 'left-6 bg-[#382322] dark:bg-[#382322]'
+                      : 'left-1 bg-[#5C3A38] dark:bg-[#D4B8A8]'
                   }`}
                 />
               </button>
@@ -252,21 +253,25 @@ export const Settings = ({ role: propRole }) => {
             {/* Project / Workspace Alerts */}
             <div className="py-3.5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold text-white">Project Activity Updates</p>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE]">Project Activity Updates</p>
+                <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
                   Notify on new file uploads to Space, cut submissions, and review notes.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => handleToggle('projectAlerts')}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  currentSettings.projectAlerts ? 'bg-purple-600' : 'bg-slate-700'
+                className={`w-12 h-6.5 rounded-full border-2 border-[#382322] transition-colors relative cursor-pointer ${
+                  currentSettings.projectAlerts
+                    ? 'bg-[#FFEBAA] shadow-[2px_2px_0_#382322]'
+                    : 'bg-[#FAF0E6] dark:bg-[#19100F]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
-                    currentSettings.projectAlerts ? 'left-6' : 'left-1'
+                  className={`w-4 h-4 rounded-full border border-[#382322] absolute top-0.5 transition-transform ${
+                    currentSettings.projectAlerts
+                      ? 'left-6 bg-[#382322] dark:bg-[#382322]'
+                      : 'left-1 bg-[#5C3A38] dark:bg-[#D4B8A8]'
                   }`}
                 />
               </button>
@@ -275,21 +280,25 @@ export const Settings = ({ role: propRole }) => {
             {/* Sound Alerts */}
             <div className="py-3.5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold text-white">Sound Effects & Chimes</p>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE]">Sound Effects & Chimes</p>
+                <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
                   Play gentle chime on incoming chat messages and notification arrivals.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => handleToggle('soundAlerts')}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  currentSettings.soundAlerts ? 'bg-purple-600' : 'bg-slate-700'
+                className={`w-12 h-6.5 rounded-full border-2 border-[#382322] transition-colors relative cursor-pointer ${
+                  currentSettings.soundAlerts
+                    ? 'bg-[#FFEBAA] shadow-[2px_2px_0_#382322]'
+                    : 'bg-[#FAF0E6] dark:bg-[#19100F]'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
-                    currentSettings.soundAlerts ? 'left-6' : 'left-1'
+                  className={`w-4 h-4 rounded-full border border-[#382322] absolute top-0.5 transition-transform ${
+                    currentSettings.soundAlerts
+                      ? 'left-6 bg-[#382322] dark:bg-[#382322]'
+                      : 'left-1 bg-[#5C3A38] dark:bg-[#D4B8A8]'
                   }`}
                 />
               </button>
@@ -298,77 +307,120 @@ export const Settings = ({ role: propRole }) => {
         </section>
 
         {/* ── SECTION 3: SECURITY & ACCOUNT AUTHENTICATION ── */}
-        <section className="glass-card p-6 border border-white/[0.08] rounded-2xl space-y-4">
+        <section className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-6 sm:p-7 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 border-2 border-emerald-700/40 flex items-center justify-center text-emerald-800 dark:text-emerald-300 shadow-[2px_2px_0_#382322] shrink-0">
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Security & Authentication</h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Manage escrow transaction protection and account credentials.
+              <h3 className="text-sm sm:text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Security & Authentication</h3>
+              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
+                Manage escrow transaction protection and account security credentials.
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-            <div className="p-3.5 rounded-xl bg-[#141A28] border border-white/[0.06] flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-slate-400 block">Registered Email</span>
-                <span className="text-xs font-mono font-semibold text-white">
+                <span className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] block">Registered Email</span>
+                <span className="text-xs font-mono font-black text-[#261615] dark:text-[#FDEBDE]">
                   {currentUser?.email || 'user@collabo.com'}
                 </span>
               </div>
-              <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 font-semibold">
+              <span className="text-[10px] font-mono font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-600/30">
                 Verified
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#141A28] border border-white/[0.06] flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-slate-400 block">Transaction Escrow PIN</span>
-                <span className="text-xs font-semibold text-white">
+                <span className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] block">Transaction Escrow PIN</span>
+                <span className="text-xs font-mono font-black text-[#261615] dark:text-[#FDEBDE]">
                   {currentUser?.hasTransactionPin ? 'Active & Protected' : 'Default Sandbox PIN'}
                 </span>
               </div>
-              <span className="text-[10px] text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20 font-semibold">
+              <span className="text-[10px] font-mono font-bold text-[#261615] bg-[#FFEBAA] px-2 py-0.5 rounded-md border border-[#382322]">
                 6-Digit PIN
               </span>
             </div>
           </div>
         </section>
 
-        {/* ── SECTION 4: APPEARANCE ── */}
-        <section className="glass-card p-6 border border-white/[0.08] rounded-2xl space-y-4">
+        {/* ── SECTION 4: APPEARANCE & THEME SWITCHER ── */}
+        <section className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-6 sm:p-7 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-              <Moon className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center text-[#261615] shrink-0">
+              <Palette className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Theme & Studio Display</h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Current interface theme and UI rendering preference.
+              <h3 className="text-sm sm:text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Theme & Studio Display</h3>
+              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
+                Switch between Warm Neutral Editorial canvas and Darkroom Studio midnight espresso.
               </p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#141A28] border border-white/[0.06] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <div>
-                <p className="text-xs font-semibold text-white">Studio Dark High-Contrast</p>
-                <p className="text-[11px] text-slate-400">Optimized for color grading and video timeline workflows.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            {/* Light Mode Card */}
+            <div
+              onClick={() => setTheme('light')}
+              className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                theme === 'light'
+                  ? 'bg-[#FFEBAA] border-[#382322] text-[#261615] shadow-[3px_3px_0_#382322]'
+                  : 'bg-[#FAF0E6] dark:bg-[#19100F] border-[#382322]/20 dark:border-[#FDEBDE]/20 hover:border-[#382322]'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-400 border border-[#382322] flex items-center justify-center text-[#261615]">
+                  <Sun className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-black font-serif text-[#261615]">Warm Editorial Paper</p>
+                  <p className="text-[11px] text-[#5C3A38]">Creamy beige canvas with chocolate typography</p>
+                </div>
+              </div>
+              <div
+                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  theme === 'light' ? 'border-[#382322] bg-[#382322]' : 'border-[#382322]/40'
+                }`}
+              >
+                {theme === 'light' && <div className="w-1.5 h-1.5 rounded-full bg-[#FFEBAA]" />}
               </div>
             </div>
-            <span className="text-[11px] text-purple-300 bg-purple-500/20 px-2.5 py-0.5 rounded-full border border-purple-500/30 font-semibold">
-              Default
-            </span>
+
+            {/* Dark Mode Card */}
+            <div
+              onClick={() => setTheme('dark')}
+              className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                theme === 'dark'
+                  ? 'bg-[#2D1C1B] border-[#FFEBAA] text-[#FDEBDE] shadow-[3px_3px_0_#000]'
+                  : 'bg-[#FAF0E6] dark:bg-[#19100F] border-[#382322]/20 dark:border-[#FDEBDE]/20 hover:border-[#382322]'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-[#19100F] border border-[#FFEBAA]/40 flex items-center justify-center text-[#FFEBAA]">
+                  <Moon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Darkroom Studio</p>
+                  <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">Midnight espresso with butter accents</p>
+                </div>
+              </div>
+              <div
+                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  theme === 'dark' ? 'border-[#FFEBAA] bg-[#FFEBAA]' : 'border-[#382322]/40'
+                }`}
+              >
+                {theme === 'dark' && <div className="w-1.5 h-1.5 rounded-full bg-[#261615]" />}
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Bottom Save Action Bar */}
         <div className="flex items-center justify-between pt-2">
-          <span className="text-xs text-slate-500">
+          <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8]">
             Settings persist automatically to your backend profile.
           </span>
           <Button
@@ -387,3 +439,4 @@ export const Settings = ({ role: propRole }) => {
 };
 
 export default Settings;
+

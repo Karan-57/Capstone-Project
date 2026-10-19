@@ -249,46 +249,40 @@ export const CollaboVoiceAI = () => {
 
   return (
     <>
-      {/* Floating Glass Orb Button (Bottom-Right) */}
+      {/* Floating Editorial Brutalist Button (Bottom-Right) */}
       <div className="fixed bottom-6 right-6 z-50 select-none">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="group relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-[#7C3AED] via-[#6366F1] to-[#3B82F6] p-0.5 shadow-[0_0_30px_rgba(124,58,237,0.5)] hover:shadow-[0_0_45px_rgba(124,58,237,0.8)] hover:scale-105 active:scale-95 transition-all duration-300"
+          className="relative flex items-center justify-center w-14 h-14 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[4px_4px_0_#382322] hover:translate-x-[-2px] hover:translate-y-[-2px] active:translate-x-1 active:translate-y-1 transition-all duration-200 cursor-pointer"
           title="Collabo Voice AI (Click to talk)"
         >
-          {/* Siri-like spinning gradient border */}
-          <span className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 blur-sm opacity-60 group-hover:opacity-100 animate-spin" style={{ animationDuration: '6s' }} />
+          {isListening ? (
+            <div className="flex items-center gap-1">
+              <span className="w-1.5 h-3 bg-[#382322] animate-wave-bar" style={{ animationDelay: '0ms' }} />
+              <span className="w-1.5 h-5 bg-[#382322] animate-wave-bar" style={{ animationDelay: '150ms' }} />
+              <span className="w-1.5 h-4 bg-[#382322] animate-wave-bar" style={{ animationDelay: '300ms' }} />
+            </div>
+          ) : (
+            <Sparkles className="w-6 h-6 text-[#261615]" />
+          )}
 
-          {/* Inner glass orb */}
-          <div className="relative w-full h-full rounded-full bg-[#07090E]/90 backdrop-blur-md flex items-center justify-center border border-white/20">
-            {isListening ? (
-              <div className="flex items-center gap-0.5">
-                <span className="w-1 h-3 bg-purple-400 rounded-full animate-wave-bar" style={{ animationDelay: '0ms' }} />
-                <span className="w-1 h-5 bg-white rounded-full animate-wave-bar" style={{ animationDelay: '150ms' }} />
-                <span className="w-1 h-4 bg-indigo-400 rounded-full animate-wave-bar" style={{ animationDelay: '300ms' }} />
-              </div>
-            ) : (
-              <Sparkles className="w-6 h-6 text-purple-300 group-hover:text-white transition-colors" />
-            )}
-          </div>
-
-          {/* Unread / Active indicator */}
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 ring-2 ring-[#050505] animate-pulse" />
+          {/* Active indicator */}
+          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-[#059669] border-2 border-[#382322] shadow-[1px_1px_0_#382322]" />
         </button>
       </div>
 
-      {/* Floating ChatGPT 4o / Siri Glass Modal matching Reference media_1788455856798.jpg */}
+      {/* Floating Editorial Brutalist Voice Modal */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-[92vw] max-w-md rounded-3xl bg-[#0A0D15]/95 backdrop-blur-2xl border border-white/[0.12] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] p-6 animate-fade-in overflow-hidden">
+        <div className="fixed bottom-24 right-6 z-50 w-[92vw] max-w-md bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] p-6 animate-fade-in overflow-hidden text-[#261615] dark:text-[#FDEBDE]">
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center justify-between pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-purple-900/40">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="w-8 h-8 bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615] shadow-[2px_2px_0_#382322]">
+                <Sparkles className="w-4 h-4 text-[#261615]" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white tracking-tight flex items-center gap-1.5">
-                  Collabo AI <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-purple-900/50 text-purple-300 border border-purple-500/20">Voice Agent</span>
+                <h4 className="text-sm font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-tight flex items-center gap-1.5">
+                  Collabo AI <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 bg-[#FFEBAA] text-[#261615] border border-[#382322]">Voice Agent</span>
                 </h4>
               </div>
             </div>
@@ -298,25 +292,25 @@ export const CollaboVoiceAI = () => {
                 setIsOpen(false);
                 if (isListening && recognitionRef.current) recognitionRef.current.stop();
               }}
-              className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FDEBDE] transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Center Stage Waveform Matching Reference Screenshot media_1788455856798.jpg */}
-          <div className="py-8 flex flex-col items-center justify-center text-center">
-            {/* Siri / ChatGPT 4o Voice Waveform */}
+          {/* Center Stage Waveform */}
+          <div className="py-7 flex flex-col items-center justify-center text-center">
+            {/* Brutalist Voice Waveform */}
             <div className="flex items-center justify-center gap-1.5 h-16 mb-4">
               {[16, 28, 48, 64, 42, 24, 14].map((h, idx) => (
                 <div
                   key={idx}
-                  className={`w-2.5 rounded-full transition-all duration-300 ${
+                  className={`w-2.5 transition-all duration-300 border border-[#382322] dark:border-[#FDEBDE]/30 ${
                     isListening
-                      ? 'bg-gradient-to-t from-purple-500 via-indigo-200 to-white shadow-[0_0_15px_rgba(255,255,255,0.7)] animate-wave-bar'
+                      ? 'bg-[#FFEBAA] dark:bg-[#FFEBAA] animate-wave-bar shadow-[2px_2px_0_#382322]'
                       : isThinking
-                      ? 'bg-purple-400 animate-pulse'
-                      : 'bg-white/40'
+                      ? 'bg-[#B1C8EA] animate-pulse'
+                      : 'bg-[#382322]/20 dark:bg-[#FDEBDE]/20'
                   }`}
                   style={{
                     height: isListening ? `${h}px` : '16px',
@@ -327,20 +321,20 @@ export const CollaboVoiceAI = () => {
             </div>
 
             {/* Transcript or Status */}
-            <p className="text-sm font-medium text-white max-w-xs min-h-[3rem] flex items-center justify-center italic leading-relaxed">
+            <p className="text-sm font-serif font-medium text-[#261615] dark:text-[#FDEBDE] max-w-xs min-h-[3rem] flex items-center justify-center italic leading-relaxed">
               {transcript ? `"${transcript}"` : aiResponse}
             </p>
 
             {/* State Pill */}
-            <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/[0.04] text-purple-300 border border-purple-500/20">
-              <span className={`w-2 h-2 rounded-full ${isListening ? 'bg-rose-500 animate-ping' : 'bg-emerald-400'}`} />
-              {isListening ? 'Listening to speech...' : isThinking ? 'Processing intent...' : 'Tap mic & speak'}
+            <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/30 dark:border-[#FDEBDE]/30 shadow-[1px_1px_0_#382322]">
+              <span className={`w-2 h-2 rounded-full ${isListening ? 'bg-rose-600 animate-ping' : 'bg-[#059669]'}`} />
+              {isListening ? 'Listening...' : isThinking ? 'Processing...' : 'Tap mic & speak'}
             </span>
           </div>
 
           {/* Quick Voice Suggestions */}
           <div className="space-y-1.5 mb-4">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-1">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#5C3A38] dark:text-[#D4B8A8] block px-1">
               Try Saying:
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -348,35 +342,34 @@ export const CollaboVoiceAI = () => {
                 <button
                   key={idx}
                   onClick={() => handleExecuteCommand(prompt)}
-                  className="px-2.5 py-1 text-left text-[11px] font-medium text-slate-300 hover:text-white bg-white/[0.03] hover:bg-purple-900/30 rounded-lg border border-white/[0.05] hover:border-purple-500/30 transition-all flex items-center gap-1 group"
+                  className="px-2.5 py-1 text-left text-xs text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FFEBAA] dark:hover:bg-[#FFEBAA] dark:hover:text-[#261615] border border-[#382322]/20 dark:border-[#FDEBDE]/20 hover:border-[#382322] transition-all flex items-center gap-1 group cursor-pointer font-sans"
                 >
                   <span className="truncate max-w-[280px]">{prompt}</span>
-                  <ArrowRight className="w-3 h-3 text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  <ArrowRight className="w-3 h-3 text-[#261615] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Bottom Controls matching reference */}
-          <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-            <span className="text-[11px] text-slate-400">
+          {/* Bottom Controls */}
+          <div className="pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-between">
+            <span className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-sans">
               Auto-fills projects & navigates pages
             </span>
 
-            {/* Orange Stop / Microphone Button matching reference screenshot */}
             <button
               onClick={toggleListening}
-              className={`p-3 rounded-full transition-all duration-300 ${
+              className={`p-3 border-2 border-[#382322] shadow-[3px_3px_0_#382322] transition-all duration-200 cursor-pointer active:translate-x-0.5 active:translate-y-0.5 ${
                 isListening
-                  ? 'bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.6)] animate-pulse'
-                  : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-900/40'
+                  ? 'bg-rose-500 text-white animate-pulse'
+                  : 'bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615]'
               }`}
               title={isListening ? 'Stop listening' : 'Start speaking'}
             >
               {isListening ? (
-                <div className="w-4 h-4 rounded-sm bg-black" />
+                <div className="w-4 h-4 bg-white" />
               ) : (
-                <Mic className="w-5 h-5" />
+                <Mic className="w-5 h-5 text-[#261615]" />
               )}
             </button>
           </div>

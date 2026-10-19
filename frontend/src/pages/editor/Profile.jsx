@@ -150,15 +150,15 @@ export const EditorProfile = () => {
   };
 
   return (
-    <div className="space-y-7 max-w-5xl mx-auto pb-16 animate-fade-in">
+    <div className="space-y-7 max-w-5xl mx-auto pb-16 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
       <SEO
         title={`${editorUser?.name || 'Editor'} - Showreel & Portfolio`}
         description={`Video editing portfolio, showreels, and client ratings for ${editorUser?.name || 'editor'} on Collabo.`}
       />
 
       {/* Profile Card Header */}
-      <div className="glass-card p-5 sm:p-6 md:p-8 border border-white/[0.08] relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-blue-900/20"></div>
+      <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-5 sm:p-6 md:p-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-[#FFEBAA] dark:bg-[#2D1C1B] border-b-2 border-[#382322] dark:border-[#FDEBDE]/20" />
 
         <div className="relative pt-10 sm:pt-12 flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 text-center sm:text-left">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
@@ -170,22 +170,22 @@ export const EditorProfile = () => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
               }}
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-[#0F1420] shadow-2xl shrink-0"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6] shrink-0"
             />
             <div className="mb-1">
               <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{editorUser.name}</h2>
-                <CheckCircle2 className="w-4 h-4 text-purple-400 fill-purple-400/20" />
+                <h2 className="text-xl sm:text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">{editorUser?.name || 'Editor'}</h2>
+                <CheckCircle2 className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
               </div>
-              <p className="text-xs text-slate-300 mt-1">
-                {editorUser.title || (editorUser.role === 'freelancer' ? 'Freelancer Specialist' : 'Video Editor')}
+              <p className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mt-1">
+                {editorUser?.title || (editorUser?.role === 'freelancer' ? 'Freelancer Specialist' : 'Video Editor')}
               </p>
-              {Array.isArray(editorUser.subRoles) && editorUser.subRoles.length > 0 && (
+              {Array.isArray(editorUser?.subRoles) && editorUser.subRoles.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 mt-2 justify-center sm:justify-start">
                   {editorUser.subRoles.map((subRole, idx) => (
                     <span
                       key={idx}
-                      className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 tracking-wide"
+                      className="px-2.5 py-0.5 rounded-lg text-[11px] font-mono font-bold bg-[#FFEBAA] text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322] tracking-wide"
                     >
                       {subRole}
                     </span>
@@ -197,7 +197,7 @@ export const EditorProfile = () => {
 
           <div className="w-full sm:w-auto">
             <Button
-              variant="primary"
+              variant="secondary"
               size="sm"
               icon={Edit3}
               onClick={() => navigate('/editor/edit-profile')}
@@ -209,33 +209,33 @@ export const EditorProfile = () => {
         </div>
 
         {/* Quick Stats Grid */}
-        <div className="mt-6 sm:mt-7 pt-5 border-t border-white/[0.05] grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
-          <div className="p-2 sm:p-0">
-            <div className="text-lg sm:text-xl font-bold text-white">
+        <div className="mt-6 sm:mt-7 pt-5 border-t-2 border-[#382322]/15 dark:border-[#FDEBDE]/20 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+          <div className="p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
+            <div className="text-lg sm:text-xl font-black font-mono text-[#261615] dark:text-[#FDEBDE]">
               {editorUser?.rating != null ? `${editorUser.rating} / 5.0` : '0 / 5.0'}
             </div>
-            <div className="text-xs text-slate-400 flex items-center justify-center gap-1 mt-0.5">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+            <div className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] flex items-center justify-center gap-1 mt-0.5">
+              <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
               <span>({editorUser?.totalReviews != null ? editorUser.totalReviews : realReviews.length} reviews)</span>
             </div>
           </div>
-          <div className="p-2 sm:p-0">
-            <div className="text-lg sm:text-xl font-bold text-emerald-400">
-              ₹{totalEarned.toLocaleString()}
+          <div className="p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
+            <div className="text-lg sm:text-xl font-black font-mono text-emerald-700 dark:text-emerald-400">
+              ₹{totalEarned.toLocaleString('en-IN')}
             </div>
-            <div className="text-xs text-slate-400 mt-0.5">Earned on Collabo</div>
+            <div className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Earned on Collabo</div>
           </div>
-          <div className="p-2 sm:p-0">
-            <div className="text-lg sm:text-xl font-bold text-purple-400">
+          <div className="p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
+            <div className="text-lg sm:text-xl font-black font-mono text-[#261615] dark:text-[#FFEBAA]">
               {editorUser?.speed != null ? `${editorUser.speed} / 10` : '10 / 10'}
             </div>
-            <div className="text-xs text-slate-400 mt-0.5">Speed Rating</div>
+            <div className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Speed Rating</div>
           </div>
-          <div className="p-2 sm:p-0">
-            <div className="text-lg sm:text-xl font-bold text-white">
+          <div className="p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
+            <div className="text-lg sm:text-xl font-black font-mono text-[#261615] dark:text-[#FDEBDE]">
               {productionsDone}
             </div>
-            <div className="text-xs text-slate-400 mt-0.5">Productions Done</div>
+            <div className="text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Productions Done</div>
           </div>
         </div>
       </div>
@@ -243,22 +243,23 @@ export const EditorProfile = () => {
       {/* TABS SECTION */}
       <div className="space-y-5">
         {/* Navigation Tabs Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/[0.08] pb-3 gap-3">
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full pb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/20 pb-3 gap-3">
+          <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1">
             {[
               { id: 'portfolio', label: `Portfolio (${portfolioItems.length})`, icon: Film },
               { id: 'showreel', label: 'Featured Showreel', icon: Sparkles },
               { id: 'reviews', label: `Reviews (${editorUser?.totalReviews || realReviews.length || 0})`, icon: Star },
             ].map((tab) => {
               const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                    activeTab === tab.id
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-900/30'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-bold whitespace-nowrap transition-all border-2 cursor-pointer ${
+                    isActive
+                      ? 'bg-[#FFEBAA] border-[#382322] text-[#261615] shadow-[2px_2px_0_#382322]'
+                      : 'bg-[#FFF7F1] dark:bg-[#201413] border-[#382322]/20 dark:border-[#FDEBDE]/20 text-[#5C3A38] dark:text-[#D4B8A8] hover:border-[#382322]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -269,11 +270,11 @@ export const EditorProfile = () => {
           </div>
 
           <Button
-            variant="subtle"
+            variant="primary"
             size="sm"
             icon={UploadCloud}
             onClick={() => setShowUploadModal(true)}
-            className="bg-[#182030] hover:bg-purple-900/30 text-purple-200 border-purple-500/30 self-start sm:self-auto"
+            className="self-start sm:self-auto cursor-pointer"
           >
             Upload Sample Cut
           </Button>
@@ -283,12 +284,12 @@ export const EditorProfile = () => {
         {activeTab === 'portfolio' && (
           <div className="space-y-6">
             {portfolioItems.length === 0 ? (
-              <div className="glass-card p-12 text-center border border-white/[0.08] rounded-2xl space-y-4">
-                <div className="w-16 h-16 rounded-2xl bg-purple-950/40 border border-purple-800/30 flex items-center justify-center text-purple-400 mx-auto">
+              <div className="bg-[#FFF7F1] dark:bg-[#201413] p-12 text-center border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center text-[#261615] mx-auto">
                   <Film className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-bold text-white">No Portfolio Cuts Uploaded Yet</h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                <h3 className="text-lg font-black font-serif text-[#261615] dark:text-[#FDEBDE]">No Portfolio Cuts Uploaded Yet</h3>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] max-w-md mx-auto">
                   Showcase your editing skills to creators by uploading high-retention cuts, reels, and video trailers.
                 </p>
                 <Button
@@ -305,12 +306,12 @@ export const EditorProfile = () => {
                 {portfolioItems.map((item) => (
                   <div
                     key={item.id}
-                    className="glass-card rounded-2xl overflow-hidden border border-white/[0.06] hover:border-purple-500/40 transition-all duration-200 group flex flex-col justify-between"
+                    className="bg-[#FFF7F1] dark:bg-[#201413] rounded-2xl overflow-hidden border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] hover:translate-x-[-1px] hover:translate-y-[-1px] transition-all duration-200 group flex flex-col justify-between"
                   >
                     {/* Thumbnail with Play Overlay */}
                     <div
                       onClick={() => setPlayingVideo(item)}
-                      className="relative aspect-video cursor-pointer overflow-hidden bg-slate-900 flex items-center justify-center"
+                      className="relative aspect-video cursor-pointer overflow-hidden bg-[#FAF0E6] dark:bg-[#19100F] border-b-2 border-[#382322] dark:border-[#FDEBDE]/20 flex items-center justify-center"
                     >
                       {item.thumbnail ? (
                         <img
@@ -320,18 +321,18 @@ export const EditorProfile = () => {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-tr from-slate-900 to-purple-950/40 text-purple-400/70 p-4">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-[#FAF0E6] dark:bg-[#19100F] text-[#5C3A38] dark:text-[#D4B8A8] p-4">
                           <Film className="w-10 h-10 mb-2 opacity-60" />
-                          <span className="text-[11px] font-semibold text-slate-400">Video Preview</span>
+                          <span className="text-[11px] font-mono font-bold">Video Preview</span>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 flex items-center justify-center transition-colors">
-                        <div className="w-12 h-12 rounded-full bg-purple-600/90 text-white flex items-center justify-center shadow-lg shadow-purple-950/80 group-hover:scale-110 transition-transform">
-                          <Play className="w-5 h-5 fill-white ml-0.5" />
+                      <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 flex items-center justify-center transition-colors">
+                        <div className="w-12 h-12 rounded-full bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Play className="w-5 h-5 fill-[#261615] ml-0.5" />
                         </div>
                       </div>
 
-                      <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-sm text-[11px] font-mono font-bold text-white">
+                      <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-[#261615]/90 border border-[#FFEBAA]/40 text-[11px] font-mono font-bold text-[#FFEBAA]">
                         {item.runtime}
                       </span>
                     </div>
@@ -339,24 +340,24 @@ export const EditorProfile = () => {
                     {/* Metadata */}
                     <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
                       <div>
-                        <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">
+                        <span className="text-[10px] font-mono font-bold text-[#261615] dark:text-[#FFEBAA] uppercase tracking-wider block">
                           {item.category}
                         </span>
-                        <h4 className="text-sm font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1 mt-0.5">
+                        <h4 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] line-clamp-1 mt-0.5">
                           {item.title}
                         </h4>
-                        <p className="text-xs text-slate-400 line-clamp-2 mt-1 leading-relaxed">
+                        <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] line-clamp-2 mt-1 leading-relaxed">
                           {item.description}
                         </p>
                       </div>
 
                       {/* Tags & Play Button */}
-                      <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between">
+                      <div className="pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-between">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {item.tags.slice(0, 2).map((t, i) => (
                             <span
                               key={i}
-                              className="px-2 py-0.5 text-[10px] rounded-md bg-white/[0.04] text-slate-300"
+                              className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20 dark:border-[#FDEBDE]/20 text-[#261615] dark:text-[#FDEBDE]"
                             >
                               {t}
                             </span>
@@ -364,9 +365,9 @@ export const EditorProfile = () => {
                         </div>
                         <button
                           onClick={() => setPlayingVideo(item)}
-                          className="text-xs font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1 cursor-pointer"
+                          className="text-xs font-mono font-bold text-[#261615] dark:text-[#FFEBAA] hover:underline flex items-center gap-1 cursor-pointer"
                         >
-                          Watch <Play className="w-3 h-3 fill-purple-400" />
+                          Watch <Play className="w-3 h-3 fill-current" />
                         </button>
                       </div>
                     </div>
@@ -379,16 +380,16 @@ export const EditorProfile = () => {
 
         {/* TAB CONTENT: Featured Showreel */}
         {activeTab === 'showreel' && (
-          <div className="glass-card p-5 sm:p-6 md:p-8 rounded-2xl border border-white/[0.08] space-y-4">
+          <div className="bg-[#FFF7F1] dark:bg-[#201413] p-5 sm:p-6 md:p-8 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-black font-serif text-[#261615] dark:text-[#FDEBDE]">
                   {showreelData?.title || 'Featured Production Showreel'}
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">High-retention editing samples and master visual reels</p>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">High-retention editing samples and master visual reels</p>
               </div>
               <Button
-                variant="subtle"
+                variant="secondary"
                 size="xs"
                 icon={Edit3}
                 onClick={() => navigate('/editor/edit-profile')}
@@ -399,7 +400,7 @@ export const EditorProfile = () => {
             </div>
 
             {showreelData?.url ? (
-              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/[0.1] shadow-2xl relative">
+              <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] relative">
                 {showreelData.url.includes('youtube.com') || showreelData.url.includes('youtu.be') || showreelData.url.includes('vimeo.com') ? (
                   <iframe
                     src={
@@ -423,12 +424,12 @@ export const EditorProfile = () => {
                 )}
               </div>
             ) : (
-              <div className="p-12 text-center rounded-2xl border border-dashed border-white/[0.1] space-y-3 bg-white/[0.01]">
-                <div className="w-12 h-12 rounded-2xl bg-purple-950/40 border border-purple-800/30 flex items-center justify-center text-purple-400 mx-auto">
+              <div className="p-12 text-center rounded-2xl border-2 border-dashed border-[#382322]/30 dark:border-[#FDEBDE]/30 space-y-3 bg-[#FAF0E6]/50 dark:bg-[#19100F]/50">
+                <div className="w-12 h-12 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center text-[#261615] mx-auto">
                   <Film className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-semibold text-white">No showreel video added yet</h4>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                <h4 className="text-sm font-bold text-[#261615] dark:text-[#FDEBDE]">No showreel video added yet</h4>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] max-w-sm mx-auto">
                   Add a YouTube, Vimeo, or direct MP4 link in your profile to showcase your best visual work to creators.
                 </p>
                 <Button
@@ -449,34 +450,34 @@ export const EditorProfile = () => {
         {activeTab === 'reviews' && (
           <div className="space-y-3">
             {realReviews.length === 0 ? (
-              <div className="glass-card p-12 text-center border border-white/[0.06] rounded-2xl">
-                <div className="w-10 h-10 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mx-auto mb-3 text-slate-400">
-                  <Star className="w-5 h-5 text-amber-400" />
+              <div className="bg-[#FFF7F1] dark:bg-[#201413] p-12 text-center border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322]">
+                <div className="w-10 h-10 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center mx-auto mb-3 text-[#261615]">
+                  <Star className="w-5 h-5 text-amber-600 fill-amber-500" />
                 </div>
-                <h4 className="text-sm font-semibold text-white">No reviews yet</h4>
-                <p className="text-xs text-slate-500 mt-1">
+                <h4 className="text-sm font-bold text-[#261615] dark:text-[#FDEBDE]">No reviews yet</h4>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 font-mono">
                   Reviews and ratings from completed creator productions will appear here.
                 </p>
               </div>
             ) : (
               realReviews.map((rev, idx) => (
-                <div key={rev._id || idx} className="glass-card p-4 sm:p-5 rounded-2xl border border-white/[0.06] space-y-2">
+                <div key={rev._id || idx} className="bg-[#FFF7F1] dark:bg-[#201413] p-4 sm:p-5 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-bold text-white">
+                      <h4 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE]">
                         {rev.reviewerId?.name || rev.client || 'unknown'}
                       </h4>
-                      <span className="text-[11px] text-purple-400 font-medium">
+                      <span className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#FFEBAA]">
                         {rev.projectId?.title || rev.project || 'unknown'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-amber-400 text-xs font-bold">
-                      <Star className="w-3.5 h-3.5 fill-amber-400" />
+                    <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 text-xs font-bold font-mono">
+                      <Star className="w-3.5 h-3.5 fill-current" />
                       <span>{rev.rating != null ? rev.rating : 5}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-300 italic leading-relaxed">"{rev.comment || ''}"</p>
-                  <span className="text-[10px] text-slate-500 block font-mono">
+                  <p className="text-xs text-[#261615] dark:text-[#FDEBDE] italic leading-relaxed">"{rev.comment || ''}"</p>
+                  <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono">
                     {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString() : 'Recent'}
                   </span>
                 </div>
@@ -488,16 +489,16 @@ export const EditorProfile = () => {
 
       {/* PLAYABLE VIDEO MODAL PLAYER */}
       {playingVideo && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-3xl glass-card rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl">
-            <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-[#0F1422]">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-3xl bg-[#FFF7F1] dark:bg-[#201413] rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 overflow-hidden shadow-[6px_6px_0_#382322]">
+            <div className="p-4 border-b-2 border-[#382322] dark:border-[#FDEBDE]/30 flex items-center justify-between bg-[#FFEBAA] dark:bg-[#2D1C1B]">
               <div className="min-w-0 pr-3">
-                <h4 className="text-sm font-bold text-white truncate">{playingVideo.title}</h4>
-                <p className="text-xs text-slate-400 truncate">{playingVideo.category} • Client: {playingVideo.client}</p>
+                <h4 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate">{playingVideo.title}</h4>
+                <p className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] truncate">{playingVideo.category} • Client: {playingVideo.client}</p>
               </div>
               <button
                 onClick={() => setPlayingVideo(null)}
-                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white shrink-0"
+                className="p-1.5 rounded-lg bg-white dark:bg-[#1A1110] border border-[#382322]/30 text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FAF0E6] shrink-0 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -517,16 +518,16 @@ export const EditorProfile = () => {
 
       {/* UPLOAD PORTFOLIO CUT MODAL */}
       {showUploadModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-lg glass-card p-5 sm:p-7 rounded-2xl border border-white/[0.1] shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-lg bg-[#FFF7F1] dark:bg-[#201413] p-5 sm:p-7 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[6px_6px_0_#382322] space-y-5 max-h-[90vh] overflow-y-auto text-[#261615] dark:text-[#FDEBDE]">
+            <div className="flex items-center justify-between pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/20">
               <div>
-                <h3 className="text-lg font-bold text-white">Upload Sample Cut</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Add a new video sample to showcase to creators</p>
+                <h3 className="text-lg font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Upload Sample Cut</h3>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Add a new video sample to showcase to creators</p>
               </div>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="p-1.5 rounded-lg bg-white/10 text-slate-400 hover:text-white"
+                className="p-1.5 rounded-lg bg-white dark:bg-[#1A1110] border border-[#382322]/30 text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FAF0E6] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -534,23 +535,23 @@ export const EditorProfile = () => {
 
             <form onSubmit={handleAddNewCut} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Project Title</label>
+                <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1">Project Title</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Dynamic Tech Hardware Review Cut"
                   value={newCutTitle}
                   onChange={(e) => setNewCutTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm font-semibold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Video Style / Category</label>
+                <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1">Video Style / Category</label>
                 <select
                   value={newCutCategory}
                   onChange={(e) => setNewCutCategory(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all cursor-pointer"
                 >
                   <option>YouTube Longform</option>
                   <option>Short Form (Reels/TikTok)</option>
@@ -561,40 +562,40 @@ export const EditorProfile = () => {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Video URL (MP4 / Direct Link)</label>
+                <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1">Video URL (MP4 / Direct Link)</label>
                 <input
                   type="url"
                   placeholder="https://example.com/video.mp4"
                   value={newCutVideoUrl}
                   onChange={(e) => setNewCutVideoUrl(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Thumbnail URL (Optional)</label>
+                <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1">Thumbnail URL (Optional)</label>
                 <input
                   type="url"
                   placeholder="https://images.unsplash.com/... or ImageKit URL"
                   value={newCutThumbnailUrl}
                   onChange={(e) => setNewCutThumbnailUrl(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1">Brief Description</label>
+                <label className="text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1">Brief Description</label>
                 <textarea
                   rows={2}
                   placeholder="Describe your editing style, effects, and color grading..."
                   value={newCutDescription}
                   onChange={(e) => setNewCutDescription(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-xs text-white focus:outline-none focus:border-purple-500 resize-none"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] resize-none transition-all"
                 />
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-3">
-                <Button variant="ghost" onClick={() => setShowUploadModal(false)} className="w-full sm:w-auto">
+                <Button variant="outline" onClick={() => setShowUploadModal(false)} className="w-full sm:w-auto">
                   Cancel
                 </Button>
                 <Button type="submit" variant="primary" icon={UploadCloud} className="w-full sm:w-auto">

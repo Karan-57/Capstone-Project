@@ -31,27 +31,26 @@ export const Logo = ({ size = 'md', to = '/', showText = true, className = '' })
           </filter>
         </defs>
 
-        {/* Outer Rounded Container */}
-        <rect width="40" height="40" rx="12" fill="#0E1322" stroke="rgba(255,255,255,0.1)" strokeWidth="1.2" />
+        {/* Outer Container */}
+        <rect width="40" height="40" rx="8" fill="#FFEBAA" stroke="#382322" strokeWidth="2.5" />
 
         {/* Stylized Interlocking C / Play Ribbon in SVG */}
         <path
           d="M12 20C12 15.5817 15.5817 12 20 12H24C26.2091 12 28 13.7909 28 16C28 18.2091 26.2091 20 24 20H18C15.7909 20 14 21.7909 14 24C14 26.2091 15.7909 28 18 28H28"
-          stroke="url(#collaboGrad)"
+          stroke="#261615"
           strokeWidth="3.2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          filter="url(#collaboGlow)"
         />
 
         {/* Dynamic Focus Playhead Dot */}
-        <circle cx="28" cy="28" r="2.5" fill="#A855F7" />
+        <circle cx="28" cy="28" r="2.5" fill="#261615" />
       </svg>
 
       {showText && (
-        <span className={`font-black tracking-tight text-white ${currentSize.text} flex items-center`}>
+        <span className={`font-serif font-black tracking-tight text-[#261615] dark:text-[#FDEBDE] ${currentSize.text} flex items-center`}>
           Collabo
-          <span className="text-purple-400">.</span>
+          <span className="text-[#8A5200] dark:text-[#FFEBAA]">.</span>
         </span>
       )}
     </div>

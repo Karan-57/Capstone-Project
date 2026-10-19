@@ -189,23 +189,23 @@ export const Applications = () => {
       />
 
       <div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Editor Proposals & Applications</h2>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <h2 className="text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">Editor Proposals & Applications</h2>
+        <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
           Review candidates, evaluate proposals, accept bids or send counter-offers
         </p>
       </div>
 
       {/* Filter and Search Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 p-1 bg-[#0A0D15]/80 rounded-xl border border-white/[0.05] overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1.5 bg-[#FAF0E6] dark:bg-[#201413] rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] overflow-x-auto">
           {['all', 'pending', 'negotiating', 'accepted', 'rejected'].map((tab) => (
             <button
               key={tab}
               onClick={() => setFilter(tab)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg capitalize whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-xl capitalize whitespace-nowrap transition-all cursor-pointer ${
                 filter === tab
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#FFEBAA] text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322]'
+                  : 'text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE]'
               }`}
             >
               {tab}
@@ -218,20 +218,20 @@ export const Applications = () => {
             type="button"
             onClick={handleAiAnalyzeProposals}
             disabled={isAnalyzingAi || applications.length === 0}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600/25 via-indigo-600/25 to-purple-500/20 hover:from-purple-600/40 hover:to-indigo-600/40 border border-purple-500/40 text-purple-300 hover:text-white shadow-sm transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#FFEBAA] hover:bg-[#ffe38a] border-2 border-[#382322] text-[#261615] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Sparkles className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform ${isAnalyzingAi ? 'animate-spin' : ''}`} />
+            <Sparkles className={`w-3.5 h-3.5 text-[#261615] group-hover:rotate-12 transition-transform ${isAnalyzingAi ? 'animate-spin' : ''}`} />
             <span>{isAnalyzingAi ? 'Analyzing Pool...' : 'AI Top 3 Picks'}</span>
           </button>
 
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-[#5C3A38] dark:text-[#D4B8A8] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search editor, role, project..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 text-xs rounded-xl bg-[#0F1420] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-purple-500 w-48 sm:w-64"
+              className="pl-9 pr-3.5 py-2 text-xs rounded-xl bg-white dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] w-48 sm:w-64"
             />
           </div>
         </div>
@@ -239,22 +239,22 @@ export const Applications = () => {
 
       {/* AI Evaluation Banner */}
       {aiPicks && (
-        <div className="glass-card p-4.5 rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-950/30 via-[#0E1322] to-indigo-950/20 space-y-2 animate-fade-in">
+        <div className="bg-[#B1C8EA]/20 dark:bg-[#B1C8EA]/10 p-5 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] space-y-2 animate-fade-in">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider">AI Candidate Evaluation</h4>
+              <Sparkles className="w-4 h-4 text-[#261615] dark:text-[#FFEBAA]" />
+              <h4 className="text-xs font-black font-serif text-[#261615] dark:text-[#FDEBDE] uppercase tracking-wider">AI Candidate Evaluation</h4>
             </div>
             <button
               onClick={() => setAiPicks(null)}
-              className="text-[11px] text-slate-400 hover:text-white cursor-pointer"
+              className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] cursor-pointer"
             >
               Dismiss
             </button>
           </div>
-          <p className="text-xs text-slate-200 leading-relaxed">{aiPicks.summaryEvaluation}</p>
+          <p className="text-xs text-[#261615] dark:text-[#FDEBDE] leading-relaxed">{aiPicks.summaryEvaluation}</p>
           {aiPicks.adviceForCreator && (
-            <p className="text-[11px] text-purple-300 bg-purple-900/20 border border-purple-800/30 px-3 py-1.5 rounded-xl">
+            <p className="text-[11px] text-[#261615] dark:text-[#FFEBAA] bg-[#FFEBAA]/50 dark:bg-[#261817] border border-[#382322] px-3 py-1.5 rounded-xl font-medium">
               💡 <strong>Hiring Advice:</strong> {aiPicks.adviceForCreator}
             </p>
           )}
@@ -270,7 +270,7 @@ export const Applications = () => {
           <SkeletonRow />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-16 text-center text-xs text-slate-500 glass-card rounded-2xl border border-white/[0.06]">
+        <div className="py-16 text-center text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8] bg-white dark:bg-[#201413] rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322]">
           No applications found in this category
         </div>
       ) : (
@@ -291,12 +291,12 @@ export const Applications = () => {
               <div
                 key={app.id}
                 id={`app-card-${app.id}`}
-                className={`glass-card p-5 border transition-all rounded-2xl space-y-3 ${
+                className={`bg-white dark:bg-[#201413] p-5 md:p-6 border-2 rounded-2xl space-y-3.5 transition-all shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20 ${
                   freelancerCountered
-                    ? 'border-amber-500/50 bg-gradient-to-r from-amber-950/15 via-[#0F1424] to-[#0A0D16] shadow-lg shadow-amber-950/10'
+                    ? 'border-[#382322] bg-[#FFEBAA]/20 dark:bg-[#261817]'
                     : aiPick
-                    ? 'border-purple-500/50 bg-purple-950/10 ring-1 ring-purple-500/20'
-                    : 'border-white/[0.06] hover:border-purple-500/30'
+                    ? 'border-[#382322] bg-[#B1C8EA]/15 dark:bg-[#261817]'
+                    : 'border-[#382322] dark:border-[#FDEBDE]/30'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -306,38 +306,38 @@ export const Applications = () => {
                       src={app.avatar || DEFAULT_PFP}
                       alt={app.name || 'Candidate'}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                      className="w-12 h-12 rounded-xl object-cover border border-white/10 shrink-0"
+                      className="w-12 h-12 rounded-xl object-cover border-2 border-[#382322] shrink-0"
                     />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-sm font-bold text-white truncate">{app.name || 'Freelancer'}</h3>
-                        <span className="text-xs text-amber-400 font-semibold flex items-center gap-0.5">
-                          <Star className="w-3 h-3 fill-amber-400" />
+                        <h3 className="text-sm font-bold font-serif text-[#261615] dark:text-[#FDEBDE] truncate">{app.name || 'Freelancer'}</h3>
+                        <span className="text-xs text-[#261615] dark:text-[#FFEBAA] font-bold flex items-center gap-0.5">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
                           {app.rating != null ? app.rating : 0}
                         </span>
 
                         {aiPick && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-purple-500/30 to-emerald-500/30 text-purple-300 border border-purple-500/40">
-                            <Award className="w-3 h-3 text-purple-400" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFEBAA] text-[#261615] border border-[#382322]">
+                            <Award className="w-3 h-3 text-[#261615]" />
                             #{aiPick.rank} Top Pick ({aiPick.matchScore}% Match)
                           </span>
                         )}
 
                         {isNegotiating && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#B1C8EA] text-[#261615] border border-[#382322] animate-pulse">
                             <ArrowRightLeft className="w-3 h-3" />
                             Negotiation Active
                           </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-slate-400 mt-0.5">{app.role || app.roleTitle || 'Video Editor'}</p>
-                      <p className="text-[11px] text-purple-300/90 font-medium mt-1">
-                        Applied for: <span className="text-white font-semibold">{app.appliedFor || 'Project'}</span> • {app.appliedDate || 'Recently'}
+                      <p className="text-xs font-semibold text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">{app.role || app.roleTitle || 'Video Editor'}</p>
+                      <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-medium mt-1">
+                        Applied for: <span className="text-[#261615] dark:text-[#FDEBDE] font-bold">{app.appliedFor || 'Project'}</span> • {app.appliedDate || 'Recently'}
                       </p>
 
                       {aiPick?.whySelected && (
-                        <p className="text-[11px] text-emerald-300/90 mt-1.5 italic bg-emerald-950/30 border border-emerald-800/30 px-2.5 py-1 rounded-lg">
+                        <p className="text-[11px] text-[#261615] dark:text-[#FDEBDE] mt-1.5 italic bg-[#FFEBAA]/40 dark:bg-[#FFEBAA]/10 border border-[#382322]/40 px-2.5 py-1 rounded-lg">
                           ✨ {aiPick.whySelected}
                         </p>
                       )}
@@ -347,10 +347,10 @@ export const Applications = () => {
                   {/* Right: Rates & Action Buttons */}
                   <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2.5 shrink-0">
                     <div className="text-left sm:text-right">
-                      <div className="text-base font-extrabold text-emerald-400 font-mono">
+                      <div className="text-lg font-black font-serif text-[#261615] dark:text-[#FFEBAA]">
                         ₹{Number(activePrice || 0).toLocaleString('en-IN')}
                       </div>
-                      <div className="text-[11px] text-slate-400">
+                      <div className="text-[11px] font-semibold text-[#5C3A38] dark:text-[#D4B8A8]">
                         {app.deliveryDays ? `${app.deliveryDays} days turnaround` : app.duration || 'Standard'}
                       </div>
                     </div>
@@ -371,7 +371,7 @@ export const Applications = () => {
                           <button
                             type="button"
                             onClick={() => openNegotiateModal(app)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-white border border-amber-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center gap-1 cursor-pointer"
                             title="Propose a counter-offer amount"
                           >
                             <Handshake className="w-3.5 h-3.5" />
@@ -382,7 +382,7 @@ export const Applications = () => {
                             size="xs"
                             icon={X}
                             onClick={() => handleStatusChange(app.id, 'rejected')}
-                            className="text-rose-400 hover:text-rose-300 hover:bg-rose-950/20"
+                            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20"
                           >
                             Decline
                           </Button>
@@ -397,7 +397,6 @@ export const Applications = () => {
                             size="xs"
                             icon={Check}
                             onClick={() => handleStatusChange(app.id, 'accepted')}
-                            className="bg-emerald-600 hover:bg-emerald-500"
                             title={`Accept freelancer's counter-offer of ₹${Number(app.currentOffer).toLocaleString('en-IN')}`}
                           >
                             Accept Offer
@@ -405,7 +404,7 @@ export const Applications = () => {
                           <button
                             type="button"
                             onClick={() => openNegotiateModal(app)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 hover:text-white border border-amber-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center gap-1 cursor-pointer"
                           >
                             <ArrowRightLeft className="w-3.5 h-3.5" />
                             <span>Counter</span>
@@ -415,7 +414,7 @@ export const Applications = () => {
                             size="xs"
                             icon={X}
                             onClick={() => handleStatusChange(app.id, 'rejected')}
-                            className="text-rose-400 hover:text-rose-300 hover:bg-rose-950/20"
+                            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20"
                           >
                             Decline
                           </Button>
@@ -425,13 +424,13 @@ export const Applications = () => {
                       {/* State 3: Creator sent counter-offer, awaiting freelancer */}
                       {creatorCountered && (
                         <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/25 px-2.5 py-1 rounded-lg">
+                          <span className="text-[11px] font-bold text-[#261615] bg-[#FFEBAA] border border-[#382322] px-2.5 py-1 rounded-lg">
                             Counter Sent • Awaiting Response
                           </span>
                           <button
                             type="button"
                             onClick={() => openNegotiateModal(app)}
-                            className="text-xs text-slate-400 hover:text-white transition-colors cursor-pointer underline"
+                            className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] hover:underline transition-colors cursor-pointer"
                             title="Modify counter-offer"
                           >
                             Edit
@@ -439,7 +438,7 @@ export const Applications = () => {
                           <button
                             type="button"
                             onClick={() => handleStatusChange(app.id, 'rejected')}
-                            className="text-xs text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                            className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors cursor-pointer"
                             title="Cancel negotiation"
                           >
                             Cancel
@@ -449,12 +448,12 @@ export const Applications = () => {
 
                       {/* State 4: Final Status (Accepted or Rejected) */}
                       {app.status === 'accepted' && (
-                        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
+                        <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-600">
                           Hired & Assigned
                         </span>
                       )}
                       {(app.status === 'rejected' || app.status === 'withdrawn') && (
-                        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/25 capitalize">
+                        <span className="px-3 py-1 text-xs font-bold rounded-full bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-500 capitalize">
                           {app.status}
                         </span>
                       )}
@@ -464,53 +463,53 @@ export const Applications = () => {
 
                 {/* Freelancer's Proposal Note */}
                 {app.coverNote && (
-                  <div className="text-xs text-slate-300 bg-[#141A28]/60 p-3 rounded-xl border border-white/[0.04] leading-relaxed">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">Proposal Pitch</span>
+                  <div className="text-xs text-[#261615] dark:text-[#FDEBDE] bg-[#FAF0E6] dark:bg-[#261817] p-3.5 rounded-xl border border-[#382322]/20 dark:border-[#FDEBDE]/20 leading-relaxed">
+                    <span className="text-[10px] uppercase font-bold text-[#5C3A38] dark:text-[#D4B8A8] block mb-0.5">Proposal Pitch</span>
                     {app.coverNote}
                   </div>
                 )}
 
                 {/* Active Counter-Offer Banner (if freelancer countered) */}
                 {freelancerCountered && (
-                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200">
-                    <MessageSquareQuote className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="p-3.5 rounded-xl bg-[#FFEBAA]/60 dark:bg-[#FFEBAA]/10 border-2 border-[#382322] dark:border-[#FDEBDE]/30 flex items-start gap-2.5 text-xs text-[#261615] dark:text-[#FDEBDE]">
+                    <MessageSquareQuote className="w-4 h-4 text-[#261615] dark:text-[#FFEBAA] shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-bold text-amber-300">
+                      <p className="font-black font-serif text-[#261615] dark:text-[#FFEBAA]">
                         Freelancer Countered: ₹{Number(app.currentOffer).toLocaleString('en-IN')}
                       </p>
-                      {app.counterNote && <p className="text-[11px] text-amber-200/90 mt-0.5">"{app.counterNote}"</p>}
+                      {app.counterNote && <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">"{app.counterNote}"</p>}
                     </div>
                   </div>
                 )}
 
                 {/* Negotiation History Toggle */}
                 {hasHistory && (
-                  <div className="pt-2 border-t border-white/[0.04]">
+                  <div className="pt-2 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10">
                     <button
                       type="button"
                       onClick={() => setShowHistoryAppId(isHistoryOpen ? null : app.id)}
-                      className="text-[11px] font-semibold text-slate-400 hover:text-purple-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
-                      <History className="w-3.5 h-3.5 text-purple-400" />
+                      <History className="w-3.5 h-3.5 text-[#382322] dark:text-[#FFEBAA]" />
                       <span>Negotiation History ({app.negotiationHistory.length} offers)</span>
                       {isHistoryOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
 
                     {isHistoryOpen && (
-                      <div className="mt-2.5 p-3 rounded-xl bg-[#0B0E17]/80 border border-white/[0.05] space-y-2">
-                        <div className="text-[10px] text-slate-400">
-                          Initial Bid: <strong className="text-white">₹{Number(app.bidAmount || 0).toLocaleString('en-IN')}</strong> by Freelancer
+                      <div className="mt-2.5 p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] border border-[#382322]/20 dark:border-[#FDEBDE]/20 space-y-2">
+                        <div className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8]">
+                          Initial Bid: <strong className="text-[#261615] dark:text-[#FDEBDE]">₹{Number(app.bidAmount || 0).toLocaleString('en-IN')}</strong> by Freelancer
                         </div>
                         {app.negotiationHistory.map((hist, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs py-1 border-t border-white/[0.03]">
-                            <span className="text-slate-300 font-medium capitalize">
+                          <div key={idx} className="flex items-center justify-between text-xs py-1 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10">
+                            <span className="text-[#261615] dark:text-[#FDEBDE] font-semibold capitalize">
                               {hist.offeredBy === 'creator' ? 'You (Creator)' : `${app.name} (Freelancer)`}:
                             </span>
                             <div className="text-right">
-                              <span className="font-mono font-bold text-emerald-400">
+                              <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
                                 ₹{Number(hist.amount).toLocaleString('en-IN')}
                               </span>
-                              {hist.note && <span className="text-[10px] text-slate-400 block italic">"{hist.note}"</span>}
+                              {hist.note && <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block italic">"{hist.note}"</span>}
                             </div>
                           </div>
                         ))}
@@ -528,23 +527,23 @@ export const Applications = () => {
       {/* COUNTER-OFFER NEGOTIATION MODAL                                          */}
       {/* ========================================================================= */}
       {negotiatingApp && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-md glass-card p-6 rounded-2xl border border-amber-500/40 shadow-2xl relative space-y-5">
+        <div className="fixed inset-0 z-50 bg-[#261615]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-[#FFF7F1] dark:bg-[#261817] p-6 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#FDEBDE]/20 relative space-y-5">
             <button
               type="button"
               onClick={() => setNegotiatingApp(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer shadow-[2px_2px_0_#382322]"
             >
               <X className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
-                <Handshake className="w-5 h-5 text-amber-400" />
+              <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center shrink-0 shadow-[2px_2px_0_#382322]">
+                <Handshake className="w-5 h-5 text-[#261615]" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white tracking-tight">Negotiate Counter-Offer</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">Negotiate Counter-Offer</h3>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
                   Send a counter rate to {negotiatingApp.name} for {negotiatingApp.appliedFor}
                 </p>
               </div>
@@ -552,20 +551,20 @@ export const Applications = () => {
 
             <form onSubmit={handleNegotiateSubmit} className="space-y-4">
               {/* Reference Info */}
-              <div className="p-3 rounded-xl bg-[#141A28]/80 border border-white/[0.06] flex items-center justify-between text-xs">
-                <span className="text-slate-400">Freelancer's Current Bid:</span>
-                <span className="font-mono font-bold text-white">
+              <div className="p-3 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] flex items-center justify-between text-xs">
+                <span className="text-[#5C3A38] dark:text-[#D4B8A8] font-bold">Freelancer's Current Bid:</span>
+                <span className="font-mono font-bold text-[#261615] dark:text-[#FFEBAA]">
                   ₹{Number(negotiatingApp.currentOffer || negotiatingApp.bidAmount || 0).toLocaleString('en-IN')}
                 </span>
               </div>
 
               {/* Counter Amount */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-200 block">
-                  Your Counter Offer Amount (₹) <span className="text-rose-400">*</span>
+                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block">
+                  Your Counter Offer Amount (₹) <span className="text-rose-600">*</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₹</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5C3A38] dark:text-[#D4B8A8] font-bold text-sm">₹</span>
                   <input
                     type="number"
                     min="1"
@@ -574,22 +573,22 @@ export const Applications = () => {
                     placeholder="e.g. 1200"
                     value={counterAmount}
                     onChange={(e) => setCounterAmount(e.target.value)}
-                    className="w-full pl-8 pr-4 py-2.5 bg-[#0A0D15] rounded-xl border border-white/[0.1] text-white text-sm font-mono font-bold focus:outline-none focus:border-purple-500"
+                    className="w-full pl-8 pr-4 py-2.5 bg-white dark:bg-[#201413] rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] text-sm font-mono font-bold shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322]"
                   />
                 </div>
               </div>
 
               {/* Note / Message */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-200 block">
-                  Message / Rationale <span className="text-[11px] text-slate-400 font-normal">(Optional)</span>
+                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block">
+                  Message / Rationale <span className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-normal">(Optional)</span>
                 </label>
                 <textarea
                   rows={3}
                   placeholder="e.g. We love your portfolio, but our project budget limit for this role is ₹1,200."
                   value={counterNote}
                   onChange={(e) => setCounterNote(e.target.value)}
-                  className="w-full p-3 bg-[#0A0D15] rounded-xl border border-white/[0.1] text-slate-200 text-xs focus:outline-none focus:border-purple-500 leading-relaxed resize-none"
+                  className="w-full p-3 bg-white dark:bg-[#201413] rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] text-xs focus:outline-none focus:ring-1 focus:ring-[#382322] leading-relaxed resize-none"
                 />
               </div>
 
@@ -608,7 +607,6 @@ export const Applications = () => {
                   variant="primary"
                   size="sm"
                   disabled={submittingNegotiation}
-                  className="bg-amber-600 hover:bg-amber-500 text-white"
                 >
                   {submittingNegotiation ? 'Sending...' : 'Send Counter-Offer'}
                 </Button>

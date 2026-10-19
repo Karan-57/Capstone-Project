@@ -91,7 +91,7 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
       )}
 
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen bg-[#382322] text-[#FDEBDE] border-r-2 border-[#261615] shadow-brutal flex flex-col justify-between p-3 select-none shrink-0 z-50 overflow-y-auto transition-all duration-300 ease-in-out ${
+        className={`fixed md:sticky top-0 left-0 h-screen bg-[#382322] dark:bg-[#150D0C] text-[#FDEBDE] border-r-2 border-[#261615] dark:border-[#2D1C1B] shadow-brutal flex flex-col justify-between p-3 select-none shrink-0 z-50 overflow-y-auto transition-all duration-300 ease-in-out ${
           isCollapsed ? 'md:w-20' : 'md:w-64'
         } ${
           isOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'

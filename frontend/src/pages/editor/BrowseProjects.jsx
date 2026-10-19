@@ -128,30 +128,30 @@ export const BrowseProjects = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-[#261615] dark:text-[#FDEBDE]">
       <SEO
         title="Browse Video Gigs & Roles"
         description="Discover active creator roles, submit bids with custom turnaround times, and get hired."
       />
 
-      <div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Browse Open Roles & Gigs</h2>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Discover active roles posted by creators (Video Editors, Thumbnail Designers, Colorists), submit bids, and get hired
+      <div className="p-4 sm:p-5 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000]">
+        <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-tight">Browse Open Roles & Gigs</h2>
+        <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 font-sans">
+          Discover active roles posted by creators (Video Editors, Thumbnail Designers, Colorists), submit bids, and get hired.
         </p>
       </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 p-1 bg-[#0A0D15]/80 rounded-xl border border-white/[0.05] overflow-x-auto max-w-full">
+        <div className="flex items-center gap-2 p-1.5 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] overflow-x-auto max-w-full">
           {tagsList.map(tag => (
             <button
               key={tag}
               onClick={() => setSelectedTag(tag)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-bold font-mono uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
                 selectedTag === tag
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[1px_1px_0_#382322]'
+                  : 'text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE]'
               }`}
             >
               {tag}
@@ -159,14 +159,14 @@ export const BrowseProjects = () => {
           ))}
         </div>
 
-        <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <div className="relative w-full sm:w-72">
+          <Search className="w-3.5 h-3.5 text-[#5C3A38] dark:text-[#D4B8A8] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search roles by title or creator..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-[#0F1420] text-slate-200 border border-white/[0.08] focus:outline-none focus:border-purple-500 transition-colors"
+            className="w-full pl-8 pr-3 py-2 text-xs bg-[#FFFDF9] dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] placeholder-[#5C3A38]/50 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none transition-colors"
           />
         </div>
       </div>
@@ -180,15 +180,15 @@ export const BrowseProjects = () => {
           <SkeletonCard />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-16 text-center text-xs text-slate-500">
-          No open gigs found matching your filters
+        <div className="py-16 text-center text-xs text-[#5C3A38] dark:text-[#D4B8A8] bg-[#FFFDF9] dark:bg-[#201413] border-2 border-dashed border-[#382322]/20 dark:border-[#FDEBDE]/20">
+          No open gigs found matching your filters.
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filtered.map((gig) => (
             <div
               key={gig.id}
-              className="glass-card p-4 sm:p-5.5 border border-white/[0.06] hover:border-purple-500/30 transition-all flex flex-col justify-between"
+              className="bg-[#FFFDF9] dark:bg-[#201413] p-5 sm:p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
@@ -197,27 +197,27 @@ export const BrowseProjects = () => {
                       src={gig.creatorAvatar || DEFAULT_PFP}
                       alt={gig.creator || 'Creator Avatar'}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                      className="w-10 h-10 rounded-full object-cover border border-white/10 shrink-0 mt-0.5"
+                      className="w-10 h-10 rounded-none object-cover border-2 border-[#382322] shadow-[2px_2px_0_#382322] shrink-0 mt-0.5"
                     />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        <span className="px-2 py-0.5 text-[10px] font-bold font-mono uppercase tracking-wider bg-[#B1C8EA] text-[#261615] border-2 border-[#382322]">
                           {gig.roleTitle || 'Freelance Role'}
                         </span>
                         {gig.projectTitle && gig.projectTitle !== gig.roleTitle && (
-                          <span className="text-[11px] text-slate-400 font-medium truncate">
-                            in <strong className="text-slate-300">{gig.projectTitle}</strong>
+                          <span className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-medium truncate">
+                            in <strong className="text-[#261615] dark:text-[#FDEBDE]">{gig.projectTitle}</strong>
                           </span>
                         )}
                       </div>
-                      <h3 className="text-sm font-bold text-white leading-snug truncate">
+                      <h3 className="text-base font-serif font-bold text-[#261615] dark:text-[#FDEBDE] leading-snug truncate">
                         {gig.roleTitle || gig.title}
                       </h3>
-                      <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <span className="truncate">{gig.creator || 'unknown'}</span>
-                        <CheckCircle className="w-3 h-3 text-purple-400 shrink-0" />
+                        <CheckCircle className="w-3.5 h-3.5 text-[#261615] dark:text-[#FFEBAA] shrink-0" />
                         <span>•</span>
-                        <span className="flex items-center gap-1 text-slate-400">
+                        <span className="flex items-center gap-1 font-mono">
                           <Clock className="w-3 h-3 shrink-0" /> Due {gig.deadline || 'unknown'}
                         </span>
                       </p>
@@ -225,15 +225,15 @@ export const BrowseProjects = () => {
                   </div>
 
                   <div className="text-left sm:text-right shrink-0">
-                    <div className="text-base font-bold text-white font-mono">{gig.budget || '999'}</div>
-                    <div className="text-[11px] text-emerald-400 font-medium">
+                    <div className="text-base font-bold font-mono text-[#261615] dark:text-[#FFEBAA]">{gig.budget || '999'}</div>
+                    <div className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-bold font-mono uppercase">
                       Budget Allocated
                     </div>
                   </div>
                 </div>
 
                 {gig.description && (
-                  <p className="text-xs text-slate-300/90 line-clamp-2 my-2.5 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#261615] dark:text-[#FDEBDE] line-clamp-2 my-2.5 leading-relaxed bg-[#FFF7F1] dark:bg-[#19100F] p-3 border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
                     {gig.description}
                   </p>
                 )}
@@ -242,7 +242,7 @@ export const BrowseProjects = () => {
                   {(gig.tags || []).map((tag, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-purple-950/40 text-purple-300 border border-purple-800/30"
+                      className="px-2 py-0.5 text-xs font-bold font-mono bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[1px_1px_0_#382322]"
                     >
                       {tag}
                     </span>
@@ -250,21 +250,21 @@ export const BrowseProjects = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-white/[0.04] flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-[11px] text-slate-400 font-medium">
-                  Difficulty: <strong className="text-slate-300">{gig.difficulty || 'Intermediate'}</strong>
+              <div className="pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] font-mono">
+                  Difficulty: <strong className="text-[#261615] dark:text-[#FDEBDE] font-bold">{gig.difficulty || 'Intermediate'}</strong>
                 </span>
 
-                <Button
-                  variant="primary"
-                  size="xs"
+                <button
+                  type="button"
                   onClick={() => {
                     setProposalModal(gig);
                     setBidAmount(gig.rawBudget ? String(gig.rawBudget) : '');
                   }}
+                  className="px-4 py-2 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
                 >
-                  Apply for this Role
-                </Button>
+                  Apply for this Role →
+                </button>
               </div>
             </div>
           ))}
@@ -273,15 +273,15 @@ export const BrowseProjects = () => {
 
       {/* Apply / Proposal Modal */}
       {proposalModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg glass-card p-5 sm:p-6 border border-white/[0.1] shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-lg bg-[#FFFDF9] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] animate-fade-in max-h-[90vh] overflow-y-auto text-[#261615] dark:text-[#FDEBDE]">
+            <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
               <div>
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-serif font-bold text-[#261615] dark:text-[#FDEBDE]">
                   Apply for {proposalModal.roleTitle || proposalModal.title}
                 </h3>
-                <p className="text-xs text-purple-300 mt-0.5">
-                  Project: <span className="font-semibold text-white">{proposalModal.projectTitle || proposalModal.title}</span> • Client: {proposalModal.creator}
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5 font-sans">
+                  Project: <span className="font-bold underline decoration-[#FFEBAA]">{proposalModal.projectTitle || proposalModal.title}</span> • Client: {proposalModal.creator}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -289,15 +289,15 @@ export const BrowseProjects = () => {
                   type="button"
                   onClick={handleAiSuggestBid}
                   disabled={isAiSuggestingBid}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600/25 via-indigo-600/25 to-purple-500/20 hover:from-purple-600/40 hover:to-indigo-600/40 border border-purple-500/40 text-purple-300 hover:text-white shadow-sm transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold font-mono uppercase tracking-wider bg-[#FFEBAA] hover:bg-[#ffe58f] border-2 border-[#382322] text-[#261615] shadow-[2px_2px_0_#382322] transition-all cursor-pointer disabled:opacity-50"
                   title="Auto-fill competitive bid, delivery days, and tailored cover pitch with AI"
                 >
-                  <Sparkles className={`w-3.5 h-3.5 text-purple-400 group-hover:rotate-12 transition-transform ${isAiSuggestingBid ? 'animate-spin' : ''}`} />
+                  <Sparkles className={`w-3.5 h-3.5 text-[#261615] ${isAiSuggestingBid ? 'animate-spin' : ''}`} />
                   <span>{isAiSuggestingBid ? 'Generating...' : 'Auto-Pitch with AI'}</span>
                 </button>
                 <button
                   onClick={() => setProposalModal(null)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 cursor-pointer"
+                  className="p-1.5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -310,13 +310,13 @@ export const BrowseProjects = () => {
               const isOverBudget = maxBudget && numericBid > maxBudget;
 
               return (
-                <form onSubmit={handleSendProposal} className="space-y-4 mt-4">
+                <form onSubmit={handleSendProposal} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs text-slate-300 block">Bid Amount (INR)</label>
+                        <label className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block">Bid Amount (INR)</label>
                         {maxBudget && (
-                          <span className="text-[11px] text-purple-400 font-medium">
+                          <span className="text-[11px] text-[#5C3A38] dark:text-[#FFEBAA] font-mono font-bold">
                             Max: ₹{maxBudget.toLocaleString('en-IN')}
                           </span>
                         )}
@@ -332,61 +332,60 @@ export const BrowseProjects = () => {
                           const val = e.target.value;
                           setBidAmount(val);
                         }}
-                        className={`w-full px-3 py-2 rounded-xl bg-[#141A28] border text-sm text-white focus:outline-none transition-colors ${
+                        className={`w-full px-3 py-2 bg-[#FFF7F1] dark:bg-[#19100F] border-2 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none transition-colors shadow-[2px_2px_0_#382322] ${
                           isOverBudget
-                            ? 'border-red-500/80 focus:border-red-500'
-                            : 'border-white/[0.08] focus:border-purple-500'
+                            ? 'border-red-600 focus:border-red-600'
+                            : 'border-[#382322] dark:border-[#FDEBDE]/30'
                         }`}
                       />
                       {isOverBudget && (
-                        <p className="text-[11px] text-red-400 mt-1 font-medium">
+                        <p className="text-[11px] text-red-600 dark:text-red-400 mt-1 font-bold">
                           Cannot bid more than the role budget (₹{maxBudget.toLocaleString('en-IN')})
                         </p>
                       )}
                     </div>
-                <div>
-                  <label className="text-xs text-slate-300 block mb-1">Delivery Time (Days)</label>
-                  <input
-                    type="number"
-                    required
-                    value={estimatedDays}
-                    onChange={(e) => setEstimatedDays(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
-                  />
-                </div>
-              </div>
+                    <div>
+                      <label className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block mb-1">Delivery Time (Days)</label>
+                      <input
+                        type="number"
+                        required
+                        value={estimatedDays}
+                        onChange={(e) => setEstimatedDays(e.target.value)}
+                        className="w-full px-3 py-2 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none shadow-[2px_2px_0_#382322]"
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="text-xs text-slate-300 block mb-1">Cover Note / Why you?</label>
-                <textarea
-                  required
-                  rows={4}
-                  placeholder="Introduce yourself, your editing style, and why you are the best fit for this project..."
-                  value={bidCover}
-                  onChange={(e) => setBidCover(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#141A28] border border-white/[0.08] text-sm text-white focus:outline-none focus:border-purple-500"
-                />
-              </div>
+                  <div>
+                    <label className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block mb-1">Cover Note / Why you?</label>
+                    <textarea
+                      required
+                      rows={4}
+                      placeholder="Introduce yourself, your editing style, and why you are the best fit for this project..."
+                      value={bidCover}
+                      onChange={(e) => setBidCover(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none shadow-[2px_2px_0_#382322]"
+                    />
+                  </div>
 
-              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => setProposalModal(null)}
-                  className="w-full sm:w-auto"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  icon={Send}
-                  className="w-full sm:w-auto"
-                  disabled={isOverBudget}
-                >
-                  Submit Application
-                </Button>
-              </div>
-            </form>
+                  <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
+                    <button
+                      type="button"
+                      onClick={() => setProposalModal(null)}
+                      className="w-full sm:w-auto px-4 py-2 border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FDEBDE] transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isOverBudget}
+                      className="w-full sm:w-auto px-5 py-2 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:translate-x-0.5 active:translate-y-0.5"
+                    >
+                      <span>Submit Application</span>
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </form>
               );
             })()}
           </div>

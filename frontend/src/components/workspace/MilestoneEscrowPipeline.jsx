@@ -347,44 +347,44 @@ export const MilestoneEscrowPipeline = ({
 
   // Render Compact Summary Bar (Lesser Height)
   const renderSummaryBar = () => (
-    <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0E1322] border border-white/[0.08] shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="p-3.5 sm:p-4 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col md:flex-row items-center justify-between gap-4 text-[#261615] dark:text-[#FDEBDE]">
       {/* Left: Escrow Funds Overview */}
       <div className="flex items-center gap-4 sm:gap-6 w-full md:w-auto justify-between md:justify-start">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-600/30 flex items-center justify-center text-emerald-800 dark:text-emerald-300 shrink-0">
             <CheckCircle2 className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Released</span>
-            <div className="text-base sm:text-lg font-bold text-emerald-400 font-mono leading-tight">
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Released</span>
+            <div className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 font-mono leading-tight">
               ₹{totalPaid.toLocaleString('en-IN')}
             </div>
           </div>
         </div>
 
-        <div className="h-7 w-px bg-white/[0.08] hidden sm:block" />
+        <div className="h-7 w-0.5 bg-[#382322]/20 dark:bg-[#FDEBDE]/20 hidden sm:block" />
 
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-[#FFEBAA] border border-[#382322] flex items-center justify-center text-[#261615] shrink-0">
             <Lock className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Locked in Escrow</span>
-            <div className="text-base sm:text-lg font-bold text-purple-300 font-mono leading-tight">
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Locked in Escrow</span>
+            <div className="text-base sm:text-lg font-black text-[#261615] dark:text-[#FFEBAA] font-mono leading-tight">
               ₹{totalInEscrow.toLocaleString('en-IN')}
             </div>
           </div>
         </div>
 
-        <div className="h-7 w-px bg-white/[0.08] hidden sm:block" />
+        <div className="h-7 w-0.5 bg-[#382322]/20 dark:bg-[#FDEBDE]/20 hidden sm:block" />
 
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-slate-300 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-[#B1C8EA] border border-[#382322] flex items-center justify-center text-[#261615] shrink-0">
             <Coins className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 block font-semibold uppercase tracking-wider">Total Budget</span>
-            <div className="text-base sm:text-lg font-bold text-white font-mono leading-tight">
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Total Budget</span>
+            <div className="text-base sm:text-lg font-black text-[#261615] dark:text-[#FDEBDE] font-mono leading-tight">
               ₹{numericBudget.toLocaleString('en-IN')}
             </div>
           </div>
@@ -393,13 +393,13 @@ export const MilestoneEscrowPipeline = ({
 
       {/* Right: Compact Progress Bar */}
       <div className="w-full md:w-64 lg:w-72 shrink-0">
-        <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
-          <span className="text-slate-300 text-[11px]">Milestones ({completedCount}/{milestones.length})</span>
-          <span className="text-purple-300 font-mono font-bold text-xs">{progressPercent}%</span>
+        <div className="flex items-center justify-between text-xs mb-1.5 font-mono font-bold">
+          <span className="text-[#5C3A38] dark:text-[#D4B8A8] text-[11px]">Milestones ({completedCount}/{milestones.length})</span>
+          <span className="text-[#261615] dark:text-[#FFEBAA] text-xs">{progressPercent}%</span>
         </div>
-        <div className="w-full h-2 rounded-full bg-[#182030] overflow-hidden">
+        <div className="w-full h-2.5 rounded-full bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400 transition-all duration-500 rounded-full"
+            className="h-full bg-[#FFEBAA] border-r border-[#382322] transition-all duration-500 rounded-full"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -419,28 +419,28 @@ export const MilestoneEscrowPipeline = ({
         return (
           <div
             key={m.id}
-            className={`p-4 sm:p-4.5 rounded-2xl border transition-all ${
+            className={`p-4 sm:p-4.5 rounded-2xl border-2 transition-all ${
               isApproved
-                ? 'bg-[#0E1524]/60 border-emerald-500/25 hover:border-emerald-500/40'
+                ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-600/40'
                 : isSubmitted
-                ? 'bg-[#141A2E]/80 border-purple-500/35 ring-1 ring-purple-500/20 shadow-md shadow-purple-950/20'
+                ? 'bg-[#FFEBAA]/40 dark:bg-[#2D1C1B] border-[#382322] dark:border-[#FFEBAA] shadow-[2px_2px_0_#382322]'
                 : isFunded
-                ? 'bg-[#101626]/70 border-indigo-500/25 hover:border-indigo-500/40'
-                : 'bg-[#0B0E17]/50 border-white/[0.05] hover:border-white/[0.1]'
+                ? 'bg-[#B1C8EA]/20 dark:bg-[#201413] border-[#382322] dark:border-[#B1C8EA]/40'
+                : 'bg-white dark:bg-[#1A1110] border-[#382322]/20 dark:border-[#FDEBDE]/20'
             }`}
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
               {/* Milestone Left: Step pill, Title, Clean single status badge, description */}
               <div className="flex items-start gap-3 min-w-0 flex-1">
                 <div
-                  className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 font-mono font-black text-xs border-2 border-[#382322] ${
                     isApproved
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      ? 'bg-emerald-200 text-emerald-900'
                       : isSubmitted
-                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                      ? 'bg-[#FFEBAA] text-[#261615]'
                       : isFunded
-                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                      : 'bg-white/[0.05] text-slate-400 border border-white/10'
+                      ? 'bg-[#B1C8EA] text-[#261615]'
+                      : 'bg-[#FAF0E6] text-[#5C3A38]'
                   }`}
                 >
                   {isApproved ? <CheckCircle2 className="w-4 h-4" /> : m.index}
@@ -448,52 +448,52 @@ export const MilestoneEscrowPipeline = ({
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h4 className="text-sm font-bold text-white tracking-tight">
+                    <h4 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">
                       {m.title}
                     </h4>
 
                     {/* Single Clean Status Badge */}
                     {isApproved && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-600/30">
                         Approved
                       </span>
                     )}
                     {isSubmitted && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#FFEBAA] text-[#261615] border border-[#382322]">
                         <Clock className="w-3 h-3" /> In Review
                       </span>
                     )}
                     {isFunded && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#B1C8EA] text-[#261615] border border-[#382322]">
                         <Lock className="w-3 h-3" /> Funded in Escrow
                       </span>
                     )}
                     {isPending && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-400 border border-white/[0.06]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#FAF0E6] dark:bg-[#19100F] text-[#5C3A38] dark:text-[#D4B8A8] border border-[#382322]/20">
                         Pending Funding
                       </span>
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 leading-relaxed">
                     {m.description}
                   </p>
 
-                  {/* Clean Deliverable Link (only when submitted or approved with actual link) */}
+                  {/* Clean Deliverable Link */}
                   {m.submittedUrl && (
                     <div className="mt-2.5 flex items-center gap-3 flex-wrap">
                       <a
                         href={m.submittedUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322] transition-colors"
                       >
-                        <Play className="w-3 h-3 fill-purple-300" />
+                        <Play className="w-3 h-3 fill-[#261615]" />
                         <span>View Deliverable Cut</span>
                         <ExternalLink className="w-3 h-3 opacity-60" />
                       </a>
                       {m.submissionNotes && (
-                        <span className="text-xs text-slate-400 italic truncate max-w-sm">
+                        <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] italic truncate max-w-sm">
                           "{m.submissionNotes}"
                         </span>
                       )}
@@ -503,9 +503,9 @@ export const MilestoneEscrowPipeline = ({
               </div>
 
               {/* Milestone Right: Clear Amount & Single Action Button */}
-              <div className="flex items-center justify-between md:justify-end gap-3.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/[0.04]">
+              <div className="flex items-center justify-between md:justify-end gap-3.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[#382322]/10 dark:border-[#FDEBDE]/10">
                 <div className="text-right">
-                  <span className="text-base font-extrabold text-white font-mono block">
+                  <span className="text-base font-black text-[#261615] dark:text-[#FDEBDE] font-mono block">
                     ₹{m.amount.toLocaleString('en-IN')}
                   </span>
                 </div>
@@ -517,15 +517,15 @@ export const MilestoneEscrowPipeline = ({
                         <button
                           type="button"
                           onClick={() => handleInitiateFund(m)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-sm cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
                         >
                           <Lock className="w-3.5 h-3.5" />
                           <span>Fund Escrow</span>
                         </button>
                       )}
                       {isFunded && (
-                        <span className="text-xs text-slate-400 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                          <Clock className="w-3 h-3 text-indigo-400" />
+                        <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20">
+                          <Clock className="w-3 h-3 text-[#5C3A38] dark:text-[#FFEBAA]" />
                           Awaiting cut
                         </span>
                       )}
@@ -533,14 +533,14 @@ export const MilestoneEscrowPipeline = ({
                         <button
                           type="button"
                           onClick={() => handleInitiateRelease(m)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-950/40 cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-500 text-white border-2 border-emerald-900 shadow-[2px_2px_0_#064e3b] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
                         >
                           <ShieldCheck className="w-3.5 h-3.5" />
                           <span>Release Funds</span>
                         </button>
                       )}
                       {isApproved && (
-                        <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                        <span className="text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-600/30">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Released
                         </span>
@@ -552,26 +552,26 @@ export const MilestoneEscrowPipeline = ({
                         <button
                           type="button"
                           onClick={() => setActiveSubmittingMilestone(m)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white shadow-sm cursor-pointer flex items-center gap-1.5"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#B1C8EA] hover:bg-[#B1C8EA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] cursor-pointer flex items-center gap-1.5"
                         >
                           <FileVideo className="w-3.5 h-3.5" />
                           <span>Submit Cut</span>
                         </button>
                       )}
                       {isSubmitted && (
-                        <span className="text-xs text-amber-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <span className="text-xs font-mono font-bold text-[#261615] bg-[#FFEBAA] flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#382322]">
                           <Clock className="w-3 h-3" />
                           In Review
                         </span>
                       )}
                       {isApproved && (
-                        <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                        <span className="text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-600/30">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Paid
                         </span>
                       )}
                       {isPending && (
-                        <span className="text-xs text-slate-500 px-2.5 py-1">
+                        <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] px-2.5 py-1">
                           Awaiting funding
                         </span>
                       )}
@@ -596,19 +596,19 @@ export const MilestoneEscrowPipeline = ({
 
       {/* Editor Submit Milestone Cut Modal */}
       {activeSubmittingMilestone && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-md glass-card p-6 border border-white/[0.12] rounded-2xl bg-[#0B0E17]/95 shadow-2xl">
-            <h4 className="text-base font-bold text-white mb-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-md bg-[#FFF7F1] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] text-[#261615] dark:text-[#FDEBDE]">
+            <h4 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] mb-1">
               Submit Cut for {activeSubmittingMilestone.title}
             </h4>
-            <p className="text-xs text-slate-400 mb-4">
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mb-4">
               Upload your video cut preview link (Google Drive, Vimeo, Frame.io) for creator review.
             </p>
 
             <form onSubmit={handleSubmitCut} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  Video Preview URL <span className="text-rose-400">*</span>
+                <label className="block text-[#261615] dark:text-[#FDEBDE] font-mono font-bold mb-1">
+                  Video Preview URL <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="url"
@@ -616,18 +616,18 @@ export const MilestoneEscrowPipeline = ({
                   placeholder="https://drive.google.com/... or Vimeo link"
                   value={submissionUrl}
                   onChange={(e) => setSubmissionUrl(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500 font-mono"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] font-mono"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Editor Notes</label>
+                <label className="block text-[#261615] dark:text-[#FDEBDE] font-mono font-bold mb-1">Editor Notes</label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Rough cut assembly done with 2 revision passes..."
                   value={submissionNotes}
                   onChange={(e) => setSubmissionNotes(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-[#141A28] text-white border border-white/[0.08] focus:outline-none focus:border-purple-500 resize-none"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] resize-none"
                 />
               </div>
 
@@ -635,13 +635,13 @@ export const MilestoneEscrowPipeline = ({
                 <button
                   type="button"
                   onClick={() => setActiveSubmittingMilestone(null)}
-                  className="px-3 py-1.5 rounded-xl text-slate-400 hover:text-white bg-white/5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  className="px-4 py-2 rounded-xl font-mono font-bold text-xs text-[#261615] bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   Submit Cut for Review

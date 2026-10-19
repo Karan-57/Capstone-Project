@@ -5,9 +5,15 @@
 @layer base {
   body {
     background-color: #FDEBDE;
-    color: #382322;
+    color: #261615;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow-x: hidden;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  .dark body {
+    background-color: #19100F;
+    color: #FDEBDE;
   }
 }
 
@@ -19,13 +25,23 @@
 ::-webkit-scrollbar-track {
   background: #FDEBDE;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #19100F;
+}
 ::-webkit-scrollbar-thumb {
   background: #E8D2C0;
   border-radius: 9999px;
   border: 1px solid #382322;
 }
+.dark ::-webkit-scrollbar-thumb {
+  background: #382322;
+  border: 1px solid #FFEBAA;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #382322;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #FFEBAA;
 }
 
 /* Editorial Brutalism & Tactile Paper Cards */
@@ -34,6 +50,13 @@
   border: 1.5px solid rgba(56, 35, 34, 0.15);
   box-shadow: 3px 3px 0px 0px rgba(56, 35, 34, 0.1);
   border-radius: 16px;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dark .glass-card {
+  background: #261817;
+  border: 1.5px solid rgba(253, 235, 222, 0.2);
+  box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 0.45);
 }
 
 .glass-card-subtle {
@@ -42,17 +65,32 @@
   border-radius: 14px;
 }
 
+.dark .glass-card-subtle {
+  background: #201413;
+  border: 1px solid rgba(253, 235, 222, 0.15);
+}
+
 .brutal-card {
   background: #FFF7F1;
   border: 2px solid #382322;
   box-shadow: 3px 3px 0px 0px #382322;
   border-radius: 14px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease;
+}
+
+.dark .brutal-card {
+  background: #261817;
+  border: 2px solid rgba(253, 235, 222, 0.35);
+  box-shadow: 3px 3px 0px 0px #000;
 }
 
 .brutal-card:hover {
   transform: translate(-1px, -1px);
   box-shadow: 4px 4px 0px 0px #382322;
+}
+
+.dark .brutal-card:hover {
+  box-shadow: 4px 4px 0px 0px #FFEBAA;
 }
 
 .brutal-btn-primary {
@@ -89,6 +127,30 @@
   box-shadow: 3px 3px 0px 0px #382322;
 }
 
+.dark .brutal-btn-primary {
+  background: #FFEBAA;
+  color: #261615;
+  border: 2px solid #FFEBAA;
+  box-shadow: 2px 2px 0px 0px #000;
+}
+
+.dark .brutal-btn-primary:hover {
+  background: #fff0c2;
+  box-shadow: 3px 3px 0px 0px #000;
+}
+
+.dark .brutal-btn-yellow {
+  background: #2D1C1B;
+  color: #FFEBAA;
+  border: 2px solid #FFEBAA;
+  box-shadow: 2px 2px 0px 0px #000;
+}
+
+.dark .brutal-btn-yellow:hover {
+  background: #382322;
+  box-shadow: 3px 3px 0px 0px #FFEBAA;
+}
+
 .brutal-btn-blue {
   background: #B1C8EA;
   color: #382322;
@@ -102,6 +164,18 @@
   background: #C9DAF2;
   transform: translate(-1px, -1px);
   box-shadow: 3px 3px 0px 0px #382322;
+}
+
+.dark .brutal-btn-blue {
+  background: #202D3F;
+  color: #B1C8EA;
+  border: 2px solid #B1C8EA;
+  box-shadow: 2px 2px 0px 0px #000;
+}
+
+.dark .brutal-btn-blue:hover {
+  background: #2B3C53;
+  box-shadow: 3px 3px 0px 0px #B1C8EA;
 }
 
 /* Analog paper tape effect */

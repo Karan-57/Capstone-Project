@@ -82,24 +82,28 @@ export const ProjectDetails = () => {
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse pb-16">
-        <div className="h-10 w-48 bg-white/5 rounded-xl" />
-        <div className="h-64 bg-white/5 rounded-2xl" />
-        <div className="h-48 bg-white/5 rounded-2xl" />
+        <div className="h-10 w-48 bg-[#382322]/10 dark:bg-[#FDEBDE]/10 rounded-none border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20" />
+        <div className="h-64 bg-[#382322]/10 dark:bg-[#FDEBDE]/10 rounded-none border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20" />
+        <div className="h-48 bg-[#382322]/10 dark:bg-[#FDEBDE]/10 rounded-none border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20" />
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="p-12 border-2 border-dashed border-white/10 rounded-2xl text-center space-y-4">
-        <Film className="w-12 h-12 text-slate-500 mx-auto" />
-        <h3 className="text-lg font-bold text-white">Project Not Found</h3>
-        <p className="text-xs text-slate-400">
+      <div className="p-12 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFFDF9] dark:bg-[#201413] shadow-[4px_4px_0_#382322] text-center space-y-4">
+        <Film className="w-12 h-12 text-[#5C3A38] dark:text-[#D4B8A8] mx-auto" />
+        <h3 className="text-xl font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Project Not Found</h3>
+        <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
           The requested project could not be found or you may not have access to it.
         </p>
-        <Button variant="primary" size="sm" icon={ArrowLeft} onClick={() => navigate('/creator/projects')}>
-          Back to Projects
-        </Button>
+        <button
+          onClick={() => navigate('/creator/projects')}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold uppercase tracking-wider cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Projects</span>
+        </button>
       </div>
     );
   }
@@ -246,35 +250,35 @@ export const ProjectDetails = () => {
   const openPositions = hirings.filter((h) => !h.hiredFreelancerId && h.status !== 'hired');
 
   return (
-    <div className="space-y-6 animate-fade-in pb-16">
+    <div className="space-y-6 animate-fade-in pb-16 text-[#261615] dark:text-[#FDEBDE]">
       <SEO
         title={`${project.title} - Project Management & Team`}
         description={project.description || 'Manage project scope, hired team, escrow payments, and workspace.'}
       />
 
       {/* Top Navigation & Breadcrumbs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000]">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate('/creator/projects')}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold shrink-0"
+            className="p-2 bg-[#FDEBDE] dark:bg-[#2A1A19] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shrink-0 active:translate-x-0.5 active:translate-y-0.5"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Manage Projects</span>
           </button>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight truncate">
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-tight truncate">
               {project.title}
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Production Dashboard • Category: <span className="text-purple-300 font-medium">{project.category}</span>
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">
+              Production Dashboard • Category: <span className="font-bold underline decoration-[#FFEBAA] decoration-2">{project.category}</span>
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`text-xs font-semibold px-3 py-1 rounded-xl ${project.statusColor}`}>
+          <span className="text-xs font-bold font-mono uppercase tracking-wider px-3 py-1 bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322]">
             {project.status}
           </span>
         </div>
@@ -283,24 +287,24 @@ export const ProjectDetails = () => {
       {/* ─────────────────────────────────────────────────────────────
           PRIMARY ACTION SHORTCUTS (HIRING, PAYMENTS, WORKSPACE)
       ───────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* 1. Continue Hiring */}
         <button
           type="button"
           onClick={() => navigate(`/creator/create-project?step=2&projectId=${project.id}`)}
-          className="p-4 rounded-2xl bg-[#0E1322] border border-purple-500/30 hover:border-purple-500/60 hover:bg-[#12182B] text-left transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer group space-y-2 shadow-lg hover:shadow-purple-950/20"
+          className="p-5 bg-[#FFEBAA] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000] text-left transition-all hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 cursor-pointer group space-y-3"
         >
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 flex items-center justify-center text-[#261615] dark:text-[#FFEBAA]">
               <Briefcase className="w-5 h-5" />
             </div>
-            <ChevronRight className="w-4 h-4 text-purple-400 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-5 h-5 text-[#261615] dark:text-[#FFEBAA] group-hover:translate-x-1 transition-transform" />
           </div>
           <div>
-            <div className="font-bold text-sm text-white group-hover:text-purple-300 transition-colors">
+            <div className="font-serif font-bold text-base text-[#261615] dark:text-[#FDEBDE]">
               Hiring & Roles
             </div>
-            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 line-clamp-1 font-sans">
               Post new roles, review bids & invite freelancers
             </p>
           </div>
@@ -310,19 +314,19 @@ export const ProjectDetails = () => {
         <button
           type="button"
           onClick={() => navigate(`/creator/payments?projectId=${project.id}`)}
-          className="p-4 rounded-2xl bg-[#0E1322] border border-emerald-500/30 hover:border-emerald-500/60 hover:bg-[#12182B] text-left transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer group space-y-2 shadow-lg hover:shadow-emerald-950/20"
+          className="p-5 bg-[#B1C8EA] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000] text-left transition-all hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 cursor-pointer group space-y-3"
         >
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 flex items-center justify-center text-[#261615] dark:text-[#B1C8EA]">
               <CreditCard className="w-5 h-5" />
             </div>
-            <ChevronRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-5 h-5 text-[#261615] dark:text-[#B1C8EA] group-hover:translate-x-1 transition-transform" />
           </div>
           <div>
-            <div className="font-bold text-sm text-white group-hover:text-emerald-300 transition-colors">
+            <div className="font-serif font-bold text-base text-[#261615] dark:text-[#FDEBDE]">
               Escrow & Payments
             </div>
-            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 line-clamp-1 font-sans">
               Authorize PIN locks, approve milestones & releases
             </p>
           </div>
@@ -332,19 +336,19 @@ export const ProjectDetails = () => {
         <button
           type="button"
           onClick={() => navigate(`/creator/workspace?projectId=${project.id}`)}
-          className="p-4 rounded-2xl bg-[#0E1322] border border-indigo-500/30 hover:border-indigo-500/60 hover:bg-[#12182B] text-left transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer group space-y-2 shadow-lg hover:shadow-indigo-950/20"
+          className="p-5 bg-[#FDEBDE] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000] text-left transition-all hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 cursor-pointer group space-y-3"
         >
           <div className="flex items-center justify-between">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+            <div className="w-10 h-10 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 flex items-center justify-center text-[#261615] dark:text-[#FDEBDE]">
               <FolderGit2 className="w-5 h-5" />
             </div>
-            <ChevronRight className="w-4 h-4 text-indigo-400 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-5 h-5 text-[#261615] dark:text-[#FDEBDE] group-hover:translate-x-1 transition-transform" />
           </div>
           <div>
-            <div className="font-bold text-sm text-white group-hover:text-indigo-300 transition-colors">
+            <div className="font-serif font-bold text-base text-[#261615] dark:text-[#FDEBDE]">
               Production Workspace
             </div>
-            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 line-clamp-1 font-sans">
               Collaborative video player, frame notes & asset cloud
             </p>
           </div>
@@ -354,21 +358,21 @@ export const ProjectDetails = () => {
       {/* ─────────────────────────────────────────────────────────────
           PROJECT OVERVIEW & SPECIFICATIONS CARD
       ───────────────────────────────────────────────────────────── */}
-      <div className="glass-card p-6 border border-white/[0.08] space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
+      <div className="bg-[#FFFDF9] dark:bg-[#201413] p-6 sm:p-7 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10 pb-4">
           <div className="space-y-1">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Film className="w-4 h-4 text-purple-400" />
+            <h2 className="text-lg font-serif font-bold text-[#261615] dark:text-[#FDEBDE] flex items-center gap-2">
+              <Film className="w-5 h-5 text-[#261615] dark:text-[#FFEBAA]" />
               Project Specifications & Scope
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
               Core production parameters configured for this project.
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="text-right">
-              <span className="text-[10px] text-slate-400 uppercase font-mono block">Total Budget</span>
-              <span className="text-lg font-extrabold text-emerald-400 font-mono">
+            <div className="text-left sm:text-right">
+              <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] uppercase font-mono font-bold block">Total Budget</span>
+              <span className="text-xl font-mono font-extrabold text-[#261615] dark:text-[#FFEBAA]">
                 {project.budget}
               </span>
             </div>
@@ -376,48 +380,48 @@ export const ProjectDetails = () => {
         </div>
 
         {/* Description */}
-        <div className="space-y-1.5">
-          <span className="text-xs font-semibold text-slate-300 block">Brief & Description:</span>
-          <p className="text-xs text-slate-300 leading-relaxed bg-[#0A0D16] p-3.5 rounded-xl border border-white/[0.04]">
+        <div className="space-y-2">
+          <span className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block">Brief & Description:</span>
+          <p className="text-xs sm:text-sm text-[#261615] dark:text-[#FDEBDE] leading-relaxed bg-[#FFF7F1] dark:bg-[#19100F] p-4 border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20">
             {project.description || 'No detailed brief provided for this project.'}
           </p>
         </div>
 
         {/* Key Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-1">
-            <span className="text-[10px] text-slate-400 font-mono uppercase block">Editing Style</span>
-            <span className="font-bold text-white block truncate">{raw.editingStyle || 'Standard Production'}</span>
+          <div className="p-3 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 space-y-1">
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono uppercase font-bold block">Editing Style</span>
+            <span className="font-bold text-[#261615] dark:text-[#FDEBDE] block truncate">{raw.editingStyle || 'Standard Production'}</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-1">
-            <span className="text-[10px] text-slate-400 font-mono uppercase block">Expected Video Length</span>
-            <span className="font-bold text-white block truncate">{raw.expectedVideoDuration || `${raw.videoDuration || 0} mins`}</span>
+          <div className="p-3 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 space-y-1">
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono uppercase font-bold block">Expected Video Length</span>
+            <span className="font-bold text-[#261615] dark:text-[#FDEBDE] block truncate">{raw.expectedVideoDuration || `${raw.videoDuration || 0} mins`}</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-1">
-            <span className="text-[10px] text-slate-400 font-mono uppercase block">Turnaround Duration</span>
-            <span className="font-bold text-white block truncate">{raw.projectDuration || raw.duration || '7 - 10 Days'}</span>
+          <div className="p-3 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 space-y-1">
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono uppercase font-bold block">Turnaround Duration</span>
+            <span className="font-bold text-[#261615] dark:text-[#FDEBDE] block truncate">{raw.projectDuration || raw.duration || '7 - 10 Days'}</span>
           </div>
 
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04] space-y-1">
-            <span className="text-[10px] text-slate-400 font-mono uppercase block">Deadline</span>
-            <span className="font-bold text-amber-300 block font-mono">{project.deadline}</span>
+          <div className="p-3 bg-[#FFEBAA] dark:bg-[#2A1A19] border-2 border-[#382322] dark:border-[#FDEBDE]/30 space-y-1 shadow-[2px_2px_0_#382322]">
+            <span className="text-[10px] text-[#261615] dark:text-[#D4B8A8] font-mono uppercase font-bold block">Deadline</span>
+            <span className="font-bold text-[#261615] dark:text-[#FFEBAA] block font-mono">{project.deadline}</span>
           </div>
         </div>
 
         {/* Required Skills & Reference Links */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           {Array.isArray(project.tags) && project.tags.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-slate-300 block">Required Skills & Tags:</span>
-              <div className="flex flex-wrap gap-1.5">
+            <div className="space-y-2">
+              <span className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block">Required Skills & Tags:</span>
+              <div className="flex flex-wrap gap-2">
                 {project.tags.map((tag, tIdx) => (
                   <span
                     key={tIdx}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-purple-950/40 text-purple-300 border border-purple-800/30 flex items-center gap-1"
+                    className="px-2.5 py-1 text-xs font-bold font-mono bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[1px_1px_0_#382322] flex items-center gap-1.5"
                   >
-                    <Tag className="w-3 h-3 text-purple-400" />
+                    <Tag className="w-3 h-3 text-[#261615] dark:text-[#FFEBAA]" />
                     {tag}
                   </span>
                 ))}
@@ -426,18 +430,18 @@ export const ProjectDetails = () => {
           )}
 
           {Array.isArray(raw.referenceLinks) && raw.referenceLinks.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="text-xs font-semibold text-slate-300 block">Reference Links:</span>
-              <div className="space-y-1">
+            <div className="space-y-2">
+              <span className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block">Reference Links:</span>
+              <div className="space-y-1.5">
                 {raw.referenceLinks.map((link, lIdx) => (
                   <a
                     key={lIdx}
                     href={link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1.5 truncate hover:underline"
+                    className="text-xs text-[#261615] dark:text-[#FFEBAA] font-medium flex items-center gap-1.5 truncate underline decoration-[#382322]/40 hover:decoration-[#382322]"
                   >
-                    <ExternalLink className="w-3 h-3 shrink-0" />
+                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                     <span className="truncate">{link}</span>
                   </a>
                 ))}
@@ -450,14 +454,14 @@ export const ProjectDetails = () => {
       {/* ─────────────────────────────────────────────────────────────
           TEAM MEMBERS & ROLE POSITIONS (WITH REMOVE MEMBER CAPABILITY)
       ───────────────────────────────────────────────────────────── */}
-      <div className="glass-card p-6 border border-white/[0.08] space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-4">
+      <div className="bg-[#FFFDF9] dark:bg-[#201413] p-6 sm:p-7 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10 pb-4">
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Users className="w-4 h-4 text-purple-400" />
+            <h3 className="text-lg font-serif font-bold text-[#261615] dark:text-[#FDEBDE] flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#261615] dark:text-[#FFEBAA]" />
               Project Team & Assigned Freelancers ({assignedTeam.length})
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 font-sans">
               Manage your hired team. Members can be removed if they were just approved and haven't started work yet, which reopens the position.
             </p>
           </div>
@@ -465,7 +469,7 @@ export const ProjectDetails = () => {
           <button
             type="button"
             onClick={() => navigate(`/creator/create-project?step=2&projectId=${project.id}`)}
-            className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 shadow-md shadow-purple-900/30"
+            className="px-4 py-2 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 shrink-0 active:translate-x-0.5 active:translate-y-0.5"
           >
             <Plus className="w-4 h-4" />
             <span>Hire Another Role</span>
@@ -474,7 +478,7 @@ export const ProjectDetails = () => {
 
         {/* Assigned Team Members List */}
         {assignedTeam.length > 0 ? (
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-3.5">
             {assignedTeam.map((member) => {
               const freelancer = member.freelancer || member.hiredFreelancerId;
               const fid = freelancer._id || freelancer.id;
@@ -484,50 +488,50 @@ export const ProjectDetails = () => {
               return (
                 <div
                   key={member._id || member.hiringId || fid}
-                  className="p-4 sm:p-5 rounded-2xl bg-[#0E1322] border border-white/[0.06] hover:border-purple-500/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                  className="p-4 sm:p-5 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000] flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     <img
                       src={freelancer.profileImage || freelancer.avatar || DEFAULT_PFP}
                       alt={freelancer.name || 'Team member'}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                      className="w-12 h-12 rounded-2xl object-cover border-2 border-purple-500/40 shrink-0"
+                      className="w-12 h-12 rounded-none object-cover border-2 border-[#382322] dark:border-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] shrink-0"
                     />
 
                     <div className="min-w-0 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm sm:text-base font-bold text-white truncate">
+                        <h4 className="text-sm sm:text-base font-serif font-bold text-[#261615] dark:text-[#FDEBDE] truncate">
                           {freelancer.name || freelancer.username || 'Team Member'}
                         </h4>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-950/60 text-purple-300 border border-purple-800/40">
+                        <span className="text-[10px] font-bold font-mono uppercase px-2 py-0.5 bg-[#B1C8EA] text-[#261615] border-2 border-[#382322]">
                           {member.roleTitle}
                         </span>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        <span className="text-[10px] font-bold font-mono uppercase px-2 py-0.5 bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-[#261615]" />
                           Hired & Active
                         </span>
                       </div>
 
-                      <p className="text-xs text-slate-400 line-clamp-1">
+                      <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] line-clamp-1 font-sans">
                         {member.description || `Assigned to handle ${member.roleTitle} deliverables.`}
                       </p>
 
-                      <div className="flex items-center gap-3 text-[11px] text-slate-400 pt-0.5 flex-wrap">
+                      <div className="flex items-center gap-3 text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] pt-0.5 flex-wrap font-mono">
                         {member.hiredAt && (
                           <span>Approved: {new Date(member.hiredAt).toLocaleDateString()}</span>
                         )}
                         <span>•</span>
-                        <span className={hasStartedWork ? 'text-amber-400 font-semibold' : 'text-slate-400'}>
-                          Work Status: {hasStartedWork ? 'In Progress / Deliverables or Payments Active' : 'Not Started Yet'}
+                        <span className={hasStartedWork ? 'text-[#261615] dark:text-[#FFEBAA] font-bold underline decoration-[#FFEBAA]' : 'text-[#5C3A38] dark:text-[#D4B8A8]'}>
+                          Work Status: {hasStartedWork ? 'In Progress / Deliverables Active' : 'Not Started Yet'}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/[0.06]">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-3 sm:pt-0 border-t-2 sm:border-t-0 border-[#382322]/10 dark:border-[#FDEBDE]/10">
                     <div className="text-left sm:text-right pr-2">
-                      <span className="text-[10px] text-slate-400 uppercase font-mono block">Allocated Budget</span>
-                      <span className="text-base font-extrabold text-emerald-400 font-mono">
+                      <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] uppercase font-mono font-bold block">Allocated Budget</span>
+                      <span className="text-base font-extrabold text-[#261615] dark:text-[#FFEBAA] font-mono">
                         ₹{Number(member.budget || 0).toLocaleString()}
                       </span>
                     </div>
@@ -536,7 +540,7 @@ export const ProjectDetails = () => {
                     <button
                       type="button"
                       onClick={() => navigate(`/creator/payments?projectId=${project.id}&freelancerId=${fid}&roleId=${member.roleId || ''}&hiringId=${member.isFromHiring ? member.hiringId : ''}`)}
-                      className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/40 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                      className="px-3.5 py-2 text-xs font-bold font-mono uppercase tracking-wider bg-[#B1C8EA] hover:bg-[#9cbfe6] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all flex items-center gap-1.5 cursor-pointer shrink-0 active:translate-x-0.5 active:translate-y-0.5"
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>Manage Escrow</span>
@@ -553,7 +557,7 @@ export const ProjectDetails = () => {
                             roleTitle: member.roleTitle,
                           })
                         }
-                        className="px-3 py-2 rounded-xl text-xs font-semibold bg-rose-600/15 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                        className="px-3 py-2 text-xs font-bold font-mono uppercase tracking-wider bg-rose-100 dark:bg-rose-950/40 hover:bg-rose-200 text-rose-900 dark:text-rose-300 border-2 border-[#382322] dark:border-rose-500/40 shadow-[2px_2px_0_#382322] transition-all flex items-center gap-1.5 cursor-pointer shrink-0 active:translate-x-0.5 active:translate-y-0.5"
                         title="Remove member and reopen role for applications"
                       >
                         <UserX className="w-3.5 h-3.5" />
@@ -561,10 +565,10 @@ export const ProjectDetails = () => {
                       </button>
                     ) : (
                       <span
-                        className="text-[10px] text-amber-300 font-medium px-2.5 py-1.5 rounded-xl bg-amber-950/40 border border-amber-800/40 flex items-center gap-1 shrink-0 cursor-not-allowed"
+                        className="text-[10px] text-[#261615] dark:text-[#FFEBAA] font-bold font-mono uppercase px-2.5 py-1.5 bg-[#FFEBAA]/50 dark:bg-[#FFEBAA]/10 border-2 border-[#382322] dark:border-[#FFEBAA]/40 flex items-center gap-1 shrink-0 cursor-not-allowed"
                         title="Cannot remove: Freelancer has already started submissions, deliverables, or received milestone payments."
                       >
-                        <Lock className="w-3 h-3 text-amber-400" />
+                        <Lock className="w-3 h-3 text-[#261615] dark:text-[#FFEBAA]" />
                         <span>Work Started / Paid</span>
                       </span>
                     )}
@@ -574,15 +578,15 @@ export const ProjectDetails = () => {
             })}
           </div>
         ) : (
-          <div className="p-8 text-center space-y-2 border border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
-            <Users className="w-8 h-8 text-slate-600 mx-auto" />
-            <p className="text-xs text-slate-400">
+          <div className="p-8 text-center space-y-3 border-2 border-dashed border-[#382322]/20 dark:border-[#FDEBDE]/20 bg-[#FFF7F1] dark:bg-[#19100F]">
+            <Users className="w-8 h-8 text-[#5C3A38] dark:text-[#D4B8A8] mx-auto" />
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
               No team members have been approved for this project yet.
             </p>
             <button
               type="button"
               onClick={() => navigate(`/creator/create-project?step=2&projectId=${project.id}`)}
-              className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all inline-flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold uppercase tracking-wider transition-all inline-flex items-center gap-1.5 cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Review Applications / Post Role</span>
@@ -592,9 +596,9 @@ export const ProjectDetails = () => {
 
         {/* Open Hiring Positions */}
         {openPositions.length > 0 && (
-          <div className="pt-4 border-t border-white/[0.06] space-y-3">
-            <h4 className="text-xs font-bold text-slate-300 flex items-center gap-2">
-              <Briefcase className="w-3.5 h-3.5 text-amber-400" />
+          <div className="pt-4 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10 space-y-3">
+            <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] flex items-center gap-2">
+              <Briefcase className="w-3.5 h-3.5 text-[#261615] dark:text-[#FFEBAA]" />
               Open Positions Awaiting Team Members ({openPositions.length})
             </h4>
 
@@ -602,25 +606,25 @@ export const ProjectDetails = () => {
               {openPositions.map((hiring) => (
                 <div
                   key={hiring._id}
-                  className="p-3.5 rounded-xl bg-[#0A0D16] border border-white/[0.05] flex items-center justify-between gap-3"
+                  className="p-3.5 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 flex items-center justify-between gap-3"
                 >
                   <div className="min-w-0">
-                    <span className="text-xs font-bold text-white truncate block">
+                    <span className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] truncate block">
                       {hiring.roleTitle}
                     </span>
-                    <span className="text-[10px] text-amber-400 font-medium">
+                    <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono">
                       Status: Open for Applications
                     </span>
                   </div>
 
                   <div className="text-right shrink-0">
-                    <span className="text-xs font-mono font-bold text-emerald-400 block">
+                    <span className="text-xs font-mono font-bold text-[#261615] dark:text-[#FFEBAA] block">
                       ₹{Number(hiring.budget || 0).toLocaleString()}
                     </span>
                     <button
                       type="button"
                       onClick={() => navigate(`/creator/create-project?step=2&projectId=${project.id}`)}
-                      className="text-[10px] text-purple-400 hover:text-purple-300 font-semibold hover:underline"
+                      className="text-[10px] text-[#261615] dark:text-[#FFEBAA] font-bold uppercase tracking-wider hover:underline"
                     >
                       Manage Opening →
                     </button>
@@ -636,32 +640,32 @@ export const ProjectDetails = () => {
           CONFIRM REMOVE TEAM MEMBER MODAL
       ───────────────────────────────────────────────────────────── */}
       {memberToRemove && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md p-6 rounded-2xl bg-[#0F1422] border border-rose-500/40 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md p-6 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[6px_6px_0_#382322] dark:shadow-[6px_6px_0_#000] space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+              <div className="w-10 h-10 bg-rose-100 dark:bg-rose-950/50 border-2 border-[#382322] dark:border-rose-500/40 flex items-center justify-center text-rose-700 dark:text-rose-400 shrink-0">
                 <UserX className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Remove Team Member?</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-base font-serif font-bold text-[#261615] dark:text-[#FDEBDE]">Remove Team Member?</h3>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
                   {memberToRemove.freelancerName} ({memberToRemove.roleTitle})
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed bg-rose-950/20 border border-rose-800/30 p-3 rounded-xl">
+            <p className="text-xs text-[#261615] dark:text-[#FDEBDE] leading-relaxed bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 p-3.5">
               Are you sure you want to remove <strong>{memberToRemove.freelancerName}</strong> from the role{' '}
               <strong>"{memberToRemove.roleTitle}"</strong>?
               <br /><br />
               Since work has not started yet, doing so will <strong>reopen this hiring position</strong> immediately so other freelancers can apply.
             </p>
 
-            <div className="flex items-center justify-end gap-2.5 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setMemberToRemove(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-white/5 transition-colors cursor-pointer"
+                className="px-4 py-2 border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FDEBDE] transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -669,7 +673,7 @@ export const ProjectDetails = () => {
                 type="button"
                 disabled={Boolean(removingHiringId)}
                 onClick={handleConfirmRemoveMember}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition-all cursor-pointer shadow-md shadow-rose-950/40 flex items-center gap-1.5 disabled:opacity-50"
+                className="px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] bg-[#FFEBAA] hover:bg-[#ffe58f] border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50 active:translate-x-0.5 active:translate-y-0.5"
               >
                 <UserX className="w-3.5 h-3.5" />
                 <span>{removingHiringId ? 'Removing...' : 'Confirm & Reopen Role'}</span>
