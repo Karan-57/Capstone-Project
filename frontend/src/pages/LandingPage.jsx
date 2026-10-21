@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import CollaboLogo from "../components/landing/CollaboLogo";
-import FloatingSoftwareIcons from "../components/landing/FloatingSoftwareIcons";
 import HeroCardsShowcase from "../components/landing/HeroCardsShowcase";
 import ProcessDock from "../components/landing/ProcessDock";
 import Navbar from "../components/landing/Navbar";
@@ -78,25 +76,6 @@ export default function LandingPage() {
         {/* Paper Grain Overlay */}
         <div className="absolute inset-0 paper-grain opacity-60" />
 
-        {/* Ambient Subtle Waveform Bars */}
-        <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 flex items-center justify-between px-4 sm:px-12 opacity-25 filter blur-[0.4px]">
-          {Array.from({ length: 42 }).map((_, i) => {
-            const h = Math.sin((i / 42) * Math.PI) * 110 + 20;
-            const delay = (i * 0.08).toFixed(2);
-            return (
-              <div
-                key={i}
-                className="w-[2px] sm:w-[3px] bg-[#382322] rounded-full"
-                style={{
-                  height: `${h}px`,
-                  animation: `pulseGlow 4s ease-in-out infinite`,
-                  animationDelay: `${delay}s`,
-                }}
-              />
-            );
-          })}
-        </div>
-
         {/* Tactile Pastel Color Fields in corners */}
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#B1C8EA]/30 rounded-full blur-3xl" />
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#FFEBAA]/35 rounded-full blur-3xl" />
@@ -144,14 +123,7 @@ export default function LandingPage() {
           </span>
         </div>
 
-        {/* Step 2: Collabo Logo with Floating Software Icons */}
-        <div className="relative mb-3 flex items-center justify-center">
-          <CollaboLogo size={68} variant="isometric" animated={true} />
-          {/* Floating Premiere Pro, DaVinci Resolve & 3D Project Assets */}
-          <FloatingSoftwareIcons mousePos={mousePos} />
-        </div>
-
-        {/* Step 3: Main Headline "Collabo." */}
+        {/* Step 2: Main Headline "Collabo." */}
         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-[#382322] font-display">
           Collabo<span className="text-[#382322]">.</span>
         </h1>
