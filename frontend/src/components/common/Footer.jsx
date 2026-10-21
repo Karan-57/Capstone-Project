@@ -17,9 +17,6 @@ export const Footer = ({ className = '' }) => {
 
         {/* Links */}
         <div className="flex items-center gap-5 text-[11px]">
-          <Link to="/about" className="hover:text-purple-300 transition-colors">
-            About
-          </Link>
           <Link to="/privacy" className="hover:text-purple-300 transition-colors">
             Privacy Policy
           </Link>

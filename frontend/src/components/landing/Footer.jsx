@@ -76,11 +76,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-[#382322]/80 hover:text-[#382322] hover:underline transition-colors">
-                  About Us
-                </Link>
-              </li>
-              <li>
                 <Link to="/#how-it-works" className="text-[#382322]/80 hover:text-[#382322] hover:underline transition-colors">
                   How It Works
                 </Link>

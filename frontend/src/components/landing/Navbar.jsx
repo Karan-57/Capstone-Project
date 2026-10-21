@@ -11,7 +11,6 @@ export default function Navbar({ activeTab = "Home", onTabChange }) {
     { id: "Clients", label: "For Clients" },
     { id: "Editors", label: "For Editors" },
     { id: "HowItWorks", label: "How it works" },
-    { id: "About", label: "About us" },
   ];
 
   const handleTabClick = (tabId) => {
@@ -20,8 +19,6 @@ export default function Navbar({ activeTab = "Home", onTabChange }) {
       navigate('/login?role=creator');
     } else if (tabId === "Editors") {
       navigate('/login?role=editor');
-    } else if (tabId === "About") {
-      navigate('/about');
     } else if (tabId === "HowItWorks") {
       if (window.location.pathname === '/') {
         const el = document.getElementById("how-it-works");

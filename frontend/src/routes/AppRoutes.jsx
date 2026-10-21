@@ -14,7 +14,6 @@ import StickyMobileCTA from '../components/common/StickyMobileCTA';
 
 // Core Public & Legal Pages (Statically imported for zero latency & instant tab rendering)
 import LandingPage from '../pages/LandingPage';
-import About from '../pages/About';
 import PrivacyPolicy from '../pages/legal/PlatformPrivacy';
 import TermsAndConditions from '../pages/legal/TermsAndConditions';
 import NotFound from '../pages/NotFound';
@@ -119,7 +118,7 @@ export const AppRoutes = () => {
           {/* Landing & Public Pages */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/landing" element={<LandingPage />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/about" element={<Navigate to="/" replace />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/privacy-policy" element={<Navigate to="/privacy" replace />} />
           <Route path="/terms" element={<TermsAndConditions />} />
@@ -219,3 +218,4 @@ export const AppRoutes = () => {
 };
 
 export default AppRoutes;
+
