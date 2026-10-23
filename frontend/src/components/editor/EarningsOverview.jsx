@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wallet, ShieldCheck, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import Button from '../common/Button';
 import { useWallet } from '../../context/WalletContext';
 import { WithdrawModal } from '../wallet/WithdrawModal';
 
@@ -19,31 +18,31 @@ export const EarningsOverview = ({ earnings }) => {
     ? `₹${Number(escrowLocked).toLocaleString('en-IN')}`
     : (earnings?.pendingEscrow || '₹0');
 
-  // Ledger-based payout and withdrawal items
+  // Ledger-based payout and withdrawal items - capped at 3
   const ledgerPayouts = transactions
     .filter((t) => t.type === 'ESCROW_RELEASE' || t.type === 'WITHDRAWAL')
-    .slice(0, 4);
+    .slice(0, 3);
 
   const hasRecentPayouts = ledgerPayouts.length > 0 || (earnings?.recentPayouts && earnings.recentPayouts.length > 0);
 
   return (
-    <div className="bg-white/95 rounded-2xl border-2 border-[#382322] shadow-[3px_3px_0_#382322] p-5 flex flex-col justify-between h-full relative overflow-hidden">
+    <div className="bg-white/95 dark:bg-[#201413] rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000] p-5 flex flex-col justify-between h-full relative overflow-hidden text-[#261615] dark:text-[#FDEBDE]">
       {/* Editorial top accent tape */}
       <div className="absolute -top-1.5 right-10 w-12 h-3.5 bg-[#FFEBAA] border border-[#382322]/30 rotate-[2deg] pointer-events-none" />
 
-      <div>
+      <div className="flex-1 flex flex-col">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-xl bg-[#382322] text-[#FFEBAA] border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322]">
+            <div className="p-1.5 rounded-xl bg-[#382322] text-[#FFEBAA] dark:bg-[#FFEBAA] dark:text-[#261615] border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322]">
               <Wallet className="w-4 h-4" />
             </div>
-            <h3 className="text-lg font-serif font-bold text-[#382322] tracking-tight">
+            <h3 className="text-lg font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-tight">
               Earnings & Balances
             </h3>
           </div>
           <button
             onClick={() => navigate('/editor/earnings')}
-            className="text-xs font-bold text-[#382322] underline decoration-2 decoration-[#FFEBAA] hover:bg-[#FFEBAA] px-2 py-0.5 rounded transition-all cursor-pointer"
+            className="text-xs font-bold text-[#261615] dark:text-[#FFEBAA] underline decoration-2 decoration-[#FFEBAA] hover:bg-[#FFEBAA] dark:hover:bg-[#FFEBAA]/20 px-2 py-0.5 rounded transition-all cursor-pointer font-mono"
           >
             Ledger History
           </button>
@@ -51,12 +50,12 @@ export const EarningsOverview = ({ earnings }) => {
 
         {/* Primary Balances Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          <div className="p-3.5 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex flex-col justify-between">
+          <div className="p-3.5 rounded-xl bg-[#FFEBAA] dark:bg-[#2A1D1C] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] flex flex-col justify-between">
             <div>
-              <span className="text-[11px] font-bold text-[#382322]/70 uppercase tracking-wider block">
-                Available Credits (Ledger)
+              <span className="text-[11px] font-bold text-[#382322]/80 dark:text-[#FFEBAA] uppercase tracking-wider block font-mono">
+                Available Credits
               </span>
-              <div className="text-2xl font-extrabold text-[#382322] mt-1 font-mono">
+              <div className="text-2xl font-extrabold text-[#261615] dark:text-[#FDEBDE] mt-1 font-mono">
                 {displayAvailable}
               </div>
             </div>
@@ -64,97 +63,89 @@ export const EarningsOverview = ({ earnings }) => {
               <button
                 disabled={(walletBalance || 0) < 50}
                 onClick={() => setIsWithdrawModalOpen(true)}
-                className="w-full text-xs font-bold font-mono py-2 rounded-xl bg-[#382322] hover:bg-[#4d3332] text-[#FFEBAA] border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer disabled:opacity-50"
+                className="w-full text-xs font-bold font-mono py-2 rounded-xl bg-[#382322] hover:bg-[#4d3332] text-[#FFEBAA] dark:bg-[#FFEBAA] dark:hover:bg-[#ffe38a] dark:text-[#261615] border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer disabled:opacity-50"
               >
                 Withdraw Funds
               </button>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#FDEBDE] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex flex-col justify-between">
+          <div className="p-3.5 rounded-xl bg-[#FDEBDE] dark:bg-[#1A2332] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] flex flex-col justify-between">
             <div>
-              <span className="text-[11px] font-bold text-[#382322]/70 uppercase tracking-wider block flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#382322]" />
+              <span className="text-[11px] font-bold text-[#382322]/80 dark:text-[#B1C8EA] uppercase tracking-wider block flex items-center gap-1 font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#261615] dark:text-[#B1C8EA]" />
                 In Collabo Escrow
               </span>
-              <div className="text-2xl font-extrabold text-[#382322] mt-1 font-mono">
+              <div className="text-2xl font-extrabold text-[#261615] dark:text-[#FDEBDE] mt-1 font-mono">
                 {displayEscrow}
               </div>
             </div>
-            <span className="text-[10px] text-[#382322]/70 font-medium block mt-3">
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-medium block mt-3 font-sans">
               Auto-releases upon creator cut approval
             </span>
           </div>
         </div>
 
-        {/* Recent Payouts */}
-        <div className="space-y-2">
-          <span className="text-xs font-bold font-mono text-[#382322] uppercase tracking-wider block mb-1">
+        {/* Recent Payouts - max 3 */}
+        <div className="space-y-2 flex-1">
+          <span className="text-xs font-bold font-mono text-[#261615] dark:text-[#FDEBDE] uppercase tracking-wider block mb-1">
             Recent Released Payments
           </span>
           {!hasRecentPayouts ? (
-            <div className="p-4 rounded-xl bg-[#FDEBDE]/30 border border-dashed border-[#382322]/30 text-center">
-              <p className="text-xs font-semibold text-[#382322]/70">No released payouts yet.</p>
-              <span className="text-[10px] text-[#382322]/50">Payments from completed creator contracts will appear here.</span>
+            <div className="p-4 rounded-xl bg-[#FDEBDE]/30 dark:bg-[#1A1110]/50 border border-dashed border-[#382322]/30 dark:border-[#FDEBDE]/30 text-center">
+              <p className="text-xs font-semibold text-[#5C3A38] dark:text-[#D4B8A8]">No released payouts yet.</p>
+              <span className="text-[10px] text-[#5C3A38]/70 dark:text-[#D4B8A8]/70">Payments from completed creator contracts will appear here.</span>
             </div>
-          ) : ledgerPayouts.length > 0 ? (
-            ledgerPayouts.map((tx) => {
-              const isRelease = tx.type === 'ESCROW_RELEASE';
-              return (
-                <div
-                  key={tx.id || tx._id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-xl bg-white border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322] gap-1"
-                >
-                  <div className="min-w-0 flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border border-[#382322] ${
-                      isRelease ? 'bg-[#FFEBAA] text-[#382322]' : 'bg-[#B1C8EA] text-[#382322]'
-                    }`}>
-                      {isRelease ? <ArrowDownLeft className="w-3.5 h-3.5 stroke-[2.5]" /> : <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />}
+          ) : (
+            <div className="space-y-2">
+              {ledgerPayouts.map((tx) => {
+                const isRelease = tx.type === 'ESCROW_RELEASE';
+                return (
+                  <div
+                    key={tx.id || tx._id}
+                    className="p-2.5 rounded-xl bg-[#FDEBDE]/40 dark:bg-[#1A1110] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[1.5px_1.5px_0_#382322] flex items-center justify-between gap-2.5"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
+                          isRelease
+                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-600/40'
+                            : 'bg-[#FFEBAA] text-[#261615] border-[#382322]'
+                        }`}
+                      >
+                        {isRelease ? <ArrowDownLeft className="w-3.5 h-3.5" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] truncate">
+                          {tx.milestoneTitle || (isRelease ? 'Escrow Cleared' : 'Withdrawal')}
+                        </div>
+                        <div className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono truncate">
+                          {tx.date || 'Recent'}
+                        </div>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-[#382322] truncate">
-                        {tx.milestoneTitle || (isRelease ? 'Milestone Payout' : 'Withdrawal')}
-                      </p>
-                      <p className="text-[11px] text-[#382322]/70 truncate">
-                        {tx.date} • {tx.gateway || 'Collabo Ledger'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-left sm:text-right shrink-0">
-                    <span className="text-xs font-bold font-mono text-[#382322]">
+                    <span
+                      className={`text-xs font-bold font-mono shrink-0 ${
+                        isRelease ? 'text-emerald-700 dark:text-emerald-400' : 'text-[#261615] dark:text-[#FFEBAA]'
+                      }`}
+                    >
                       {isRelease ? '+' : '-'}₹{Number(tx.amount || 0).toLocaleString('en-IN')}
                     </span>
-                    <span className="inline sm:block text-[10px] font-mono font-bold text-[#382322]/60 ml-1.5 sm:ml-0">
-                      {isRelease ? 'Cleared' : 'Transferred'}
-                    </span>
                   </div>
-                </div>
-              );
-            })
-          ) : (
-            (earnings?.recentPayouts || []).map((payout) => (
-              <div
-                key={payout.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-xl bg-white border-2 border-[#382322] shadow-[1.5px_1.5px_0_#382322] gap-1"
-              >
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-[#382322] truncate">
-                    {payout.project}
-                  </p>
-                  <p className="text-[11px] text-[#382322]/70">
-                    {payout.client} • {payout.date}
-                  </p>
-                </div>
-                <div className="text-left sm:text-right shrink-0">
-                  <span className="text-xs font-bold font-mono text-[#382322]">
-                    +{payout.amount}
-                  </span>
-                  <span className="inline sm:block text-[10px] font-mono font-bold text-[#382322]/60 ml-1.5 sm:ml-0">Cleared</span>
-                </div>
-              </div>
-            ))
+                );
+              })}
+            </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-4 pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
+        <button
+          onClick={() => navigate('/editor/earnings')}
+          className="w-full py-2.5 text-xs font-bold font-mono text-[#261615] bg-[#FFEBAA] hover:bg-[#ffe38a] rounded-xl border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer uppercase tracking-wider"
+        >
+          View Full Ledger & Payout History
+        </button>
       </div>
 
       <WithdrawModal

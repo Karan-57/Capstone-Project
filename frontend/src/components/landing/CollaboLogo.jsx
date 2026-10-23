@@ -2,10 +2,58 @@ import React from "react";
 
 export default function CollaboLogo({
   size = 48,
-  variant = "isometric", // "isometric" for landing, "hex" for dashboard
+  variant = "isometric", // "isometric" for landing, "hex" for dashboard, "sidebar" for sidebar
   animated = true,
   className = "",
 }) {
+  if (variant === "sidebar") {
+    // Sidebar clean monochrome yellow (#FFEBAA) version without gradient or glow filter
+    return (
+      <div
+        className={`relative inline-flex items-center justify-center select-none ${className}`}
+        style={{ width: size, height: size }}
+      >
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className={animated ? "transition-transform duration-300 hover:scale-105" : ""}
+        >
+          {/* Outer cube silhouette */}
+          <path
+            d="M32 4L56 18V46L32 60L8 46V18L32 4Z"
+            stroke="#FFEBAA"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Central Y axes */}
+          <path d="M32 32V60" stroke="#FFEBAA" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M32 32L56 18" stroke="#FFEBAA" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M32 32L8 18" stroke="#FFEBAA" strokeWidth="2.2" strokeLinecap="round" />
+
+          {/* Top face wireframe subdivisions */}
+          <path d="M20 11L44 25" stroke="#FFEBAA" strokeWidth="1.2" strokeOpacity="0.65" />
+          <path d="M44 11L20 25" stroke="#FFEBAA" strokeWidth="1.2" strokeOpacity="0.65" />
+
+          {/* Left face wireframe subdivisions */}
+          <path d="M8 32L32 46" stroke="#FFEBAA" strokeWidth="1.2" strokeOpacity="0.65" />
+          <path d="M20 25V53" stroke="#FFEBAA" strokeWidth="1.2" strokeOpacity="0.65" />
+
+          {/* Right face wireframe subdivisions */}
+          <path d="M56 32L32 46" stroke="#FFEBAA" strokeWidth="1.2" strokeOpacity="0.65" />
+          <path d="M44 25V53" stroke="#FFEBAA" strokeWidth="1.2" strokeOpacity="0.65" />
+
+          {/* Inner subtle core */}
+          <circle cx="32" cy="32" r="3" fill="#FFEBAA" opacity="0.85" />
+        </svg>
+      </div>
+    );
+  }
+
   if (variant === "hex") {
     // Hexagonal isometric badge from Creator/Editor Dashboard
     return (

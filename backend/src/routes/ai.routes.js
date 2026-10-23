@@ -11,17 +11,6 @@ const aiRouter = Router();
  */
 aiRouter.post('/suggest-budget-timeline', authUser, aiController.suggestBudgetAndTimelineController);
 
-/**
- * @route POST /api/ai/suggest-top-proposals/:projectId?
- * @description Analyze and rank top 3 candidate proposals for a project
- * @access Private (Creator)
- */
-aiRouter.post(
-  ['/suggest-top-proposals', '/suggest-top-proposals/:projectId'],
-  authUser,
-  aiController.suggestTopProposalsController
-);
-
 aiRouter.post(
   ['/suggest-editor-bid', '/suggest-editor-bid/:projectId'],
   authUser,

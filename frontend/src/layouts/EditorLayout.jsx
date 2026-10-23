@@ -16,7 +16,7 @@ export const EditorLayout = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex h-screen bg-[#FDEBDE] text-[#382322] font-sans overflow-hidden selection:bg-[#FFEBAA] selection:text-[#382322]">
+    <div className="flex h-screen bg-[#FDEBDE] dark:bg-[#19100F] text-[#382322] dark:text-[#FDEBDE] font-sans overflow-hidden selection:bg-[#FFEBAA] selection:text-[#382322]">
       {/* Left Sidebar (Desktop + Mobile Drawer) */}
       <Sidebar
         role="editor"

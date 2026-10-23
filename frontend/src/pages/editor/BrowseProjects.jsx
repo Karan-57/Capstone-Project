@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Clock, CheckCircle, Send, X, Sparkles } from 'lucide-react';
-import Button from '../../components/common/Button';
 import { SkeletonCard } from '../../components/common/Skeleton';
 import SEO from '../../components/common/SEO';
 import { projectService } from '../../services/projectService';
@@ -134,7 +133,7 @@ export const BrowseProjects = () => {
         description="Discover active creator roles, submit bids with custom turnaround times, and get hired."
       />
 
-      <div className="p-4 sm:p-5 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000]">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#000]">
         <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-tight">Browse Open Roles & Gigs</h2>
         <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1 font-sans">
           Discover active roles posted by creators (Video Editors, Thumbnail Designers, Colorists), submit bids, and get hired.
@@ -143,12 +142,12 @@ export const BrowseProjects = () => {
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 p-1.5 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] overflow-x-auto max-w-full">
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] overflow-x-auto max-w-full">
           {tagsList.map(tag => (
             <button
               key={tag}
               onClick={() => setSelectedTag(tag)}
-              className={`px-3 py-1.5 text-xs font-bold font-mono uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
                 selectedTag === tag
                   ? 'bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[1px_1px_0_#382322]'
                   : 'text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE]'
@@ -166,7 +165,7 @@ export const BrowseProjects = () => {
             placeholder="Search roles by title or creator..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-xs bg-[#FFFDF9] dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] placeholder-[#5C3A38]/50 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none transition-colors"
+            className="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-[#FFFDF9] dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] placeholder-[#5C3A38]/50 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] focus:outline-none transition-colors"
           />
         </div>
       </div>
@@ -180,7 +179,7 @@ export const BrowseProjects = () => {
           <SkeletonCard />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-16 text-center text-xs text-[#5C3A38] dark:text-[#D4B8A8] bg-[#FFFDF9] dark:bg-[#201413] border-2 border-dashed border-[#382322]/20 dark:border-[#FDEBDE]/20">
+        <div className="py-16 text-center text-xs text-[#5C3A38] dark:text-[#D4B8A8] bg-[#FFFDF9] dark:bg-[#201413] border-2 border-dashed border-[#382322]/20 dark:border-[#FDEBDE]/20 rounded-2xl">
           No open gigs found matching your filters.
         </div>
       ) : (
@@ -188,7 +187,7 @@ export const BrowseProjects = () => {
           {filtered.map((gig) => (
             <div
               key={gig.id}
-              className="bg-[#FFFDF9] dark:bg-[#201413] p-5 sm:p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] transition-all flex flex-col justify-between"
+              className="bg-[#FFFDF9] dark:bg-[#201413] p-5 sm:p-6 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
@@ -197,11 +196,11 @@ export const BrowseProjects = () => {
                       src={gig.creatorAvatar || DEFAULT_PFP}
                       alt={gig.creator || 'Creator Avatar'}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                      className="w-10 h-10 rounded-none object-cover border-2 border-[#382322] shadow-[2px_2px_0_#382322] shrink-0 mt-0.5"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] shrink-0 mt-0.5"
                     />
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                        <span className="px-2 py-0.5 text-[10px] font-bold font-mono uppercase tracking-wider bg-[#B1C8EA] text-[#261615] border-2 border-[#382322]">
+                        <span className="px-2 py-0.5 text-[10px] font-bold font-mono uppercase tracking-wider rounded-lg bg-[#B1C8EA] text-[#261615] border-2 border-[#382322]">
                           {gig.roleTitle || 'Freelance Role'}
                         </span>
                         {gig.projectTitle && gig.projectTitle !== gig.roleTitle && (
@@ -233,7 +232,7 @@ export const BrowseProjects = () => {
                 </div>
 
                 {gig.description && (
-                  <p className="text-xs sm:text-sm text-[#261615] dark:text-[#FDEBDE] line-clamp-2 my-2.5 leading-relaxed bg-[#FFF7F1] dark:bg-[#19100F] p-3 border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
+                  <p className="text-xs sm:text-sm text-[#261615] dark:text-[#FDEBDE] line-clamp-2 my-2.5 leading-relaxed bg-[#FFF7F1] dark:bg-[#19100F] p-3 rounded-xl border-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
                     {gig.description}
                   </p>
                 )}
@@ -242,7 +241,7 @@ export const BrowseProjects = () => {
                   {(gig.tags || []).map((tag, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 text-xs font-bold font-mono bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[1px_1px_0_#382322]"
+                      className="px-2 py-0.5 text-xs font-bold font-mono rounded-lg bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[1px_1px_0_#382322]"
                     >
                       {tag}
                     </span>
@@ -261,7 +260,7 @@ export const BrowseProjects = () => {
                     setProposalModal(gig);
                     setBidAmount(gig.rawBudget ? String(gig.rawBudget) : '');
                   }}
-                  className="px-4 py-2 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
+                  className="px-4 py-2 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
                 >
                   Apply for this Role →
                 </button>
@@ -274,7 +273,7 @@ export const BrowseProjects = () => {
       {/* Apply / Proposal Modal */}
       {proposalModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-[#FFFDF9] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] animate-fade-in max-h-[90vh] overflow-y-auto text-[#261615] dark:text-[#FDEBDE]">
+          <div className="w-full max-w-lg rounded-2xl bg-[#FFFDF9] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] animate-fade-in max-h-[90vh] overflow-y-auto text-[#261615] dark:text-[#FDEBDE]">
             <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
               <div>
                 <h3 className="text-lg font-serif font-bold text-[#261615] dark:text-[#FDEBDE]">
@@ -289,7 +288,7 @@ export const BrowseProjects = () => {
                   type="button"
                   onClick={handleAiSuggestBid}
                   disabled={isAiSuggestingBid}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold font-mono uppercase tracking-wider bg-[#FFEBAA] hover:bg-[#ffe58f] border-2 border-[#382322] text-[#261615] shadow-[2px_2px_0_#382322] transition-all cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold font-mono uppercase tracking-wider bg-[#FFEBAA] hover:bg-[#ffe58f] border-2 border-[#382322] text-[#261615] shadow-[2px_2px_0_#382322] transition-all cursor-pointer disabled:opacity-50"
                   title="Auto-fill competitive bid, delivery days, and tailored cover pitch with AI"
                 >
                   <Sparkles className={`w-3.5 h-3.5 text-[#261615] ${isAiSuggestingBid ? 'animate-spin' : ''}`} />
@@ -297,7 +296,7 @@ export const BrowseProjects = () => {
                 </button>
                 <button
                   onClick={() => setProposalModal(null)}
-                  className="p-1.5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] cursor-pointer"
+                  className="p-1.5 rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -332,7 +331,7 @@ export const BrowseProjects = () => {
                           const val = e.target.value;
                           setBidAmount(val);
                         }}
-                        className={`w-full px-3 py-2 bg-[#FFF7F1] dark:bg-[#19100F] border-2 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none transition-colors shadow-[2px_2px_0_#382322] ${
+                        className={`w-full px-3 py-2 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none transition-colors shadow-[2px_2px_0_#382322] ${
                           isOverBudget
                             ? 'border-red-600 focus:border-red-600'
                             : 'border-[#382322] dark:border-[#FDEBDE]/30'
@@ -351,7 +350,7 @@ export const BrowseProjects = () => {
                         required
                         value={estimatedDays}
                         onChange={(e) => setEstimatedDays(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none shadow-[2px_2px_0_#382322]"
+                        className="w-full px-3 py-2 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none shadow-[2px_2px_0_#382322]"
                       />
                     </div>
                   </div>
@@ -364,7 +363,7 @@ export const BrowseProjects = () => {
                       placeholder="Introduce yourself, your editing style, and why you are the best fit for this project..."
                       value={bidCover}
                       onChange={(e) => setBidCover(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none shadow-[2px_2px_0_#382322]"
+                      className="w-full px-3 py-2 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-sm text-[#261615] dark:text-[#FDEBDE] focus:outline-none shadow-[2px_2px_0_#382322]"
                     />
                   </div>
 
@@ -372,14 +371,14 @@ export const BrowseProjects = () => {
                     <button
                       type="button"
                       onClick={() => setProposalModal(null)}
-                      className="w-full sm:w-auto px-4 py-2 border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FDEBDE] transition-all cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2 rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FDEBDE] transition-all cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isOverBudget}
-                      className="w-full sm:w-auto px-5 py-2 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:translate-x-0.5 active:translate-y-0.5"
+                      className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 active:translate-x-0.5 active:translate-y-0.5"
                     >
                       <span>Submit Application</span>
                       <Send className="w-3.5 h-3.5" />

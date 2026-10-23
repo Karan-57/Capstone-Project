@@ -59,13 +59,13 @@ export const AlertProvider = ({ children }) => {
       {children}
 
       {/* Floating Custom Alerts Container */}
-      <div className="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col-reverse items-center gap-2.5 max-w-md w-full pointer-events-none px-4">
         {alerts.map((alert) => {
           const styles = getAlertStyles(alert.type);
           return (
             <div
               key={alert.id}
-              className={`pointer-events-auto flex items-start gap-3 p-4 transition-all duration-300 animate-slide-in ${styles.bg} ${styles.border}`}
+              className={`pointer-events-auto flex items-start gap-3 p-3.5 sm:p-4 rounded-xl transition-all duration-300 animate-slide-in ${styles.bg} ${styles.border}`}
             >
               {styles.icon}
               <div className="flex-1 text-xs font-bold font-sans leading-relaxed">

@@ -526,33 +526,33 @@ export const Payments = () => {
           {/* Metric Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Wallet Balance */}
-            <div className="glass-card brutal-card p-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFEBAA] shadow-[4px_4px_0_#382322] relative overflow-hidden">
-              <span className="text-xs text-[#261615] flex items-center gap-1.5 font-mono font-bold uppercase tracking-wider">
-                <Coins className="w-3.5 h-3.5 text-[#261615]" /> Available Wallet Balance
+            <div className="p-5 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFEBAA] dark:bg-[#2A1D1C] shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] relative overflow-hidden">
+              <span className="text-xs text-[#261615] dark:text-[#FFEBAA] flex items-center gap-1.5 font-mono font-bold uppercase tracking-wider">
+                <Coins className="w-3.5 h-3.5 text-[#261615] dark:text-[#FFEBAA]" /> Available Wallet Balance
               </span>
-              <div className="text-2xl font-black text-[#261615] mt-1 font-mono">
+              <div className="text-2xl font-black text-[#261615] dark:text-[#FDEBDE] mt-1 font-mono">
                 ₹{walletBalance.toLocaleString('en-IN')}
               </div>
-              <span className="text-[11px] text-[#261615]/80 mt-1 block font-mono font-bold">
+              <span className="text-[11px] text-[#261615]/80 dark:text-[#D4B8A8] mt-1 block font-mono font-bold">
                 1 Credit = ₹1.00 (Testnet Enabled)
               </span>
             </div>
 
             {/* Active in Escrow */}
-            <div className="glass-card brutal-card p-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#B1C8EA] shadow-[4px_4px_0_#382322] relative overflow-hidden">
-              <span className="text-xs text-[#261615] flex items-center gap-1.5 font-mono font-bold uppercase tracking-wider">
-                <Lock className="w-3.5 h-3.5 text-[#261615]" /> Active in Escrow
+            <div className="p-5 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#B1C8EA] dark:bg-[#1A2332] shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] relative overflow-hidden">
+              <span className="text-xs text-[#261615] dark:text-[#FFEBAA] flex items-center gap-1.5 font-mono font-bold uppercase tracking-wider">
+                <Lock className="w-3.5 h-3.5 text-[#261615] dark:text-[#B1C8EA]" /> Active in Escrow
               </span>
-              <div className="text-2xl font-black text-[#261615] mt-1 font-mono">
+              <div className="text-2xl font-black text-[#261615] dark:text-[#FDEBDE] mt-1 font-mono">
                 ₹{escrowLocked.toLocaleString('en-IN')}
               </div>
-              <span className="text-[11px] text-[#261615]/80 mt-1 block font-mono font-bold">
+              <span className="text-[11px] text-[#261615]/80 dark:text-[#D4B8A8] mt-1 block font-mono font-bold">
                 Locked across active production milestones
               </span>
             </div>
 
             {/* Settled Releases */}
-            <div className="glass-card brutal-card p-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#201413] shadow-[4px_4px_0_#382322]">
+            <div className="p-5 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#201413] shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000]">
               <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Total Settled Releases</span>
               <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-1 font-mono">
                 ₹{effectiveTotalSettled.toLocaleString('en-IN')}

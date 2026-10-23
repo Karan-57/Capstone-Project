@@ -495,7 +495,7 @@ export const ProjectDetails = () => {
                       src={freelancer.profileImage || freelancer.avatar || DEFAULT_PFP}
                       alt={freelancer.name || 'Team member'}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                      className="w-12 h-12 rounded-none object-cover border-2 border-[#382322] dark:border-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] shrink-0"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-[#382322] dark:border-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] shrink-0"
                     />
 
                     <div className="min-w-0 space-y-1">
@@ -547,7 +547,10 @@ export const ProjectDetails = () => {
                     </button>
 
                     {/* Remove Member Button (Only when member has NOT started work yet) */}
-                    {!hasStartedWork ? (
+                    {(() => {
+                      const isAssignedState = (project.status === 'assigned' || raw.status === 'assigned' || project.status === 'open' || raw.status === 'open');
+                      const canRemove = !hasStartedWork && isAssignedState;
+                      return canRemove ? (
                       <button
                         type="button"
                         onClick={() =>
@@ -566,10 +569,15 @@ export const ProjectDetails = () => {
                     ) : (
                       <span
                         className="text-[10px] text-[#261615] dark:text-[#FFEBAA] font-bold font-mono uppercase px-2.5 py-1.5 bg-[#FFEBAA]/50 dark:bg-[#FFEBAA]/10 border-2 border-[#382322] dark:border-[#FFEBAA]/40 flex items-center gap-1 shrink-0 cursor-not-allowed"
-                        title="Cannot remove: Freelancer has already started submissions, deliverables, or received milestone payments."
+                        title={!isAssignedState ? 'Cannot remove: Project has progressed beyond assigned state.' : 'Cannot remove: Freelancer has already started submissions, deliverables, or received milestone payments.'}
                       >
                         <Lock className="w-3 h-3 text-[#261615] dark:text-[#FFEBAA]" />
-                        <span>Work Started / Paid</span>
+                        <span>{!isAssignedState ? 'Project In Progress' : 'Work Started / Paid'}</span>
+                      </span>
+                    );
+                  })()}
+                  {false && (
+                    <span>
                       </span>
                     )}
                   </div>

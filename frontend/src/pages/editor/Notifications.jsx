@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Sparkles, CheckCircle2, DollarSign, MessageSquare, ChevronRight } from 'lucide-react';
-import Button from '../../components/common/Button';
 import { notificationService, getNotificationTargetRoute } from '../../services/notificationService';
 import { useAlert } from '../../context/AlertContext';
 import { useAuth } from '../../context/AuthContext';
 import { NotificationsSkeleton } from '../../components/common/Skeleton';
+import SEO from '../../components/common/SEO';
 
 export const Notifications = () => {
   const navigate = useNavigate();
@@ -72,7 +72,12 @@ export const Notifications = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
+    <div className="space-y-6 w-full animate-fade-in text-[#261615] dark:text-[#FDEBDE] pb-16">
+      <SEO
+        title="Notifications"
+        description="Stay updated on proposals, client feedback, and milestone payouts."
+      />
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
         <div>
           <h2 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-[#261615] dark:text-[#FDEBDE]">
@@ -85,7 +90,7 @@ export const Notifications = () => {
         {notifications.length > 0 && (
           <button
             onClick={markAllRead}
-            className="self-start sm:self-auto px-3.5 py-1.5 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
+            className="self-start sm:self-auto px-4 py-2 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
           >
             Mark all as read
           </button>
@@ -93,8 +98,8 @@ export const Notifications = () => {
       </div>
 
       {notifications.length === 0 ? (
-        <div className="bg-[#FFFDF9] dark:bg-[#201413] p-12 text-center border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000]">
-          <div className="w-12 h-12 bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center mx-auto mb-3 text-[#261615] shadow-[2px_2px_0_#382322]">
+        <div className="bg-[#FFFDF9] dark:bg-[#201413] p-12 text-center rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000]">
+          <div className="w-12 h-12 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center mx-auto mb-3 text-[#261615] shadow-[2px_2px_0_#382322]">
             <Bell className="w-6 h-6" />
           </div>
           <p className="text-base font-serif font-bold text-[#261615] dark:text-[#FDEBDE]">No notifications yet</p>
@@ -110,13 +115,13 @@ export const Notifications = () => {
               <div
                 key={n.id}
                 onClick={() => handleNotificationClick(n)}
-                className={`p-4 border-2 flex items-start gap-3 sm:gap-3.5 transition-all cursor-pointer group ${
+                className={`p-4 rounded-xl border-2 flex items-start gap-3 sm:gap-3.5 transition-all cursor-pointer group ${
                   n.unread
                     ? 'bg-[#FFEBAA]/30 dark:bg-[#FFEBAA]/10 border-[#382322] dark:border-[#FFEBAA]/50 shadow-[3px_3px_0_#382322] dark:shadow-[3px_3px_0_#FFEBAA]/20'
                     : 'bg-[#FFFDF9] dark:bg-[#201413] border-[#382322] dark:border-[#FDEBDE]/20 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] hover:bg-[#FFF7F1] dark:hover:bg-[#2A1B19]'
                 }`}
               >
-                <div className={`p-2 shrink-0 ${color}`}>
+                <div className={`p-2 rounded-xl shrink-0 ${color}`}>
                   <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="flex-1 min-w-0">

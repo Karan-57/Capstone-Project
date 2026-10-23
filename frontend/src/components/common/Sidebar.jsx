@@ -104,6 +104,7 @@ export const Sidebar = ({ role: propRole, isOpen = false, onClose }) => {
               className="w-8 h-8"
               textClassName="text-xl font-display italic font-bold tracking-tight text-[#FFEBAA]"
               hideText={isCollapsed}
+              variant="sidebar"
             />
 
             {/* Desktop Collapse / Expand Toggle Button */}

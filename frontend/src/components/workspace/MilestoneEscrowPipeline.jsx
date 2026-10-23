@@ -347,9 +347,9 @@ export const MilestoneEscrowPipeline = ({
 
   // Render Compact Summary Bar (Lesser Height)
   const renderSummaryBar = () => (
-    <div className="p-3.5 sm:p-4 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col md:flex-row items-center justify-between gap-4 text-[#261615] dark:text-[#FDEBDE]">
+    <div className="p-4 sm:p-5 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col gap-4 text-[#261615] dark:text-[#FDEBDE]">
       {/* Left: Escrow Funds Overview */}
-      <div className="flex items-center gap-4 sm:gap-6 w-full md:w-auto justify-between md:justify-start">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 w-full">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-600/30 flex items-center justify-center text-emerald-800 dark:text-emerald-300 shrink-0">
             <CheckCircle2 className="w-4 h-4" />
@@ -362,7 +362,7 @@ export const MilestoneEscrowPipeline = ({
           </div>
         </div>
 
-        <div className="h-7 w-0.5 bg-[#382322]/20 dark:bg-[#FDEBDE]/20 hidden sm:block" />
+
 
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#FFEBAA] border border-[#382322] flex items-center justify-center text-[#261615] shrink-0">
@@ -376,7 +376,7 @@ export const MilestoneEscrowPipeline = ({
           </div>
         </div>
 
-        <div className="h-7 w-0.5 bg-[#382322]/20 dark:bg-[#FDEBDE]/20 hidden sm:block" />
+
 
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#B1C8EA] border border-[#382322] flex items-center justify-center text-[#261615] shrink-0">
@@ -392,7 +392,7 @@ export const MilestoneEscrowPipeline = ({
       </div>
 
       {/* Right: Compact Progress Bar */}
-      <div className="w-full md:w-64 lg:w-72 shrink-0">
+      <div className="w-full pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
         <div className="flex items-center justify-between text-xs mb-1.5 font-mono font-bold">
           <span className="text-[#5C3A38] dark:text-[#D4B8A8] text-[11px]">Milestones ({completedCount}/{milestones.length})</span>
           <span className="text-[#261615] dark:text-[#FFEBAA] text-xs">{progressPercent}%</span>

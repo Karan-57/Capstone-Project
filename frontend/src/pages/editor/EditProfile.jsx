@@ -186,7 +186,7 @@ export const EditorEditProfile = () => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
               }}
-              className="w-20 h-20 rounded-2xl object-cover border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[2px_2px_0_#382322] bg-[#FAF0E6]"
+              className="w-20 h-20 rounded-full object-cover border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[2px_2px_0_#382322] bg-[#FAF0E6]"
             />
             <input
               type="file"
@@ -198,7 +198,7 @@ export const EditorEditProfile = () => {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white cursor-pointer"
+              className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white cursor-pointer"
             >
               <Camera className="w-5 h-5" />
             </button>

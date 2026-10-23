@@ -16,6 +16,7 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+
   const handleOpenSearchPage = () => {
     navigate(role === 'creator' ? '/creator/search' : '/editor/search');
   };
@@ -81,13 +82,10 @@ export const Header = ({ onSearchChange, onMenuClick }) => {
           type="button"
           onClick={handleOpenSearchPage}
           className="group relative hidden sm:flex items-center justify-between w-60 md:w-72 pl-9 pr-2.5 py-2 text-xs font-medium rounded-xl bg-white/90 dark:bg-[#281B1A]/90 hover:bg-white dark:hover:bg-[#33201F] text-[#382322]/70 dark:text-[#FDEBDE]/70 hover:text-[#382322] dark:hover:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] hover:shadow-[3px_3px_0_#382322] hover:-translate-x-[1px] hover:-translate-y-[1px] transition-all cursor-pointer text-left"
-          title="Search users by name or @username (Ctrl+K)"
+          title="Search users by name or @username"
         >
           <Search className="w-4 h-4 text-[#382322]/60 dark:text-[#FFEBAA]/70 group-hover:text-[#382322] dark:group-hover:text-[#FFEBAA] absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
           <span className="truncate">Search creators, freelancers...</span>
-          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono font-bold text-[#382322] bg-[#FFEBAA] border border-[#382322]/40 rounded shadow-xs">
-            ⌘K
-          </kbd>
         </button>
 
         {/* Mobile Search Button */}

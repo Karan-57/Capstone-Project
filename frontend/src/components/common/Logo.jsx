@@ -1,54 +1,31 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import CollaboLogo from '../landing/CollaboLogo';
 
 export const Logo = ({ size = 'md', to = '/', showText = true, className = '' }) => {
-  const sizeMap = {
-    sm: { icon: 'w-6 h-6', text: 'text-sm' },
-    md: { icon: 'w-8 h-8', text: 'text-lg' },
-    lg: { icon: 'w-10 h-10', text: 'text-2xl' },
+  const pixelSizeMap = {
+    sm: 24,
+    md: 32,
+    lg: 40,
+    xl: 48,
   };
 
-  const currentSize = sizeMap[size] || sizeMap.md;
+  const textClassMap = {
+    sm: 'text-sm',
+    md: 'text-lg',
+    lg: 'text-2xl',
+    xl: 'text-3xl',
+  };
+
+  const pixelSize = typeof size === 'number' ? size : (pixelSizeMap[size] || 32);
+  const textClass = typeof size === 'string' ? (textClassMap[size] || 'text-lg') : 'text-lg';
 
   const content = (
     <div className={`inline-flex items-center gap-2.5 group select-none ${className}`}>
-      {/* Precision Scalable Vector SVG Brand Mark */}
-      <svg
-        className={`${currentSize.icon} shrink-0 transition-transform duration-300 group-hover:scale-105`}
-        viewBox="0 0 40 40"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-label="Collabo Logo"
-      >
-        <defs>
-          <linearGradient id="collaboGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#9333EA" />
-            <stop offset="50%" stopColor="#6366F1" />
-            <stop offset="100%" stopColor="#3B82F6" />
-          </linearGradient>
-          <filter id="collaboGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#9333EA" floodOpacity="0.45" />
-          </filter>
-        </defs>
-
-        {/* Outer Container */}
-        <rect width="40" height="40" rx="8" fill="#FFEBAA" stroke="#382322" strokeWidth="2.5" />
-
-        {/* Stylized Interlocking C / Play Ribbon in SVG */}
-        <path
-          d="M12 20C12 15.5817 15.5817 12 20 12H24C26.2091 12 28 13.7909 28 16C28 18.2091 26.2091 20 24 20H18C15.7909 20 14 21.7909 14 24C14 26.2091 15.7909 28 18 28H28"
-          stroke="#261615"
-          strokeWidth="3.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Dynamic Focus Playhead Dot */}
-        <circle cx="28" cy="28" r="2.5" fill="#261615" />
-      </svg>
+      <CollaboLogo size={pixelSize} variant="isometric" animated={true} />
 
       {showText && (
-        <span className={`font-serif font-black tracking-tight text-[#261615] dark:text-[#FDEBDE] ${currentSize.text} flex items-center`}>
+        <span className={`font-serif font-black tracking-tight text-[#261615] dark:text-[#FDEBDE] ${textClass} flex items-center`}>
           Collabo
           <span className="text-[#8A5200] dark:text-[#FFEBAA]">.</span>
         </span>
@@ -58,7 +35,7 @@ export const Logo = ({ size = 'md', to = '/', showText = true, className = '' })
 
   if (to) {
     return (
-      <Link to={to} className="inline-flex items-center outline-none">
+      <Link to={to} className="focus:outline-none inline-block">
         {content}
       </Link>
     );

@@ -213,7 +213,7 @@ export const SearchPage = ({ role = 'creator' }) => {
                 {/* Left: Avatar (Fixed 48px size) + Details */}
                 <div className="flex items-center gap-3.5 min-w-0 pr-3">
                   {/* Strict Fixed-Size Avatar Container */}
-                  <div className="relative w-12 h-12 min-w-[48px] min-h-[48px] max-w-[48px] max-h-[48px] shrink-0 border-2 border-[#382322] dark:border-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] overflow-hidden">
+                  <div className="relative w-12 h-12 min-w-[48px] min-h-[48px] max-w-[48px] max-h-[48px] shrink-0 rounded-full border-2 border-[#382322] dark:border-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] overflow-hidden">
                     <img
                       src={user.profileImage || DEFAULT_PFP}
                       alt={user.name || 'User avatar'}
@@ -224,7 +224,7 @@ export const SearchPage = ({ role = 'creator' }) => {
                       }}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#059669] border border-[#382322]" />
+                    <span className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-[#059669] border border-[#382322]" />
                   </div>
 
                   {/* Text Details */}

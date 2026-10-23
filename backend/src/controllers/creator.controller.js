@@ -938,6 +938,15 @@ async function removeHiredMemberController(req, res) {
             return res.status(404).json({ message: "Project not found or unauthorized" });
         }
 
+        // Freelancers can only be removed while the project is in the 'assigned' (or 'open') state.
+        // Once the project has progressed beyond 'assigned' (e.g. 'in_progress', 'review', 'completed'), removal is forbidden.
+        const allowedStatuses = ['assigned', 'open'];
+        if (!allowedStatuses.includes(project.status)) {
+            return res.status(400).json({
+                message: "Cannot remove freelancer: Project is already in progress or completed. Freelancers can only be removed while in the assigned state before work begins."
+            });
+        }
+
         // Case 1: Member is the lead assigned editor (selectedEditorId)
         const isRemovingSelectedEditor =
             hiringId === 'selected_editor' ||

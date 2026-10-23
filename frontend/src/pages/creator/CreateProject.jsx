@@ -1828,7 +1828,7 @@ export const CreateProject = () => {
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group"
                 >
                   <Sparkles className={`w-3.5 h-3.5 text-[#261615] group-hover:rotate-12 transition-transform ${isAiSuggestingHiring ? 'animate-spin' : ''}`} />
-                  <span>{isAiSuggestingHiring ? 'AI Computing Budget & Deadline...' : '✨ Suggest Budget & First Deadline with AI'}</span>
+                  <span>{isAiSuggestingHiring ? 'AI Computing Budget & Deadline...' : 'Suggest Budget & First Deadline with AI'}</span>
                 </button>
 
                 {/* AI Results Display Card */}

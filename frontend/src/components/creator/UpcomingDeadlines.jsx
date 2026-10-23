@@ -1,10 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Clock, User, Calendar } from 'lucide-react';
 
 export const UpcomingDeadlines = ({ projects = [] }) => {
-  const activeDeadlines = projects
-    .filter((p) => p.deadline && p.deadline !== 'unknown' && p.rawStatus !== 'completed')
-    .slice(0, 3);
+  const navigate = useNavigate();
+  const allDeadlines = projects.filter(
+    (p) => p.deadline && p.deadline !== 'unknown' && p.rawStatus !== 'completed'
+  );
+  const activeDeadlines = allDeadlines.slice(0, 3);
 
   return (
     <div className="bg-white/95 rounded-2xl border-2 border-[#382322] shadow-[3px_3px_0_#382322] p-5 flex flex-col justify-between relative overflow-hidden">
@@ -17,9 +20,17 @@ export const UpcomingDeadlines = ({ projects = [] }) => {
             <Clock className="w-4.5 h-4.5 text-[#382322]" />
             Upcoming Deadlines
           </h3>
-          <span className="text-xs font-mono font-bold text-[#382322] bg-[#FFEBAA] px-2.5 py-0.5 rounded-full border border-[#382322]">
-            {activeDeadlines.length ? `${activeDeadlines.length} Pending` : '0 Pending'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold text-[#382322] bg-[#FFEBAA] px-2.5 py-0.5 rounded-full border border-[#382322]">
+              {allDeadlines.length ? `${allDeadlines.length} Pending` : '0 Pending'}
+            </span>
+            <button
+              onClick={() => navigate('/creator/projects')}
+              className="text-xs font-bold text-[#382322] underline decoration-2 decoration-[#FFEBAA] hover:bg-[#FFEBAA] px-2 py-0.5 rounded transition-all cursor-pointer"
+            >
+              View all
+            </button>
+          </div>
         </div>
 
         {activeDeadlines.length === 0 ? (

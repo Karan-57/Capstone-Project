@@ -1541,9 +1541,9 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
       <div className="p-5 space-y-7">
         {/* ── TOP: PROJECT-WIDE ESCROW PROGRESS & FUNDS (ALL ROLES COMBINED) ── */}
         <section>
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col gap-4">
             {/* Left: Overall Project Funds */}
-            <div className="flex items-center gap-4 sm:gap-6 w-full md:w-auto justify-between md:justify-start">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 w-full">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border-2 border-emerald-600/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0">
                   <CheckCircle2 className="w-4 h-4" />
@@ -1556,7 +1556,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                 </div>
               </div>
 
-              <div className="h-7 w-px bg-[#382322]/15 dark:bg-[#FDEBDE]/15 hidden sm:block" />
+
 
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center text-[#261615] shrink-0 shadow-[1px_1px_0_#382322]">
@@ -1570,7 +1570,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                 </div>
               </div>
 
-              <div className="h-7 w-px bg-[#382322]/15 dark:bg-[#FDEBDE]/15 hidden sm:block" />
+
 
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-white dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FDEBDE]/30 flex items-center justify-center text-[#261615] dark:text-[#FDEBDE] shrink-0">
@@ -1586,7 +1586,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
             </div>
 
             {/* Right: Project-wide Overall Progress */}
-            <div className="w-full md:w-64 lg:w-72 shrink-0">
+            <div className="w-full pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
               <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
                 <span className="text-[#261615] dark:text-[#FDEBDE] text-[11px] font-mono font-bold">
                   Project Progress ({projectMetrics.totalCompletedMilestones}/{projectMetrics.totalMilestonesCount} Milestones)

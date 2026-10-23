@@ -170,7 +170,7 @@ export const EditorProfile = () => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
               }}
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6] shrink-0"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6] shrink-0"
             />
             <div className="mb-1">
               <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">

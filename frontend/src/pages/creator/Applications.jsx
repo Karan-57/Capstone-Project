@@ -4,12 +4,7 @@ import {
   Star,
   Check,
   X,
-  User,
-  DollarSign,
-  Clock,
   Search,
-  Sparkles,
-  Award,
   ArrowRightLeft,
   Handshake,
   History,
@@ -21,7 +16,6 @@ import Button from '../../components/common/Button';
 import { SkeletonRow } from '../../components/common/Skeleton';
 import SEO from '../../components/common/SEO';
 import { applicationService } from '../../services/applicationService';
-import api from '../../services/api';
 import { useAlert } from '../../context/AlertContext';
 import { DEFAULT_PFP } from '../../constants/assets';
 
@@ -33,8 +27,6 @@ export const Applications = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [aiPicks, setAiPicks] = useState(null);
-  const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
 
   // Negotiation modal state
   const [negotiatingApp, setNegotiatingApp] = useState(null);
@@ -46,7 +38,7 @@ export const Applications = () => {
   const loadApps = async () => {
     setLoading(true);
     const data = await applicationService.getApplications();
-    setApplications(data);
+    setApplications(data || []);
     setLoading(false);
   };
 
@@ -71,53 +63,6 @@ export const Applications = () => {
     }
   }, [loading, targetAppId, applications]);
 
-  const handleAiAnalyzeProposals = async () => {
-    if (applications.length === 0) {
-      showAlert('No proposals available to evaluate.', 'warning');
-      return;
-    }
-    setIsAnalyzingAi(true);
-    try {
-      const firstApp = applications[0];
-      const projectPayload = {
-        title: firstApp.projectTitle || 'Video Project',
-        category: firstApp.projectCategory || 'General',
-        budget: firstApp.projectBudget || 'Flexible',
-        requiredSkills: firstApp.projectSkills || [],
-        timeline: firstApp.projectDeadline || 'Flexible'
-      };
-
-      const proposalsPayload = applications.map((app) => ({
-        proposalId: String(app.id),
-        editorName: app.name,
-        bidAmount: app.currentOffer || app.bidAmount || parseInt(String(app.price).replace(/[^0-9]/g, ''), 10) || 15000,
-        deliveryDays: app.deliveryDays || parseInt(String(app.duration).replace(/[^0-9]/g, ''), 10) || 5,
-        coverNote: app.coverNote || '',
-        editor: {
-          rating: app.rating || 0,
-          totalReviews: app.totalReviews || 0,
-          tools: ['Premiere Pro', 'After Effects'],
-          skills: ['Video Editing', 'Pacing']
-        }
-      }));
-
-      const res = await api.post('/api/ai/suggest-top-proposals', {
-        project: projectPayload,
-        proposals: proposalsPayload
-      });
-
-      if (res.data?.data) {
-        setAiPicks(res.data.data);
-        showAlert('AI evaluated candidate pool and identified Top 3 picks!', 'success');
-      }
-    } catch (err) {
-      console.warn('Failed to rank proposals with AI:', err);
-      showAlert(err.response?.data?.message || 'Unable to generate AI analysis at this moment.', 'warning');
-    } finally {
-      setIsAnalyzingAi(false);
-    }
-  };
-
   const handleStatusChange = async (id, newStatus) => {
     try {
       if (newStatus === 'accepted') {
@@ -136,32 +81,27 @@ export const Applications = () => {
 
   const openNegotiateModal = (app) => {
     setNegotiatingApp(app);
-    // Suggest slightly lower or existing counter offer
     const baseAmount = app.currentOffer || app.bidAmount || 1500;
-    setCounterAmount(String(baseAmount));
+    setCounterAmount(String(Math.round(baseAmount * 0.9)));
     setCounterNote('');
   };
 
   const handleNegotiateSubmit = async (e) => {
-    e?.preventDefault();
-    if (!negotiatingApp || !counterAmount || Number(counterAmount) <= 0) {
-      showAlert('Please enter a valid counter-offer amount (₹)', 'warning');
-      return;
-    }
+    e.preventDefault();
+    if (!negotiatingApp || !counterAmount) return;
+
     setSubmittingNegotiation(true);
     try {
-      await applicationService.negotiateApplication(negotiatingApp.id, {
+      await applicationService.negotiateCounterOffer(negotiatingApp.id, {
         amount: Number(counterAmount),
-        note: counterNote
+        note: counterNote.trim(),
       });
-      showAlert(`Counter-offer of ₹${Number(counterAmount).toLocaleString('en-IN')} sent to freelancer!`, 'success');
+      showAlert(`Counter-offer of ₹${Number(counterAmount).toLocaleString('en-IN')} sent to ${negotiatingApp.name}!`, 'success');
       setNegotiatingApp(null);
-      setCounterAmount('');
-      setCounterNote('');
       await loadApps();
     } catch (err) {
-      console.error('Failed to negotiate:', err);
-      showAlert(err.response?.data?.message || err.message || 'Failed to submit counter-offer', 'error');
+      console.error('Failed to submit counter-offer:', err);
+      showAlert(err.response?.data?.message || err.message || 'Failed to send counter-offer', 'error');
     } finally {
       setSubmittingNegotiation(false);
     }
@@ -214,52 +154,18 @@ export const Applications = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={handleAiAnalyzeProposals}
-            disabled={isAnalyzingAi || applications.length === 0}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#FFEBAA] hover:bg-[#ffe38a] border-2 border-[#382322] text-[#261615] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Sparkles className={`w-3.5 h-3.5 text-[#261615] group-hover:rotate-12 transition-transform ${isAnalyzingAi ? 'animate-spin' : ''}`} />
-            <span>{isAnalyzingAi ? 'Analyzing Pool...' : 'AI Top 3 Picks'}</span>
-          </button>
-
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="w-3.5 h-3.5 text-[#5C3A38] dark:text-[#D4B8A8] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search editor, role, project..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-3.5 py-2 text-xs rounded-xl bg-white dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] w-48 sm:w-64"
+              className="pl-9 pr-3.5 py-2 text-xs rounded-xl bg-white dark:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] w-full sm:w-64"
             />
           </div>
         </div>
       </div>
-
-      {/* AI Evaluation Banner */}
-      {aiPicks && (
-        <div className="bg-[#B1C8EA]/20 dark:bg-[#B1C8EA]/10 p-5 rounded-2xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[4px_4px_0_#382322] space-y-2 animate-fade-in">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#261615] dark:text-[#FFEBAA]" />
-              <h4 className="text-xs font-black font-serif text-[#261615] dark:text-[#FDEBDE] uppercase tracking-wider">AI Candidate Evaluation</h4>
-            </div>
-            <button
-              onClick={() => setAiPicks(null)}
-              className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
-          <p className="text-xs text-[#261615] dark:text-[#FDEBDE] leading-relaxed">{aiPicks.summaryEvaluation}</p>
-          {aiPicks.adviceForCreator && (
-            <p className="text-[11px] text-[#261615] dark:text-[#FFEBAA] bg-[#FFEBAA]/50 dark:bg-[#261817] border border-[#382322] px-3 py-1.5 rounded-xl font-medium">
-              💡 <strong>Hiring Advice:</strong> {aiPicks.adviceForCreator}
-            </p>
-          )}
-        </div>
-      )}
 
       {/* Applications List */}
       {loading ? (
@@ -276,10 +182,6 @@ export const Applications = () => {
       ) : (
         <div className="space-y-3.5">
           {filtered.map((app) => {
-            const aiPick = aiPicks?.topPicks?.find(
-              (p) => p.proposalId === String(app.id) || p.editorName === app.name
-            );
-
             const isNegotiating = app.status === 'negotiating' || app.status === 'counter_offered';
             const freelancerCountered = isNegotiating && app.lastOfferBy === 'freelancer';
             const creatorCountered = isNegotiating && app.lastOfferBy === 'creator';
@@ -294,8 +196,6 @@ export const Applications = () => {
                 className={`bg-white dark:bg-[#201413] p-5 md:p-6 border-2 rounded-2xl space-y-3.5 transition-all shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#FDEBDE]/20 ${
                   freelancerCountered
                     ? 'border-[#382322] bg-[#FFEBAA]/20 dark:bg-[#261817]'
-                    : aiPick
-                    ? 'border-[#382322] bg-[#B1C8EA]/15 dark:bg-[#261817]'
                     : 'border-[#382322] dark:border-[#FDEBDE]/30'
                 }`}
               >
@@ -306,7 +206,7 @@ export const Applications = () => {
                       src={app.avatar || DEFAULT_PFP}
                       alt={app.name || 'Candidate'}
                       onError={(e) => { e.currentTarget.src = DEFAULT_PFP; }}
-                      className="w-12 h-12 rounded-xl object-cover border-2 border-[#382322] shrink-0"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-[#382322] shrink-0"
                     />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -315,13 +215,6 @@ export const Applications = () => {
                           <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
                           {app.rating != null ? app.rating : 0}
                         </span>
-
-                        {aiPick && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FFEBAA] text-[#261615] border border-[#382322]">
-                            <Award className="w-3 h-3 text-[#261615]" />
-                            #{aiPick.rank} Top Pick ({aiPick.matchScore}% Match)
-                          </span>
-                        )}
 
                         {isNegotiating && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#B1C8EA] text-[#261615] border border-[#382322] animate-pulse">
@@ -335,12 +228,6 @@ export const Applications = () => {
                       <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-medium mt-1">
                         Applied for: <span className="text-[#261615] dark:text-[#FDEBDE] font-bold">{app.appliedFor || 'Project'}</span> • {app.appliedDate || 'Recently'}
                       </p>
-
-                      {aiPick?.whySelected && (
-                        <p className="text-[11px] text-[#261615] dark:text-[#FDEBDE] mt-1.5 italic bg-[#FFEBAA]/40 dark:bg-[#FFEBAA]/10 border border-[#382322]/40 px-2.5 py-1 rounded-lg">
-                          ✨ {aiPick.whySelected}
-                        </p>
-                      )}
                     </div>
                   </div>
 
@@ -599,6 +486,7 @@ export const Applications = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => setNegotiatingApp(null)}
+                  disabled={submittingNegotiation}
                 >
                   Cancel
                 </Button>
@@ -606,7 +494,7 @@ export const Applications = () => {
                   type="submit"
                   variant="primary"
                   size="sm"
-                  disabled={submittingNegotiation}
+                  disabled={submittingNegotiation || !counterAmount}
                 >
                   {submittingNegotiation ? 'Sending...' : 'Send Counter-Offer'}
                 </Button>

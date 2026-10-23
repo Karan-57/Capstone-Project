@@ -170,7 +170,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
       <div className="max-w-4xl mx-auto py-12 px-4 space-y-6 animate-pulse">
         <div className="h-40 rounded-3xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20" />
         <div className="flex items-center gap-4">
-          <div className="w-24 h-24 rounded-2xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20" />
+          <div className="w-24 h-24 rounded-full bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20" />
           <div className="space-y-2 flex-1">
             <div className="h-6 w-48 bg-[#FAF0E6] dark:bg-[#19100F] rounded-md" />
             <div className="h-4 w-32 bg-[#FAF0E6] dark:bg-[#19100F] rounded-md" />
@@ -245,7 +245,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-16 sm:-mt-20">
             <div className="flex items-end gap-4 min-w-0">
               {/* Avatar */}
-              <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] max-w-[80px] max-h-[80px] sm:w-24 sm:h-24 sm:min-w-[96px] sm:min-h-[96px] sm:max-w-[96px] sm:max-h-[96px] rounded-2xl overflow-hidden shrink-0 border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6]">
+              <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] max-w-[80px] max-h-[80px] sm:w-24 sm:h-24 sm:min-w-[96px] sm:min-h-[96px] sm:max-w-[96px] sm:max-h-[96px] rounded-full overflow-hidden shrink-0 border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6]">
                 <img
                   src={profile.profileImage || DEFAULT_PFP}
                   alt={profile.name ? `${profile.name} photo` : 'User profile photo'}
@@ -254,7 +254,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
                     e.currentTarget.onerror = null;
                     e.currentTarget.src = DEFAULT_PFP;
                   }}
-                  className="w-full h-full object-cover block rounded-xl"
+                  className="w-full h-full object-cover block rounded-full"
                 />
                 <span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-[#382322] z-10" />
               </div>

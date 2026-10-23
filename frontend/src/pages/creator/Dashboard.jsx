@@ -19,10 +19,9 @@ import { DashboardSkeleton } from '../../components/common/Skeleton';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
 import DashboardHero from '../../components/dashboard/DashboardHero';
-import ExpandableToolbar from '../../components/dashboard/ExpandableToolbar';
 import { AnimatedGroup } from '../../components/core/animated-group';
 import { InView } from '../../components/core/in-view';
-import { TapeSticker, InkStar, InkArrow } from '../../components/dashboard/CollageDecoration';
+import { InkStar } from '../../components/dashboard/CollageDecoration';
 
 export const CreatorDashboard = () => {
   const navigate = useNavigate();
@@ -91,13 +90,12 @@ export const CreatorDashboard = () => {
 
       {/* SECTION 1: Top Quick Stats (Calculated from real state & user) */}
       <section className="relative">
-        {/* Subtle decorative ink doodle in background */}
         <div className="absolute -top-3 -left-3 pointer-events-none opacity-60 hidden sm:block">
-          <InkStar className="w-5 h-5 text-[#382322]" />
+          <InkStar className="w-5 h-5 text-[#382322] dark:text-[#FFEBAA]" />
         </div>
 
         <AnimatedGroup
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-4 gap-1.5 sm:gap-4"
           variants={{
             container: {
               visible: {
@@ -119,39 +117,31 @@ export const CreatorDashboard = () => {
         >
           <StatsCard
             icon={FolderKanban}
-            iconBg="bg-[#382322] text-[#B1C8EA]"
-            cardBg="bg-[#B1C8EA]/45"
+            iconBg="bg-[#382322] text-[#B1C8EA] dark:bg-[#B1C8EA] dark:text-[#261615]"
+            cardBg="bg-[#B1C8EA]/45 dark:bg-[#1A2332]"
             value={String(totalProjectsCount)}
             title="Total Projects"
-            trend={`${totalProjectsCount} Total`}
-            isPositive={true}
           />
           <StatsCard
             icon={DollarSign}
-            iconBg="bg-[#382322] text-[#FFEBAA]"
-            cardBg="bg-white/90"
+            iconBg="bg-[#382322] text-[#FFEBAA] dark:bg-[#FFEBAA] dark:text-[#261615]"
+            cardBg="bg-white/95 dark:bg-[#201413]"
             value={String(activeProjectsCount)}
-            title="Active Projects"
-            trend="In Production"
-            isPositive={true}
+            title="In Production"
           />
           <StatsCard
             icon={Users}
-            iconBg="bg-[#382322] text-[#FDEBDE]"
-            cardBg="bg-[#B1C8EA]/40"
+            iconBg="bg-[#382322] text-[#FDEBDE] dark:bg-[#FFEBAA] dark:text-[#261615]"
+            cardBg="bg-[#B1C8EA]/40 dark:bg-[#1A2332]"
             value={String(pendingApplicationsCount)}
             title="Applications"
-            trend="Candidates"
-            isPositive={true}
           />
           <StatsCard
             icon={Star}
-            iconBg="bg-[#382322] text-[#FFEBAA]"
-            cardBg="bg-[#FFEBAA]/60"
+            iconBg="bg-[#382322] text-[#FFEBAA] dark:bg-[#FFEBAA] dark:text-[#261615]"
+            cardBg="bg-[#FFEBAA]/60 dark:bg-[#2A1D1C]"
             value={ratingValue}
-            title="Avg Rating"
-            trend={ratingValue === '0' ? 'No reviews yet' : 'Top Creator'}
-            isPositive={true}
+            title={ratingValue === '0' ? 'Rating' : 'Top Creator'}
           />
         </AnimatedGroup>
       </section>
@@ -182,21 +172,16 @@ export const CreatorDashboard = () => {
 
       {/* SECTION 4: Bottom Grid (Reviews & Rating + Spendings Overview) */}
       <InView>
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4.5 sm:gap-5.5 relative">
-          {/* Left: Reviews & Rating */}
-          <div className="h-full min-w-0">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4.5 sm:gap-5.5 relative items-stretch">
+          <div className="h-full min-w-0 flex flex-col">
             <ReviewsAndRating />
           </div>
 
-          {/* Right: Spendings Overview with real ledger values and dynamic graph */}
-          <div className="h-full min-w-0">
+          <div className="h-full min-w-0 flex flex-col">
             <SpendingsOverview />
           </div>
         </section>
       </InView>
-
-      {/* Floating Dynamic Studio Action Toolbar */}
-      <ExpandableToolbar role="creator" />
 
       {/* Upload Asset to Project Workspace Modal */}
       <UploadAssetModal

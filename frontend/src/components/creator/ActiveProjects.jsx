@@ -38,15 +38,6 @@ export const ActiveProjects = ({ projects = [] }) => {
           </div>
         )}
       </div>
-
-      <div className="mt-4 pt-3 border-t-2 border-[#382322]/10">
-        <button
-          onClick={() => navigate('/creator/projects')}
-          className="w-full py-2.5 text-xs font-bold font-mono text-[#382322] bg-[#FFEBAA] hover:bg-[#ffe285] rounded-xl border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
-        >
-          View All Projects
-        </button>
-      </div>
     </div>
   );
 };

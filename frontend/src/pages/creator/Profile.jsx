@@ -32,7 +32,7 @@ export const Profile = () => {
   const reviewCount = creatorUser?.totalReviews != null ? creatorUser.totalReviews : 0;
 
   return (
-    <div className="space-y-6 max-w-4xl pb-8 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
+    <div className="space-y-6 w-full pb-16 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
       <SEO
         title={`${creatorUser?.name || 'Creator'} - Profile`}
         description={`Creator profile for ${creatorUser?.name || 'video creator'} on Collabo.`}
@@ -52,7 +52,7 @@ export const Profile = () => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = DEFAULT_PFP;
               }}
-              className="w-24 h-24 rounded-2xl object-cover border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6]"
+              className="w-24 h-24 rounded-full object-cover border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6]"
             />
             <div className="mb-1">
               <div className="flex items-center gap-2">

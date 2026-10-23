@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Compass,
   FileCheck2,
-  Coins,
   Star
 } from 'lucide-react';
 import StatsCard from '../../components/common/StatsCard';
@@ -15,9 +14,7 @@ import ProfileCompletionBanner from '../../components/common/ProfileCompletionBa
 import { DashboardSkeleton } from '../../components/common/Skeleton';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useAuth } from '../../context/AuthContext';
-import { useWallet } from '../../context/WalletContext';
 import DashboardHero from '../../components/dashboard/DashboardHero';
-import ExpandableToolbar from '../../components/dashboard/ExpandableToolbar';
 import { AnimatedGroup } from '../../components/core/animated-group';
 import { InView } from '../../components/core/in-view';
 import { InkStar } from '../../components/dashboard/CollageDecoration';
@@ -25,7 +22,6 @@ import { InkStar } from '../../components/dashboard/CollageDecoration';
 export const EditorDashboard = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { walletBalance = 0 } = useWallet();
   const {
     loading,
     editorRecommended,
@@ -53,14 +49,14 @@ export const EditorDashboard = () => {
       {/* Profile Completion Reminder Widget */}
       <ProfileCompletionBanner role="editor" />
 
-      {/* Top Stats for Editor (Real dynamic counts, ledger credits & rating) */}
+      {/* Top 3 Streamlined Stats in 1x3 Grid on Mobile & Desktop */}
       <section className="relative">
         <div className="absolute -top-3 -left-3 pointer-events-none opacity-60 hidden sm:block">
-          <InkStar className="w-5 h-5 text-[#382322]" />
+          <InkStar className="w-5 h-5 text-[#382322] dark:text-[#FFEBAA]" />
         </div>
 
         <AnimatedGroup
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-3 gap-2 sm:gap-4"
           variants={{
             container: {
               visible: {
@@ -82,75 +78,53 @@ export const EditorDashboard = () => {
         >
           <StatsCard
             icon={Compass}
-            iconBg="bg-[#382322] text-[#B1C8EA]"
-            cardBg="bg-[#B1C8EA]/45"
+            iconBg="bg-[#382322] text-[#B1C8EA] dark:bg-[#B1C8EA] dark:text-[#261615]"
+            cardBg="bg-[#B1C8EA]/45 dark:bg-[#1A2332]"
             value={String(availableProjectsCount)}
-            title="Available Gigs"
-            trend={`${availableProjectsCount} Open`}
-            isPositive={true}
+            title="Open"
           />
           <StatsCard
             icon={FileCheck2}
-            iconBg="bg-[#382322] text-[#FFEBAA]"
-            cardBg="bg-white/90"
+            iconBg="bg-[#382322] text-[#FFEBAA] dark:bg-[#FFEBAA] dark:text-[#261615]"
+            cardBg="bg-white/95 dark:bg-[#201413]"
             value={String(activeProjectsCount)}
-            title="Active Contracts"
-            trend="In Production"
-            isPositive={true}
-          />
-          <StatsCard
-            icon={Coins}
-            iconBg="bg-[#382322] text-[#FFEBAA]"
-            cardBg="bg-[#FFEBAA]/60"
-            value={`₹${Number(walletBalance || 0).toLocaleString('en-IN')}`}
-            title="Wallet Credits"
-            trend="From Ledgers"
-            isPositive={true}
+            title="In Production"
           />
           <StatsCard
             icon={Star}
-            iconBg="bg-[#382322] text-[#FDEBDE]"
-            cardBg="bg-[#B1C8EA]/40"
+            iconBg="bg-[#382322] text-[#FDEBDE] dark:bg-[#FFEBAA] dark:text-[#261615]"
+            cardBg="bg-[#FFEBAA]/60 dark:bg-[#2A1D1C]"
             value={ratingValue}
-            title="Creator Rating"
-            trend={ratingValue === '0' ? 'No reviews yet' : 'Top Rated'}
-            isPositive={true}
+            title={ratingValue === '0' ? 'Rating' : 'Top Rated'}
           />
         </AnimatedGroup>
       </section>
 
-      {/* Main Grid Section: In-Production Active Projects + Recommended Opportunities */}
+      {/* Main Grid Section: In-Production Active Projects + Recommended Opportunities (Equal Height) */}
       <InView>
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5.5 relative">
-          {/* Active Projects in production (Col 6) */}
-          <div className="lg:col-span-6">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5.5 relative items-stretch">
+          <div className="h-full flex flex-col">
             <ActiveProjects projects={editorActive} />
           </div>
 
-          {/* Recommended Projects (Col 6) */}
-          <div className="lg:col-span-6">
+          <div className="h-full flex flex-col">
             <RecommendedProjects projects={editorRecommended} />
           </div>
         </section>
       </InView>
 
-      {/* Bottom Grid: Deliveries + Earnings Overview */}
+      {/* Bottom Grid: Deliveries + Earnings Overview (Equal Height) */}
       <InView>
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5.5 relative">
-          {/* Upcoming Deliveries */}
-          <div className="h-full">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5.5 relative items-stretch">
+          <div className="h-full flex flex-col">
             <UpcomingDeliveries projects={editorActive} />
           </div>
 
-          {/* Earnings & Escrow Overview */}
-          <div className="h-full">
+          <div className="h-full flex flex-col">
             <EarningsOverview earnings={editorEarnings} />
           </div>
         </section>
       </InView>
-
-      {/* Floating Dynamic Studio Action Toolbar */}
-      <ExpandableToolbar role="editor" />
     </div>
   );
 };
