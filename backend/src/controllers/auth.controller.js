@@ -15,6 +15,27 @@ const { generateOTP, generateOTPEmailHTML } = require('../utils/utils.js');
 /**
  * Hash token using SHA-256 for secure session storage/lookup
  */
+const isProduction = process.env.NODE_ENV === 'production';
+
+function getCookieOptions(maxAge = 7 * 24 * 60 * 60 * 1000) {
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/',
+        maxAge
+    };
+}
+
+function getClearCookieOptions() {
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/'
+    };
+}
+
 function hashToken(token) {
     return crypto.createHash('sha256').update(token).digest('hex');
 }
@@ -131,7 +152,7 @@ async function registerUserController(req, res) {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "lax",
+            sameSite: isProduction ? "none" : "lax",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
@@ -254,7 +275,7 @@ async function loginUserController(req, res) {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "lax",
+            sameSite: isProduction ? "none" : "lax",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
@@ -321,7 +342,7 @@ async function logoutUserController(req, res) {
         res.clearCookie('refreshToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict"
+            sameSite: isProduction ? "none" : "lax",
         });
 
         return res.status(200).json({
@@ -373,7 +394,7 @@ async function logoutAllController(req, res) {
         res.clearCookie('refreshToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "strict"
+            sameSite: isProduction ? "none" : "lax",
         });
 
         return res.status(200).json({
@@ -562,7 +583,7 @@ async function refreshToken(req, res) {
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "lax",
+            sameSite: isProduction ? "none" : "lax",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
@@ -845,7 +866,7 @@ async function googleAuthController(req, res) {
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: "lax",
+            sameSite: isProduction ? "none" : "lax",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });

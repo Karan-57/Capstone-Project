@@ -15,9 +15,26 @@ let io = null;
  * @returns {Server}
  */
 function initSocket(httpServer) {
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'https://capstone-project-brown-zeta.vercel.app',
+    process.env.CLIENT_URL,
+  ].filter(Boolean);
+
   io = new Server(httpServer, {
     cors: {
-      origin: '*',
+      origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        const cleanOrigin = origin.replace(/\/$/, '');
+        if (
+          allowedOrigins.includes(cleanOrigin) ||
+          cleanOrigin.endsWith('.vercel.app') ||
+          allowedOrigins.some(o => cleanOrigin.startsWith(o.replace(/\/$/, '')))
+        ) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
       methods: ['GET', 'POST', 'PATCH', 'DELETE'],
       credentials: true,
     },

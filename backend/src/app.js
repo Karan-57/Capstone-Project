@@ -25,13 +25,37 @@ app.set('trust proxy', 1);
 
 app.use(compression());
 app.use(securityHeaders);
+
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://capstone-project-brown-zeta.vercel.app",
+    process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        const cleanOrigin = origin.replace(/\/$/, '');
+        if (
+            allowedOrigins.includes(cleanOrigin) ||
+            cleanOrigin.endsWith('.vercel.app') ||
+            allowedOrigins.some(o => cleanOrigin.startsWith(o.replace(/\/$/, '')))
+        ) {
+            return callback(null, true);
+        }
+        return callback(null, true);
+    },
     credentials: true,
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(preventNoSqlAndXss);
+
+// Lightweight Health Check endpoint for Render & Uptime monitoring
+app.get(['/health', '/api/health'], (req, res) => {
+    res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter); 
@@ -47,7 +71,6 @@ app.use("/api/ai", aiRouter);
 app.use(["/api/payment", "/api/payments", "/api/wallet"], paymentRouter);
 app.use(["/api/roles", "/api/role"], roleRouter);
 
-//for testing only not for real project
 // Global error handler (handles Multer errors, file type rejections, etc.)
 app.use((err, req, res, next) => {
   if (err.message && err.message.includes('image files are allowed')) {
