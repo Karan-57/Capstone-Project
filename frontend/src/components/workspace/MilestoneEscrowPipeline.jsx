@@ -117,7 +117,10 @@ export const MilestoneEscrowPipeline = ({
       ];
     }
 
-    let baseList = Array.isArray(savedList) && savedList.length > 0 ? savedList : defaultList;
+    // Prioritize authoritative initialMilestones from MongoDB database
+    let baseList = (Array.isArray(initialMilestones) && initialMilestones.length > 0)
+      ? defaultList
+      : (Array.isArray(savedList) && savedList.length > 0 ? savedList : defaultList);
 
     // Sanitize any legacy cached demo values from localStorage
     baseList = baseList.map((m, idx) => {
@@ -134,7 +137,19 @@ export const MilestoneEscrowPipeline = ({
       };
     });
 
-    // Reconcile status strictly with real wallet transactions:
+    // Context strings for matching transactions strictly to this project/workspace
+    const wsIdStr = workspaceId ? String(workspaceId).toLowerCase() : '';
+    const pIdStr = projectId ? String(projectId).toLowerCase() : '';
+    const edIdStr = editorId ? String(editorId).toLowerCase() : '';
+
+    const isTxnForThisContext = (t) => {
+      const refWs = t.referenceWorkspaceId ? String(t.referenceWorkspaceId).toLowerCase() : '';
+      const toUid = t.toUser ? String(t.toUser?._id || t.toUser).toLowerCase() : '';
+      const desc = (t.description || '').toLowerCase();
+      if (refWs && (refWs === wsIdStr || (pIdStr && refWs.includes(pIdStr)))) return true;
+      if (edIdStr && toUid && toUid === edIdStr && pIdStr && (desc.includes(pIdStr) || refWs.includes(pIdStr))) return true;
+      return false;
+    };
     return baseList.map((m) => {
       const isM1 = m.id === 'm1' || m.index === 1 || (m.title && m.title.includes('Milestone 1'));
       const isM2 = m.id === 'm2' || m.index === 2 || (m.title && m.title.includes('Milestone 2'));
@@ -143,6 +158,7 @@ export const MilestoneEscrowPipeline = ({
       // Check if an actual release transaction exists
       const hasReleasedTxn = transactions.some((t) => {
         if (t.type !== 'ESCROW_RELEASE') return false;
+        if (!isTxnForThisContext(t)) return false;
         const desc = (t.description || '').toLowerCase();
         const mTitle = (t.milestoneTitle || '').toLowerCase();
         const thisTitle = (m.title || '').toLowerCase();
@@ -160,6 +176,7 @@ export const MilestoneEscrowPipeline = ({
       // Check if an actual escrow lock/deposit transaction exists
       const hasLockedTxn = transactions.some((t) => {
         if (t.type !== 'ESCROW_LOCK') return false;
+        if (!isTxnForThisContext(t)) return false;
         const desc = (t.description || '').toLowerCase();
         const mTitle = (t.milestoneTitle || '').toLowerCase();
         const thisTitle = (m.title || '').toLowerCase();
@@ -175,7 +192,7 @@ export const MilestoneEscrowPipeline = ({
       }
 
       // No transactions found for this milestone: MUST be pending
-      return { ...m, status: 'pending' };
+      return { ...m, status: m.status || 'pending' };
     });
   };
 

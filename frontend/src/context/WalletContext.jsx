@@ -111,6 +111,7 @@ export const WalletProvider = ({ children }) => {
               fromUser: t.fromUser,
               toUser: t.toUser,
               milestoneTitle: t.milestoneTitle,
+              referenceWorkspaceId: t.referenceWorkspaceId,
             }))
           );
         }
