@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -9,11 +9,14 @@ import {
   FileVideo,
   Coins,
   Send,
+  Loader2,
 } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
 import { useAuth } from '../../context/AuthContext';
+import { useAlert } from '../../context/AlertContext';
 import SecurityPinModal from '../wallet/SecurityPinModal';
 import { generateMilestonesForRole } from '../../constants/roles.constants';
+import milestoneService from '../../services/milestoneService';
 
 export const MilestoneEscrowPipeline = ({
   mode = 'all', // 'all' | 'summary' | 'milestones'
@@ -28,9 +31,14 @@ export const MilestoneEscrowPipeline = ({
   roleTitle = '',
   roleId = '',
   initialMilestones = null,
+  hiringId = null,
 }) => {
   const { fundMilestone, releaseMilestone, transactions = [] } = useWallet();
   const { currentUser } = useAuth();
+  const { showAlert } = useAlert();
+
+  const [isProcessingPin, setIsProcessingPin] = useState(false);
+  const [loadingMilestones, setLoadingMilestones] = useState(false);
 
   // Convert raw total budget into number (uses roleBudget if provided)
   const numericBudget =
@@ -43,191 +51,117 @@ export const MilestoneEscrowPipeline = ({
   const m2Amount = Math.round(numericBudget * 0.4);
   const m3Amount = numericBudget - m1Amount - m2Amount;
 
-  // Primary persistent storage key per workspace and per freelancer/role
-  const memberKey = editorId ? `_${editorId}` : roleId ? `_${roleId}` : '';
-  const STORAGE_KEY = `collabo_milestones_${workspaceId || 'default'}${memberKey}`;
-  const LEGACY_STORAGE_KEY = !memberKey && projectId ? `collabo_milestones_${projectId}` : null;
-
-  // Helper to load and reconcile milestone list with real wallet transactions
-  const getInitialMilestones = () => {
-    let savedList = null;
-    try {
-      const saved =
-        localStorage.getItem(STORAGE_KEY) ||
-        (LEGACY_STORAGE_KEY ? localStorage.getItem(LEGACY_STORAGE_KEY) : null);
-      if (saved) {
-        savedList = JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn(e);
-    }
-
-    // Build default list: ALL start strictly as 'pending', with NO fake demo URLs
-    let defaultList = null;
+  // Build fallback standard list
+  const getDefaultMilestones = () => {
     if (Array.isArray(initialMilestones) && initialMilestones.length > 0) {
-      defaultList = initialMilestones.map((m, idx) => ({
+      return initialMilestones.map((m, idx) => ({
         ...m,
-        id: m.id || `m${idx + 1}`,
+        id: m._id || m.id || `m${idx + 1}`,
+        _id: m._id || m.id || `m${idx + 1}`,
         index: m.index || idx + 1,
         amount: Number(m.amount) || Math.round(numericBudget / initialMilestones.length),
         status: m.status || 'pending',
         submittedUrl: m.submittedUrl && !m.submittedUrl.includes('demo-') ? m.submittedUrl : '',
         submissionNotes: m.submissionNotes && !m.submittedUrl?.includes('demo-') ? m.submissionNotes : '',
       }));
-    } else if (roleId || roleTitle) {
+    }
+    if (roleId || roleTitle) {
       const generated = generateMilestonesForRole(roleId, numericBudget, null, roleTitle);
-      defaultList = generated.map((m) => ({
+      return generated.map((m, idx) => ({
         ...m,
+        id: `m${idx + 1}`,
+        _id: `m${idx + 1}`,
         status: 'pending',
         submittedUrl: '',
         submissionNotes: '',
       }));
-    } else {
-      defaultList = [
-        {
-          id: 'm1',
-          index: 1,
-          title: 'Milestone 1: Rough Cut & Story Assembly',
-          description: 'First timeline pass, rhythm, storytelling cut, and basic clip selection.',
-          amount: m1Amount,
-          status: 'pending',
-          submittedUrl: '',
-          submissionNotes: '',
-        },
-        {
-          id: 'm2',
-          index: 2,
-          title: 'Milestone 2: Sound Design & Color Grading',
-          description: 'Audio leveling, SFX, music mixing, cinematic color LUT application.',
-          amount: m2Amount,
-          status: 'pending',
-          submittedUrl: '',
-          submissionNotes: '',
-        },
-        {
-          id: 'm3',
-          index: 3,
-          title: 'Milestone 3: 4K Master Export & Short Clips',
-          description: 'High-res master deliverable, final captions, and 2 vertical shorts.',
-          amount: m3Amount,
-          status: 'pending',
-          submittedUrl: '',
-          submissionNotes: '',
-        },
-      ];
     }
-
-    // Prioritize authoritative initialMilestones from MongoDB database
-    let baseList = (Array.isArray(initialMilestones) && initialMilestones.length > 0)
-      ? defaultList
-      : (Array.isArray(savedList) && savedList.length > 0 ? savedList : defaultList);
-
-    // Sanitize any legacy cached demo values from localStorage
-    baseList = baseList.map((m, idx) => {
-      const isDemoUrl = m.submittedUrl && (m.submittedUrl.includes('demo-') || m.submittedUrl.includes('demo.'));
-      const cleanUrl = isDemoUrl ? '' : (m.submittedUrl || '');
-      const cleanNotes = isDemoUrl ? '' : (m.submissionNotes || '');
-
-      return {
-        ...m,
-        id: m.id || `m${idx + 1}`,
-        index: m.index || idx + 1,
-        submittedUrl: cleanUrl,
-        submissionNotes: cleanNotes,
-      };
-    });
-
-    // Context strings for matching transactions strictly to this project/workspace
-    const wsIdStr = workspaceId ? String(workspaceId).toLowerCase() : '';
-    const pIdStr = projectId ? String(projectId).toLowerCase() : '';
-    const edIdStr = editorId ? String(editorId).toLowerCase() : '';
-
-    const isTxnForThisContext = (t) => {
-      const refWs = t.referenceWorkspaceId ? String(t.referenceWorkspaceId).toLowerCase() : '';
-      const toUid = t.toUser ? String(t.toUser?._id || t.toUser).toLowerCase() : '';
-      const desc = (t.description || '').toLowerCase();
-      if (refWs && (refWs === wsIdStr || (pIdStr && refWs.includes(pIdStr)))) return true;
-      if (edIdStr && toUid && toUid === edIdStr && pIdStr && (desc.includes(pIdStr) || refWs.includes(pIdStr))) return true;
-      return false;
-    };
-    return baseList.map((m) => {
-      const isM1 = m.id === 'm1' || m.index === 1 || (m.title && m.title.includes('Milestone 1'));
-      const isM2 = m.id === 'm2' || m.index === 2 || (m.title && m.title.includes('Milestone 2'));
-      const isM3 = m.id === 'm3' || m.index === 3 || (m.title && m.title.includes('Milestone 3'));
-
-      // Check if an actual release transaction exists
-      const hasReleasedTxn = transactions.some((t) => {
-        if (t.type !== 'ESCROW_RELEASE') return false;
-        if (!isTxnForThisContext(t)) return false;
-        const desc = (t.description || '').toLowerCase();
-        const mTitle = (t.milestoneTitle || '').toLowerCase();
-        const thisTitle = (m.title || '').toLowerCase();
-
-        if (isM1 && (desc.includes('milestone 1') || desc.includes('rough cut') || mTitle.includes('milestone 1') || mTitle.includes('rough cut'))) return true;
-        if (isM2 && (desc.includes('milestone 2') || desc.includes('sound design') || mTitle.includes('milestone 2') || mTitle.includes('sound design'))) return true;
-        if (isM3 && (desc.includes('milestone 3') || desc.includes('4k master') || mTitle.includes('milestone 3') || mTitle.includes('4k master'))) return true;
-        return thisTitle && (desc.includes(thisTitle) || mTitle.includes(thisTitle));
-      });
-
-      if (hasReleasedTxn) {
-        return { ...m, status: 'approved' };
-      }
-
-      // Check if an actual escrow lock/deposit transaction exists
-      const hasLockedTxn = transactions.some((t) => {
-        if (t.type !== 'ESCROW_LOCK') return false;
-        if (!isTxnForThisContext(t)) return false;
-        const desc = (t.description || '').toLowerCase();
-        const mTitle = (t.milestoneTitle || '').toLowerCase();
-        const thisTitle = (m.title || '').toLowerCase();
-
-        if (isM1 && (desc.includes('milestone 1') || desc.includes('rough cut') || mTitle.includes('milestone 1') || mTitle.includes('rough cut'))) return true;
-        if (isM2 && (desc.includes('milestone 2') || desc.includes('sound design') || mTitle.includes('milestone 2') || mTitle.includes('sound design'))) return true;
-        if (isM3 && (desc.includes('milestone 3') || desc.includes('4k master') || mTitle.includes('milestone 3') || mTitle.includes('4k master'))) return true;
-        return thisTitle && (desc.includes(thisTitle) || mTitle.includes(thisTitle));
-      });
-
-      if (hasLockedTxn) {
-        return { ...m, status: m.submittedUrl ? 'submitted' : 'funded' };
-      }
-
-      // No transactions found for this milestone: MUST be pending
-      return { ...m, status: m.status || 'pending' };
-    });
+    return [
+      {
+        id: 'm1',
+        _id: 'm1',
+        index: 1,
+        title: 'Milestone 1: Rough Cut & Story Assembly',
+        description: 'First timeline pass, rhythm, storytelling cut, and basic clip selection.',
+        amount: m1Amount,
+        status: 'pending',
+        submittedUrl: '',
+        submissionNotes: '',
+      },
+      {
+        id: 'm2',
+        _id: 'm2',
+        index: 2,
+        title: 'Milestone 2: Sound Design & Color Grading',
+        description: 'Audio leveling, SFX, music mixing, cinematic color LUT application.',
+        amount: m2Amount,
+        status: 'pending',
+        submittedUrl: '',
+        submissionNotes: '',
+      },
+      {
+        id: 'm3',
+        _id: 'm3',
+        index: 3,
+        title: 'Milestone 3: 4K Master Export & Short Clips',
+        description: 'High-res master deliverable, final captions, and 2 vertical shorts.',
+        amount: m3Amount,
+        status: 'pending',
+        submittedUrl: '',
+        submissionNotes: '',
+      },
+    ];
   };
 
-  const [milestones, setMilestones] = useState(getInitialMilestones);
+  const [milestones, setMilestones] = useState(getDefaultMilestones);
 
-  // Synchronize milestones when workspace, project, or transactions change
-  useEffect(() => {
-    const updated = getInitialMilestones();
-    setMilestones(updated);
+  // Authoritative fetch from MongoDB Milestone model
+  const fetchAuthoritativeMilestones = useCallback(async () => {
+    if (!workspaceId && !projectId && !hiringId) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      if (LEGACY_STORAGE_KEY) {
-        localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(updated));
-      }
-    } catch (e) {
-      console.warn(e);
-    }
-  }, [workspaceId, projectId, transactions]);
+      setLoadingMilestones(true);
+      const serverMilestones = await milestoneService.getMilestones({
+        workspaceId,
+        projectId,
+        hiringId,
+        freelancerId: editorId,
+      });
 
-  // Cross-instance synchronization (summary top bar <-> bottom milestone cards for this freelancer)
+      if (Array.isArray(serverMilestones) && serverMilestones.length > 0) {
+        const normalized = serverMilestones.map((m, idx) => ({
+          ...m,
+          id: m._id || m.id || `m${idx + 1}`,
+          _id: m._id || m.id,
+          index: m.index || idx + 1,
+          amount: Number(m.amount) || 0,
+          status: m.status || 'pending',
+          submittedUrl: m.submittedUrl || '',
+          submissionNotes: m.submissionNotes || '',
+        }));
+        setMilestones(normalized);
+      }
+    } catch (err) {
+      console.warn('[MilestoneEscrowPipeline] Load milestones notice:', err.message);
+    } finally {
+      setLoadingMilestones(false);
+    }
+  }, [workspaceId, projectId, hiringId, editorId]);
+
+  useEffect(() => {
+    fetchAuthoritativeMilestones();
+  }, [fetchAuthoritativeMilestones, transactions]);
+
+  // Cross-instance synchronization (summary top bar <-> bottom milestone cards)
   useEffect(() => {
     const handleSync = (event) => {
-      const targetId = workspaceId || 'default';
       const eventWorkspaceId = event.detail?.workspaceId;
-      const eventEditorId = event.detail?.editorId;
-
-      if (eventWorkspaceId === targetId && Array.isArray(event.detail?.milestones)) {
-        if (!editorId || !eventEditorId || eventEditorId.toString() === editorId.toString()) {
-          setMilestones(event.detail.milestones);
-        }
+      if (!workspaceId || eventWorkspaceId === workspaceId) {
+        fetchAuthoritativeMilestones();
       }
     };
     window.addEventListener('collabo_milestones_sync', handleSync);
     return () => window.removeEventListener('collabo_milestones_sync', handleSync);
-  }, [workspaceId, editorId]);
+  }, [workspaceId, fetchAuthoritativeMilestones]);
 
   // PIN modal control
   const [pinModalConfig, setPinModalConfig] = useState({
@@ -240,30 +174,24 @@ export const MilestoneEscrowPipeline = ({
   const [activeSubmittingMilestone, setActiveSubmittingMilestone] = useState(null);
   const [submissionUrl, setSubmissionUrl] = useState('');
   const [submissionNotes, setSubmissionNotes] = useState('');
-
-  const syncMilestones = (updated) => {
-    setMilestones(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      if (LEGACY_STORAGE_KEY) {
-        localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(updated));
-      }
-      window.dispatchEvent(
-        new CustomEvent('collabo_milestones_sync', {
-          detail: {
-            workspaceId: workspaceId || 'default',
-            editorId: editorId || null,
-            milestones: updated,
-          },
-        })
-      );
-    } catch (e) {
-      console.warn(e);
-    }
-  };
+  const [isSubmittingCut, setIsSubmittingCut] = useState(false);
 
   // Open PIN modal for funding
   const handleInitiateFund = (m) => {
+    if (isProcessingPin) return;
+
+    // Sequential Check: Milestone[n-1] must be completed
+    if (m.index > 1) {
+      const prev = milestones.find((x) => x.index === m.index - 1);
+      if (!prev || (prev.status !== 'completed' && prev.status !== 'approved')) {
+        showAlert(
+          `Milestone ${m.index - 1} must be completed and released before Milestone ${m.index} can be funded in escrow.`,
+          'warning'
+        );
+        return;
+      }
+    }
+
     setPinModalConfig({
       isOpen: true,
       action: 'fund',
@@ -276,6 +204,7 @@ export const MilestoneEscrowPipeline = ({
 
   // Open PIN modal for release
   const handleInitiateRelease = (m) => {
+    if (isProcessingPin) return;
     setPinModalConfig({
       isOpen: true,
       action: 'release',
@@ -286,121 +215,181 @@ export const MilestoneEscrowPipeline = ({
     });
   };
 
-  // PIN Success handler
+  // PIN Success handler (Instant UI update backed by MongoDB Milestone model)
   const handlePinSuccess = async (pin) => {
     const { action, milestone } = pinModalConfig;
-    if (!milestone) return;
+    if (!milestone || isProcessingPin) return;
 
-    if (action === 'fund') {
-      const ok = await fundMilestone(
-        milestone.title,
-        milestone.amount,
-        pin,
-        workspaceId,
-        projectId,
-        numericBudget,
-        milestone.amount
-      );
-      if (ok) {
-        const updated = milestones.map((item) =>
-          item.id === milestone.id ? { ...item, status: 'funded' } : item
+    setIsProcessingPin(true);
+    try {
+      if (action === 'fund') {
+        const ok = await fundMilestone(
+          milestone.title,
+          milestone.amount,
+          pin,
+          workspaceId,
+          projectId,
+          numericBudget,
+          milestone.amount,
+          hiringId,
+          milestone._id || milestone.id,
+          milestone.index
         );
-        syncMilestones(updated);
-      }
-    } else if (action === 'release') {
-      const ok = await releaseMilestone(
-        milestone.title,
-        milestone.amount,
-        pin,
-        editorName,
-        editorId,
-        workspaceId,
-        projectId,
-        numericBudget,
-        milestone.amount
-      );
-      if (ok) {
-        const updated = milestones.map((item) =>
-          item.id === milestone.id ? { ...item, status: 'approved' } : item
+        if (ok) {
+          // Optimistically update UI to funded immediately
+          setMilestones((prev) =>
+            prev.map((item) =>
+              item.index === milestone.index || item.id === milestone.id
+                ? { ...item, status: 'funded' }
+                : item
+            )
+          );
+          // Broadcast sync event so summary bars and collaborator screens refresh
+          window.dispatchEvent(
+            new CustomEvent('collabo_milestones_sync', {
+              detail: { workspaceId, hiringId },
+            })
+          );
+          // Re-fetch authoritative document from MongoDB
+          await fetchAuthoritativeMilestones();
+        }
+      } else if (action === 'release') {
+        const ok = await releaseMilestone(
+          milestone.title,
+          milestone.amount,
+          pin,
+          editorName,
+          editorId,
+          workspaceId,
+          projectId,
+          numericBudget,
+          milestone.amount,
+          hiringId,
+          milestone._id || milestone.id,
+          milestone.index
         );
-        syncMilestones(updated);
+        if (ok) {
+          // Optimistically update UI to completed immediately
+          setMilestones((prev) =>
+            prev.map((item) =>
+              item.index === milestone.index || item.id === milestone.id
+                ? { ...item, status: 'completed' }
+                : item
+            )
+          );
+          window.dispatchEvent(
+            new CustomEvent('collabo_milestones_sync', {
+              detail: { workspaceId, hiringId },
+            })
+          );
+          await fetchAuthoritativeMilestones();
+        }
       }
+    } finally {
+      setIsProcessingPin(false);
     }
   };
 
-  // Editor submit cut
-  const handleSubmitCut = (e) => {
+  // Editor submit cut via MongoDB Milestone model
+  const handleSubmitCut = async (e) => {
     e.preventDefault();
-    if (!activeSubmittingMilestone || !submissionUrl.trim()) return;
+    if (!activeSubmittingMilestone || !submissionUrl.trim() || isSubmittingCut) return;
 
-    const updated = milestones.map((item) =>
-      item.id === activeSubmittingMilestone.id
-        ? {
-            ...item,
-            status: 'submitted',
-            submittedUrl: submissionUrl.trim(),
-            submissionNotes: submissionNotes.trim() || 'Deliverable cut submitted for review.',
-          }
-        : item
-    );
+    setIsSubmittingCut(true);
+    try {
+      const targetId = activeSubmittingMilestone._id || activeSubmittingMilestone.id;
+      const res = await milestoneService.submitMilestoneDeliverable(targetId, {
+        submittedUrl: submissionUrl.trim(),
+        submissionNotes: submissionNotes.trim() || 'Deliverable cut submitted for creator review.',
+      });
 
-    syncMilestones(updated);
-    setActiveSubmittingMilestone(null);
-    setSubmissionUrl('');
-    setSubmissionNotes('');
+      showAlert(res?.message || 'Deliverable cut submitted for creator review! ✓', 'success');
+
+      // Optimistic update
+      setMilestones((prev) =>
+        prev.map((item) =>
+          item.index === activeSubmittingMilestone.index || item.id === activeSubmittingMilestone.id
+            ? {
+                ...item,
+                submittedUrl: submissionUrl.trim(),
+                submissionNotes: submissionNotes.trim() || 'Deliverable cut submitted for creator review.',
+              }
+            : item
+        )
+      );
+
+      setActiveSubmittingMilestone(null);
+      setSubmissionUrl('');
+      setSubmissionNotes('');
+
+      window.dispatchEvent(
+        new CustomEvent('collabo_milestones_sync', {
+          detail: { workspaceId, hiringId },
+        })
+      );
+      await fetchAuthoritativeMilestones();
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to submit deliverable cut', 'error');
+    } finally {
+      setIsSubmittingCut(false);
+    }
   };
 
   // Escrow Calculations
   const totalPaid = milestones
-    .filter((m) => m.status === 'approved')
+    .filter((m) => m.status === 'completed' || m.status === 'approved')
     .reduce((sum, m) => sum + m.amount, 0);
 
   const totalInEscrow = milestones
-    .filter((m) => m.status === 'funded' || m.status === 'submitted')
+    .filter((m) => m.status === 'funded')
     .reduce((sum, m) => sum + m.amount, 0);
 
-  const completedCount = milestones.filter((m) => m.status === 'approved').length;
-  const progressPercent = Math.round((completedCount / milestones.length) * 100);
+  const completedCount = milestones.filter(
+    (m) => m.status === 'completed' || m.status === 'approved'
+  ).length;
+  const progressPercent =
+    milestones.length > 0 ? Math.round((completedCount / milestones.length) * 100) : 0;
 
-  // Render Compact Summary Bar (Lesser Height)
+  // Render Compact Summary Bar
   const renderSummaryBar = () => (
     <div className="p-4 sm:p-5 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] flex flex-col gap-4 text-[#261615] dark:text-[#FDEBDE]">
-      {/* Left: Escrow Funds Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 w-full">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-600/30 flex items-center justify-center text-emerald-800 dark:text-emerald-300 shrink-0">
             <CheckCircle2 className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Released</span>
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">
+              Released
+            </span>
             <div className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 font-mono leading-tight">
               ₹{totalPaid.toLocaleString('en-IN')}
             </div>
           </div>
         </div>
 
-
-
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#FFEBAA] border border-[#382322] flex items-center justify-center text-[#261615] shrink-0">
             <Lock className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Locked in Escrow</span>
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">
+              Locked in Escrow
+            </span>
             <div className="text-base sm:text-lg font-black text-[#261615] dark:text-[#FFEBAA] font-mono leading-tight">
               ₹{totalInEscrow.toLocaleString('en-IN')}
             </div>
           </div>
         </div>
 
-
-
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#B1C8EA] border border-[#382322] flex items-center justify-center text-[#261615] shrink-0">
             <Coins className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">Total Budget</span>
+            <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] block font-mono font-bold uppercase tracking-wider">
+              Total Budget
+            </span>
             <div className="text-base sm:text-lg font-black text-[#261615] dark:text-[#FDEBDE] font-mono leading-tight">
               ₹{numericBudget.toLocaleString('en-IN')}
             </div>
@@ -408,15 +397,16 @@ export const MilestoneEscrowPipeline = ({
         </div>
       </div>
 
-      {/* Right: Compact Progress Bar */}
       <div className="w-full pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
         <div className="flex items-center justify-between text-xs mb-1.5 font-mono font-bold">
-          <span className="text-[#5C3A38] dark:text-[#D4B8A8] text-[11px]">Milestones ({completedCount}/{milestones.length})</span>
+          <span className="text-[#5C3A38] dark:text-[#D4B8A8] text-[11px]">
+            Milestones ({completedCount}/{milestones.length})
+          </span>
           <span className="text-[#261615] dark:text-[#FFEBAA] text-xs">{progressPercent}%</span>
         </div>
         <div className="w-full h-2.5 rounded-full bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20 overflow-hidden">
           <div
-            className="h-full bg-[#FFEBAA] border-r border-[#382322] transition-all duration-500 rounded-full"
+            className="h-full bg-emerald-500 border-r border-[#382322] transition-all duration-500 rounded-full"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -428,18 +418,25 @@ export const MilestoneEscrowPipeline = ({
   const renderMilestoneCards = () => (
     <div className="space-y-3">
       {milestones.map((m) => {
-        const isPending = m.status === 'pending';
+        const isCompleted = m.status === 'completed' || m.status === 'approved';
         const isFunded = m.status === 'funded';
-        const isSubmitted = m.status === 'submitted';
-        const isApproved = m.status === 'approved';
+        const isPending = m.status === 'pending';
+        const hasSubmission = Boolean(m.submittedUrl && m.submittedUrl.trim());
+
+        // Sequential Funding Check: Milestone[n-1] MUST be completed!
+        const prevMilestone = m.index > 1 ? milestones.find((x) => x.index === m.index - 1) : null;
+        const canBeFunded =
+          m.index === 1 ||
+          (prevMilestone &&
+            (prevMilestone.status === 'completed' || prevMilestone.status === 'approved'));
 
         return (
           <div
-            key={m.id}
+            key={m._id || m.id}
             className={`p-4 sm:p-4.5 rounded-2xl border-2 transition-all ${
-              isApproved
+              isCompleted
                 ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-600/40'
-                : isSubmitted
+                : isFunded && hasSubmission
                 ? 'bg-[#FFEBAA]/40 dark:bg-[#2D1C1B] border-[#382322] dark:border-[#FFEBAA] shadow-[2px_2px_0_#382322]'
                 : isFunded
                 ? 'bg-[#B1C8EA]/20 dark:bg-[#201413] border-[#382322] dark:border-[#B1C8EA]/40'
@@ -447,20 +444,20 @@ export const MilestoneEscrowPipeline = ({
             }`}
           >
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
-              {/* Milestone Left: Step pill, Title, Clean single status badge, description */}
+              {/* Milestone Left: Step pill, Title, Single status badge, description */}
               <div className="flex items-start gap-3 min-w-0 flex-1">
                 <div
                   className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 font-mono font-black text-xs border-2 border-[#382322] ${
-                    isApproved
+                    isCompleted
                       ? 'bg-emerald-200 text-emerald-900'
-                      : isSubmitted
+                      : isFunded && hasSubmission
                       ? 'bg-[#FFEBAA] text-[#261615]'
                       : isFunded
                       ? 'bg-[#B1C8EA] text-[#261615]'
                       : 'bg-[#FAF0E6] text-[#5C3A38]'
                   }`}
                 >
-                  {isApproved ? <CheckCircle2 className="w-4 h-4" /> : m.index}
+                  {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : m.index}
                 </div>
 
                 <div className="min-w-0 flex-1">
@@ -469,25 +466,30 @@ export const MilestoneEscrowPipeline = ({
                       {m.title}
                     </h4>
 
-                    {/* Single Clean Status Badge */}
-                    {isApproved && (
+                    {/* Single Clean Authoritative Status Badge */}
+                    {isCompleted && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-600/30">
-                        Approved
+                        <CheckCircle2 className="w-3 h-3" /> Completed
                       </span>
                     )}
-                    {isSubmitted && (
+                    {isFunded && hasSubmission && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#FFEBAA] text-[#261615] border border-[#382322]">
                         <Clock className="w-3 h-3" /> In Review
                       </span>
                     )}
-                    {isFunded && (
+                    {isFunded && !hasSubmission && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#B1C8EA] text-[#261615] border border-[#382322]">
                         <Lock className="w-3 h-3" /> Funded in Escrow
                       </span>
                     )}
-                    {isPending && (
+                    {isPending && canBeFunded && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#FAF0E6] dark:bg-[#19100F] text-[#5C3A38] dark:text-[#D4B8A8] border border-[#382322]/20">
                         Pending Funding
+                      </span>
+                    )}
+                    {isPending && !canBeFunded && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#FAF0E6]/60 dark:bg-[#19100F]/60 text-[#5C3A38]/70 dark:text-[#D4B8A8]/70 border border-dashed border-[#382322]/30">
+                        <Lock className="w-3 h-3 opacity-60" /> Locked (Requires M{m.index - 1})
                       </span>
                     )}
                   </div>
@@ -497,7 +499,7 @@ export const MilestoneEscrowPipeline = ({
                   </p>
 
                   {/* Clean Deliverable Link */}
-                  {m.submittedUrl && (
+                  {hasSubmission && (
                     <div className="mt-2.5 flex items-center gap-3 flex-wrap">
                       <a
                         href={m.submittedUrl}
@@ -530,33 +532,61 @@ export const MilestoneEscrowPipeline = ({
                 <div className="flex items-center">
                   {isCreator ? (
                     <>
-                      {isPending && (
+                      {isPending && canBeFunded && (
                         <button
                           type="button"
+                          disabled={isProcessingPin}
                           onClick={() => handleInitiateFund(m)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                         >
-                          <Lock className="w-3.5 h-3.5" />
-                          <span>Fund Escrow</span>
+                          {isProcessingPin ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Processing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="w-3.5 h-3.5" />
+                              <span>Fund Escrow</span>
+                            </>
+                          )}
                         </button>
                       )}
-                      {isFunded && (
+                      {isPending && !canBeFunded && (
+                        <span
+                          className="text-xs font-mono text-[#5C3A38]/70 dark:text-[#D4B8A8]/70 px-2.5 py-1 rounded-lg bg-[#FAF0E6]/50 dark:bg-[#19100F]/50 border border-dashed border-[#382322]/20"
+                          title={`Milestone ${m.index - 1} must be completed and released first`}
+                        >
+                          Awaiting M{m.index - 1}
+                        </span>
+                      )}
+                      {isFunded && !hasSubmission && (
                         <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20">
                           <Clock className="w-3 h-3 text-[#5C3A38] dark:text-[#FFEBAA]" />
                           Awaiting cut
                         </span>
                       )}
-                      {isSubmitted && (
+                      {isFunded && hasSubmission && (
                         <button
                           type="button"
+                          disabled={isProcessingPin}
                           onClick={() => handleInitiateRelease(m)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-500 text-white border-2 border-emerald-900 shadow-[2px_2px_0_#064e3b] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-500 text-white border-2 border-emerald-900 shadow-[2px_2px_0_#064e3b] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                         >
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>Release Funds</span>
+                          {isProcessingPin ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Releasing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>Release Funds</span>
+                            </>
+                          )}
                         </button>
                       )}
-                      {isApproved && (
+                      {isCompleted && (
                         <span className="text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-600/30">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Released
@@ -565,23 +595,23 @@ export const MilestoneEscrowPipeline = ({
                     </>
                   ) : (
                     <>
-                      {isFunded && (
+                      {isFunded && !hasSubmission && (
                         <button
                           type="button"
                           onClick={() => setActiveSubmittingMilestone(m)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#B1C8EA] hover:bg-[#B1C8EA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] cursor-pointer flex items-center gap-1.5"
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#B1C8EA] hover:bg-[#B1C8EA]/80 text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
                         >
                           <FileVideo className="w-3.5 h-3.5" />
                           <span>Submit Cut</span>
                         </button>
                       )}
-                      {isSubmitted && (
+                      {isFunded && hasSubmission && (
                         <span className="text-xs font-mono font-bold text-[#261615] bg-[#FFEBAA] flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#382322]">
                           <Clock className="w-3 h-3" />
                           In Review
                         </span>
                       )}
-                      {isApproved && (
+                      {isCompleted && (
                         <span className="text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-600/30">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           Paid
@@ -589,7 +619,7 @@ export const MilestoneEscrowPipeline = ({
                       )}
                       {isPending && (
                         <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] px-2.5 py-1">
-                          Awaiting funding
+                          {canBeFunded ? 'Awaiting funding' : `Locked (Pending M${m.index - 1})`}
                         </span>
                       )}
                     </>
@@ -638,7 +668,9 @@ export const MilestoneEscrowPipeline = ({
               </div>
 
               <div>
-                <label className="block text-[#261615] dark:text-[#FDEBDE] font-mono font-bold mb-1">Editor Notes</label>
+                <label className="block text-[#261615] dark:text-[#FDEBDE] font-mono font-bold mb-1">
+                  Editor Notes
+                </label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Rough cut assembly done with 2 revision passes..."
@@ -651,6 +683,7 @@ export const MilestoneEscrowPipeline = ({
               <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
+                  disabled={isSubmittingCut}
                   onClick={() => setActiveSubmittingMilestone(null)}
                   className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] cursor-pointer"
                 >
@@ -658,10 +691,20 @@ export const MilestoneEscrowPipeline = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl font-mono font-bold text-xs text-[#261615] bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all flex items-center gap-1.5 cursor-pointer"
+                  disabled={isSubmittingCut}
+                  className="px-4 py-2 rounded-xl font-mono font-bold text-xs text-[#261615] bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  Submit Cut for Review
+                  {isSubmittingCut ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Submit Cut for Review</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

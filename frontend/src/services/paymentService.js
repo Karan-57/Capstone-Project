@@ -153,7 +153,18 @@ export const paymentService = {
   },
 
   // 7. Lock Milestone Funds in Escrow
-  lockEscrow: async ({ amount, workspaceId, projectId, milestoneTitle, pin, roleBudget, milestoneAmount }) => {
+  lockEscrow: async ({
+    amount,
+    workspaceId,
+    projectId,
+    milestoneTitle,
+    pin,
+    roleBudget,
+    milestoneAmount,
+    hiringId,
+    milestoneId,
+    milestoneIndex,
+  }) => {
     const res = await api.post('/api/wallet/escrow/lock', {
       amount: Number(amount),
       workspaceId,
@@ -162,12 +173,27 @@ export const paymentService = {
       pin: String(pin || ''),
       roleBudget: roleBudget ? Number(roleBudget) : undefined,
       milestoneAmount: milestoneAmount ? Number(milestoneAmount) : undefined,
+      hiringId,
+      milestoneId,
+      milestoneIndex,
     });
     return res.data;
   },
 
   // 8. Release Milestone Funds from Escrow
-  releaseEscrow: async ({ amount, editorId, workspaceId, projectId, milestoneTitle, pin, roleBudget, milestoneAmount }) => {
+  releaseEscrow: async ({
+    amount,
+    editorId,
+    workspaceId,
+    projectId,
+    milestoneTitle,
+    pin,
+    roleBudget,
+    milestoneAmount,
+    hiringId,
+    milestoneId,
+    milestoneIndex,
+  }) => {
     const res = await api.post('/api/wallet/escrow/release', {
       amount: Number(amount),
       editorId,
@@ -177,6 +203,9 @@ export const paymentService = {
       pin: String(pin || ''),
       roleBudget: roleBudget ? Number(roleBudget) : undefined,
       milestoneAmount: milestoneAmount ? Number(milestoneAmount) : undefined,
+      hiringId,
+      milestoneId,
+      milestoneIndex,
     });
     return res.data;
   },
@@ -193,7 +222,7 @@ export const paymentService = {
     return res.data;
   },
 
-  // 7. Dynamically load official Razorpay SDK on-demand
+  // 10. Dynamically load official Razorpay SDK on-demand
   loadRazorpaySdk: () => {
     return new Promise((resolve) => {
       if (typeof window !== 'undefined' && window.Razorpay) {
@@ -208,4 +237,3 @@ export const paymentService = {
     });
   },
 };
-

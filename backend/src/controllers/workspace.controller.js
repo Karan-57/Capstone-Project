@@ -212,7 +212,7 @@ async function getMyWorkspacesController(req, res) {
         })
         .populate({
             path: 'projectId',
-            select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId hirings',
+            select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId hirings totalBudget',
             populate: [
                 { path: 'selectedEditorId', select: 'name username email profileImage rating role' },
                 { path: 'hirings.hiredFreelancerId', select: 'name username email profileImage rating role' }
@@ -281,7 +281,7 @@ async function getWorkspaceByIdController(req, res) {
         const workspace = await workspaceModel.findById(workspaceId)
             .populate({
                 path: 'projectId',
-                select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId hirings',
+                select: 'title category status budget deadline description complexity requiredSkills referenceImages referenceLinks selectedEditorId hirings totalBudget',
                 populate: [
                     { path: 'selectedEditorId', select: 'name username email profileImage rating role' },
                     { path: 'hirings.hiredFreelancerId', select: 'name username email profileImage rating role' }

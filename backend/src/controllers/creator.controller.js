@@ -78,6 +78,18 @@ async function checkMemberWorkStarted({ projectId, workspaceId, freelancerId, cr
         console.warn('[checkMemberWorkStarted] Progress check warning:', progErr.message);
     }
 
+    try {
+        const milestoneModel = require('../model/milestone.model');
+        const hasFundedMilestone = await milestoneModel.exists({
+            projectId,
+            freelancerId: new mongoose.Types.ObjectId(fIdStr),
+            status: { $in: ['funded', 'completed'] }
+        });
+        if (hasFundedMilestone) return true;
+    } catch (mErr) {
+        console.warn('[checkMemberWorkStarted] Milestone check warning:', mErr.message);
+    }
+
     // 4. Check hiring milestones if provided
     if (hiring && Array.isArray(hiring.milestones)) {
         const hasMilestoneWork = hiring.milestones.some(m =>

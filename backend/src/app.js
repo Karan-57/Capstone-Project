@@ -16,6 +16,7 @@ const storageRouter = require("./routes/storage.routes");
 const aiRouter = require("./routes/ai.routes");
 const paymentRouter = require("./routes/payment.routes");
 const roleRouter = require("./routes/role.routes");
+const milestoneRouter = require("./routes/milestone.routes");
 
 const { securityHeaders, preventNoSqlAndXss } = require("./middleware/security.middleware");
 
@@ -70,6 +71,7 @@ app.use("/api/storage", storageRouter);
 app.use("/api/ai", aiRouter);
 app.use(["/api/payment", "/api/payments", "/api/wallet"], paymentRouter);
 app.use(["/api/roles", "/api/role"], roleRouter);
+app.use(["/api/milestones", "/api/milestone"], milestoneRouter);
 
 // Global error handler (handles Multer errors, file type rejections, etc.)
 app.use((err, req, res, next) => {

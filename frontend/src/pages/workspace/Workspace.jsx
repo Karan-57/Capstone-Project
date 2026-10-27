@@ -38,6 +38,7 @@ import { useWallet } from '../../context/WalletContext';
 import { useSearchParams } from 'react-router-dom';
 import SEO from '../../components/common/SEO';
 import api from '../../services/api';
+import milestoneService from '../../services/milestoneService';
 import { MilestoneEscrowPipeline } from '../../components/workspace/MilestoneEscrowPipeline';
 import {
   WorkspaceSidebarSkeleton,
@@ -1124,6 +1125,7 @@ function FreelancerMilestonesScreen({
           roleTitle={effectiveRoleTitle}
           roleId={effectiveRoleId}
           initialMilestones={effectiveMilestones}
+          hiringId={hiringMatch?._id}
         />
       </div>
     </div>
@@ -1160,6 +1162,27 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
   const [showMilestonesScreen, setShowMilestonesScreen] = useState(false);
   const [mediaScope, setMediaScope] = useState({ type: 'project' });
   const [milestonesUpdateTick, setMilestonesUpdateTick] = useState(0);
+  const [workspaceMilestones, setWorkspaceMilestones] = useState([]);
+
+  // Load authoritative milestones for this project/workspace from MongoDB
+  const fetchWorkspaceMilestones = useCallback(async () => {
+    if (!workspace?._id) return;
+    try {
+      const serverMilestones = await milestoneService.getMilestones({
+        workspaceId: workspace._id,
+        projectId: workspace.projectId?._id || workspace.projectId,
+      });
+      if (Array.isArray(serverMilestones)) {
+        setWorkspaceMilestones(serverMilestones);
+      }
+    } catch (err) {
+      console.warn('[Workspace] Authoritative milestones fetch error:', err.message);
+    }
+  }, [workspace]);
+
+  useEffect(() => {
+    fetchWorkspaceMilestones();
+  }, [fetchWorkspaceMilestones, milestonesUpdateTick, transactions]);
 
   useEffect(() => {
     const handleSync = () => setMilestonesUpdateTick((prev) => prev + 1);
@@ -1305,6 +1328,37 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
         ? workspace.projectId.budget
         : parseInt(String(workspace.projectId?.budget || 10000).replace(/[^0-9]/g, ''), 10) || 10000);
 
+    if (workspaceMilestones && workspaceMilestones.length > 0) {
+      let totalReleased = 0;
+      let totalInEscrow = 0;
+      let totalCompletedMilestones = 0;
+
+      workspaceMilestones.forEach((m) => {
+        const amt = Number(m.amount) || 0;
+        if (m.status === 'completed' || m.status === 'approved' || m.status === 'released') {
+          totalReleased += amt;
+          totalCompletedMilestones += 1;
+        } else if (m.status === 'funded' || m.status === 'submitted') {
+          totalInEscrow += amt;
+        }
+      });
+
+      const totalMilestonesCount = workspaceMilestones.length;
+      const progressPercent =
+        totalMilestonesCount > 0
+          ? Math.round((totalCompletedMilestones / totalMilestonesCount) * 100)
+          : (workspace.projectId?.status === 'completed' || workspace.status === 'completed' ? 100 : 0);
+
+      return {
+        totalBudget: totalProjectBudget,
+        totalReleased,
+        totalInEscrow,
+        progressPercent,
+        totalMilestonesCount,
+        totalCompletedMilestones,
+      };
+    }
+
     let totalReleased = 0;
     let totalInEscrow = 0;
     let totalMilestonesCount = 0;
@@ -1344,7 +1398,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
 
       if (Array.isArray(mList) && mList.length > 0) {
         mList.forEach((m) => {
-          if (m.status === 'approved' || m.status === 'released') {
+          if (m.status === 'completed' || m.status === 'approved' || m.status === 'released') {
             rolePaid += Number(m.amount) || 0;
             roleCompleted += 1;
           } else if (m.status === 'funded' || m.status === 'submitted') {
@@ -1377,7 +1431,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
       totalMilestonesCount,
       totalCompletedMilestones,
     };
-  }, [workspace, assignedEditorId, milestonesUpdateTick]);
+  }, [workspace, assignedEditorId, milestonesUpdateTick, workspaceMilestones]);
 
   // FREELANCER MILESTONES SCREEN (Evaluated when user clicks Milestones button in 1-on-1 chat)
   if (showMilestonesScreen && activeDmMember) {

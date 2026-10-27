@@ -97,6 +97,7 @@ export const WalletProvider = ({ children }) => {
           setTransactions(
             data.transactions.map((t) => ({
               id: t.idempotencyKey || t._id || t.id,
+              _id: t._id || t.id,
               type: t.type,
               amount: t.amount,
               description: t.description,
@@ -232,9 +233,20 @@ export const WalletProvider = ({ children }) => {
     [walletBalance, showAlert]
   );
 
-  // Fund Milestone (Locks into Escrow)
+  // Fund Milestone (Locks into Escrow with zero UI latency and backend sync)
   const fundMilestone = useCallback(
-    async (milestoneTitle, amount, inputPin, workspaceId = null, projectId = null, roleBudget = null, milestoneAmount = null) => {
+    async (
+      milestoneTitle,
+      amount,
+      inputPin,
+      workspaceId = null,
+      projectId = null,
+      roleBudget = null,
+      milestoneAmount = null,
+      hiringId = null,
+      milestoneId = null,
+      milestoneIndex = null
+    ) => {
       const numAmount = Number(amount);
       const isPinValid = await verifySecurityPin(inputPin);
 
@@ -249,6 +261,7 @@ export const WalletProvider = ({ children }) => {
       }
 
       let newBalance = walletBalance - numAmount;
+      let serverTxn = null;
       try {
         const res = await paymentService.lockEscrow({
           amount: numAmount,
@@ -258,10 +271,14 @@ export const WalletProvider = ({ children }) => {
           pin: inputPin,
           roleBudget,
           milestoneAmount: milestoneAmount || numAmount,
+          hiringId,
+          milestoneId,
+          milestoneIndex,
         });
         if (res?.walletBalance != null) {
           newBalance = res.walletBalance;
         }
+        serverTxn = res?.transaction || null;
       } catch (err) {
         console.warn('[WalletContext] Lock escrow backend sync:', err.message);
         const errMsg = err.response?.data?.message || err.message;
@@ -272,19 +289,27 @@ export const WalletProvider = ({ children }) => {
       setWalletBalance(newBalance);
       setEscrowLocked((prev) => prev + numAmount);
 
+      const targetWsId = workspaceId || (projectId ? String(projectId) : null);
       const newTxn = {
-        id: `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
+        _id: serverTxn?._id,
+        id: serverTxn?._id || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
         type: 'ESCROW_LOCK',
         amount: numAmount,
-        description: `Escrow Lock: ${milestoneTitle} (-₹${numAmount.toLocaleString('en-IN')})`,
+        referenceWorkspaceId: targetWsId,
+        milestoneTitle: milestoneTitle,
+        description:
+          serverTxn?.description ||
+          `Escrow Locked: ₹${numAmount.toLocaleString('en-IN')} for "${milestoneTitle}"`,
         date: new Date().toLocaleDateString('en-IN', {
           day: 'numeric',
           month: 'short',
           year: 'numeric',
         }),
         status: 'SUCCESS',
-        createdAt: new Date().toISOString(),
+        createdAt: serverTxn?.createdAt || new Date().toISOString(),
         gateway: 'SYSTEM_LEDGER',
+        fromUser: serverTxn?.fromUser || userId,
+        toUser: null,
       };
 
       setTransactions((prev) => [newTxn, ...prev]);
@@ -294,12 +319,25 @@ export const WalletProvider = ({ children }) => {
       );
       return true;
     },
-    [verifySecurityPin, walletBalance, showAlert]
+    [verifySecurityPin, walletBalance, showAlert, userId]
   );
 
-  // Release Milestone Escrow to Editor
+  // Release Milestone Escrow to Editor (Instant local state reconciliation)
   const releaseMilestone = useCallback(
-    async (milestoneTitle, amount, inputPin, editorName = 'Editor', editorId = null, workspaceId = null, projectId = null, roleBudget = null, milestoneAmount = null) => {
+    async (
+      milestoneTitle,
+      amount,
+      inputPin,
+      editorName = 'Editor',
+      editorId = null,
+      workspaceId = null,
+      projectId = null,
+      roleBudget = null,
+      milestoneAmount = null,
+      hiringId = null,
+      milestoneId = null,
+      milestoneIndex = null
+    ) => {
       const numAmount = Number(amount);
       const isPinValid = await verifySecurityPin(inputPin);
 
@@ -308,9 +346,10 @@ export const WalletProvider = ({ children }) => {
         return false;
       }
 
+      let serverTxn = null;
       try {
         if (editorId) {
-          await paymentService.releaseEscrow({
+          const res = await paymentService.releaseEscrow({
             amount: numAmount,
             editorId,
             workspaceId,
@@ -319,7 +358,11 @@ export const WalletProvider = ({ children }) => {
             pin: inputPin,
             roleBudget,
             milestoneAmount: milestoneAmount || numAmount,
+            hiringId,
+            milestoneId,
+            milestoneIndex,
           });
+          serverTxn = res?.transaction || null;
         }
       } catch (err) {
         console.warn('[WalletContext] Release escrow backend sync:', err.message);
@@ -330,18 +373,26 @@ export const WalletProvider = ({ children }) => {
 
       setEscrowLocked((prev) => Math.max(0, prev - numAmount));
 
+      const targetWsId = workspaceId || (projectId ? String(projectId) : null);
       const newTxn = {
-        id: `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
+        _id: serverTxn?._id,
+        id: serverTxn?._id || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
         type: 'ESCROW_RELEASE',
         amount: numAmount,
-        description: `Escrow Released to ${editorName}: ${milestoneTitle}`,
+        referenceWorkspaceId: targetWsId,
+        milestoneTitle: milestoneTitle,
+        toUser: editorId,
+        fromUser: serverTxn?.fromUser || userId,
+        description:
+          serverTxn?.description ||
+          `Escrow Released to ${editorName}: ${milestoneTitle}`,
         date: new Date().toLocaleDateString('en-IN', {
           day: 'numeric',
           month: 'short',
           year: 'numeric',
         }),
         status: 'SUCCESS',
-        createdAt: new Date().toISOString(),
+        createdAt: serverTxn?.createdAt || new Date().toISOString(),
         gateway: 'SYSTEM_LEDGER',
       };
 
@@ -349,7 +400,7 @@ export const WalletProvider = ({ children }) => {
       showAlert(`Escrow released! ₹${numAmount.toLocaleString('en-IN')} paid to ${editorName}.`, 'success');
       return true;
     },
-    [verifySecurityPin, showAlert]
+    [verifySecurityPin, showAlert, userId]
   );
 
   // Editor Simulated Payout / Withdrawal

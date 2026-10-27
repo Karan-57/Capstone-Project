@@ -539,6 +539,7 @@ async function acceptApplicationController(req, res) {
         }
 
         // If this application belongs to a specific role hiring in the project, mark that role hired
+        let hiredHiring = null;
         if (Array.isArray(project.hirings)) {
             let hiring = null;
             if (application.hiringId) {
@@ -559,6 +560,7 @@ async function acceptApplicationController(req, res) {
                     application.hiringId = hiring._id;
                     await application.save();
                 }
+                hiredHiring = hiring;
             }
         }
         await project.save();
@@ -596,6 +598,26 @@ async function acceptApplicationController(req, res) {
                 });
             }
             await workspace.save();
+        }
+
+        // Initialize 3 standard milestones in separate Milestone collection for this role hiring
+        if (hiredHiring) {
+            try {
+                const { getOrInitializeMilestones } = require('./milestone.controller');
+                await getOrInitializeMilestones({
+                    projectId: project._id,
+                    hiringId: hiredHiring._id,
+                    workspaceId: workspace?._id,
+                    creatorId: project.creatorId,
+                    freelancerId: application.editorId,
+                    roleId: hiredHiring.roleId,
+                    roleTitle: hiredHiring.roleTitle,
+                    budget: agreedAmount,
+                    deadline: hiredHiring.firstDeadline,
+                });
+            } catch (mErr) {
+                console.warn('[acceptApplication] Milestone init notice:', mErr.message);
+            }
         }
 
         // Initialize / sync project chat group conversation

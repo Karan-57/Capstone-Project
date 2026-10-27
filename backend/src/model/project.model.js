@@ -62,7 +62,7 @@ const hiringSchema = new mongoose.Schema(
       default: '',
     },
     milestones: {
-      type: [roleMilestoneSchema],
+      type: [mongoose.Schema.Types.Mixed],
       default: [],
     },
     status: {

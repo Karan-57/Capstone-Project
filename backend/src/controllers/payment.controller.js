@@ -5,9 +5,11 @@ const Razorpay = require('razorpay');
 const userModel = require('../model/user.model');
 const projectModel = require('../model/project.model');
 const workspaceModel = require('../model/workspace.model');
+const milestoneModel = require('../model/milestone.model');
 const transactionModel = require('../model/transaction.model');
 const ledgerModel = require('../model/ledger.model');
 const { createNotification } = require('../services/notification.service');
+const { getOrInitializeMilestones } = require('./milestone.controller');
 
 // Initialize Razorpay client with keys from environment
 const key_id = process.env.RAZORPAY_API_KEY || process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder';
@@ -392,10 +394,21 @@ async function verifyTransactionPin(req, res) {
 
 /**
  * 7. Lock Milestone Funds in Escrow (Creator deposits funds for a project or milestone)
+ * Enforces sequential funding: Milestone[n-1] MUST be completed before Milestone[n] can be funded.
+ * Single source of truth: Updates separate Milestone document in MongoDB.
  */
 async function lockEscrow(req, res) {
   try {
-    const { amount, workspaceId, projectId, milestoneTitle, pin } = req.body;
+    const {
+      amount,
+      workspaceId,
+      projectId,
+      milestoneTitle,
+      pin,
+      hiringId,
+      milestoneId,
+      milestoneIndex,
+    } = req.body;
     const numericAmount = Number(amount);
 
     if (!numericAmount || numericAmount <= 0) {
@@ -426,49 +439,140 @@ async function lockEscrow(req, res) {
       });
     }
 
-    // Project, Role, and Milestone Level Budget Validations
-    if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
-      const projectDoc = await projectModel.findById(projectId);
-      if (projectDoc) {
-        const projectTotalBudget = Number(projectDoc.totalBudget || projectDoc.budget?.amount || projectDoc.budget?.max || (typeof projectDoc.budget === 'number' ? projectDoc.budget : 0));
-        
-        // Validation: Cannot exceed total project budget
-        if (projectTotalBudget > 0 && numericAmount > projectTotalBudget) {
+    // 1. Resolve Project and Workspace Document
+    let resolvedProjectId = projectId;
+    let workspaceDoc = null;
+    if (workspaceId && mongoose.Types.ObjectId.isValid(workspaceId)) {
+      workspaceDoc = await workspaceModel.findById(workspaceId);
+      if (workspaceDoc && workspaceDoc.projectId && !resolvedProjectId) {
+        resolvedProjectId = workspaceDoc.projectId;
+      }
+    }
+
+    let targetProject = null;
+    let targetHiring = null;
+
+    if (resolvedProjectId && mongoose.Types.ObjectId.isValid(resolvedProjectId)) {
+      targetProject = await projectModel.findById(resolvedProjectId);
+    }
+
+    if (targetProject && Array.isArray(targetProject.hirings)) {
+      if (hiringId) {
+        targetHiring = targetProject.hirings.find(
+          (h) => h._id.toString() === String(hiringId)
+        );
+      }
+      if (!targetHiring && targetProject.hirings.length > 0) {
+        targetHiring = targetProject.hirings[0];
+      }
+    }
+
+    // 2. Locate or Auto-Initialize Target Milestone in Milestone Model
+    let targetMilestone = null;
+    if (milestoneId && mongoose.Types.ObjectId.isValid(milestoneId)) {
+      targetMilestone = await milestoneModel.findById(milestoneId);
+    }
+
+    if (!targetMilestone && targetProject && targetHiring) {
+      const allMilestones = await getOrInitializeMilestones({
+        projectId: targetProject._id,
+        hiringId: targetHiring._id,
+        workspaceId: workspaceId || workspaceDoc?._id,
+        creatorId: targetProject.creatorId,
+        freelancerId: targetHiring.hiredFreelancerId,
+        roleId: targetHiring.roleId,
+        roleTitle: targetHiring.roleTitle,
+        budget: targetHiring.budget || targetProject.totalBudget,
+        deadline: targetHiring.firstDeadline,
+      });
+
+      targetMilestone = allMilestones.find(
+        (m) =>
+          (milestoneIndex != null && m.index === Number(milestoneIndex)) ||
+          (milestoneTitle && m.title?.toLowerCase().trim() === String(milestoneTitle).toLowerCase().trim())
+      );
+
+      if (!targetMilestone && allMilestones.length > 0) {
+        targetMilestone = allMilestones[0];
+      }
+    }
+
+    if (!targetMilestone && workspaceId) {
+      targetMilestone = await milestoneModel.findOne({
+        workspaceId,
+        $or: [
+          { index: milestoneIndex ? Number(milestoneIndex) : 1 },
+          { title: milestoneTitle },
+        ],
+      });
+    }
+
+    // 3. Prevent Duplicate Funding via Milestone Status
+    if (targetMilestone) {
+      if (targetMilestone.status === 'funded') {
+        return res.status(400).json({
+          message: `Milestone ${targetMilestone.index} ("${targetMilestone.title}") is already funded in escrow. Repeated funding is blocked.`,
+        });
+      }
+      if (targetMilestone.status === 'completed') {
+        return res.status(400).json({
+          message: `Milestone ${targetMilestone.index} ("${targetMilestone.title}") is already completed and released.`,
+        });
+      }
+
+      // 4. Sequential Funding Rule: Milestone[n-1] MUST be completed!
+      if (targetMilestone.index > 1) {
+        const prevIndex = targetMilestone.index - 1;
+        const prevMilestone = await milestoneModel.findOne({
+          projectId: targetMilestone.projectId,
+          hiringId: targetMilestone.hiringId,
+          index: prevIndex,
+        });
+
+        if (!prevMilestone || prevMilestone.status !== 'completed') {
           return res.status(400).json({
-            message: `Payment amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds total project budget (₹${projectTotalBudget.toLocaleString('en-IN')}).`
+            message: `Previous milestone (Milestone ${prevIndex}) must be completed and released before Milestone ${targetMilestone.index} can be funded in escrow.`,
+            requiredPreviousMilestoneIndex: prevIndex,
+            previousMilestoneStatus: prevMilestone?.status || 'pending',
           });
-        }
-
-        // If milestone specifies an allocated role budget, verify against role budget
-        if (req.body.roleBudget) {
-          const numRoleBudget = Number(req.body.roleBudget);
-          if (numRoleBudget > 0 && numericAmount > numRoleBudget) {
-            return res.status(400).json({
-              message: `Payment amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds this role's budget (₹${numRoleBudget.toLocaleString('en-IN')}).`
-            });
-          }
-        }
-
-        // Validation against milestone amount if provided
-        if (req.body.milestoneAmount) {
-          const numMilestoneAmount = Number(req.body.milestoneAmount);
-          if (numMilestoneAmount > 0 && numericAmount > numMilestoneAmount) {
-            return res.status(400).json({
-              message: `Payment amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds milestone allocation (₹${numMilestoneAmount.toLocaleString('en-IN')}).`
-            });
-          }
         }
       }
     }
 
-    // Atomically debit creator
+    // 5. Budget Validations
+    if (targetProject) {
+      const projectTotalBudget = Number(
+        targetProject.totalBudget ||
+        targetProject.budget?.amount ||
+        targetProject.budget?.max ||
+        (typeof targetProject.budget === 'number' ? targetProject.budget : 0)
+      );
+
+      if (projectTotalBudget > 0 && numericAmount > projectTotalBudget) {
+        return res.status(400).json({
+          message: `Payment amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds total project budget (₹${projectTotalBudget.toLocaleString('en-IN')}).`,
+        });
+      }
+
+      const roleBudgetVal = req.body.roleBudget || targetHiring?.budget;
+      if (roleBudgetVal) {
+        const numRoleBudget = Number(roleBudgetVal);
+        if (numRoleBudget > 0 && numericAmount > numRoleBudget) {
+          return res.status(400).json({
+            message: `Payment amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds this role's budget (₹${numRoleBudget.toLocaleString('en-IN')}).`,
+          });
+        }
+      }
+    }
+
+    // 6. Atomically Debit Creator Wallet
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
       { $inc: { walletBalance: -numericAmount } },
       { returnDocument: 'after' }
     );
 
-    const title = milestoneTitle || 'Milestone Escrow Deposit';
+    const title = targetMilestone?.title || milestoneTitle || 'Milestone Escrow Deposit';
     const transaction = await transactionModel.create({
       fromUser: req.user._id,
       toUser: null, // Held safely in escrow
@@ -476,7 +580,7 @@ async function lockEscrow(req, res) {
       type: 'ESCROW_LOCK',
       status: 'SUCCESS',
       gateway: 'SYSTEM_LEDGER',
-      referenceWorkspaceId: workspaceId || null,
+      referenceWorkspaceId: workspaceId || (resolvedProjectId ? String(resolvedProjectId) : null),
       milestoneTitle: title,
       description: `Escrow Locked: ₹${numericAmount.toLocaleString('en-IN')} for "${title}"`,
     });
@@ -490,11 +594,54 @@ async function lockEscrow(req, res) {
       description: `Escrow Lock for "${title}"`,
     });
 
+    // 7. Update Authoritative Milestone in MongoDB
+    if (targetMilestone) {
+      targetMilestone.status = 'funded';
+      targetMilestone.fundedAt = new Date();
+      targetMilestone.escrowLockTxn = transaction._id;
+      if (workspaceId && !targetMilestone.workspaceId) {
+        targetMilestone.workspaceId = workspaceId;
+      }
+      await targetMilestone.save();
+
+      // Notify Freelancer
+      if (targetMilestone.freelancerId) {
+        createNotification({
+          recipient: targetMilestone.freelancerId,
+          type: 'MILESTONE_FUNDED',
+          title: 'Milestone Funded in Escrow!',
+          message: `₹${numericAmount.toLocaleString('en-IN')} has been locked in escrow for "${targetMilestone.title}". You can now start working and submit your cut!`,
+          project: targetMilestone.projectId,
+          relatedUser: req.user._id,
+        }).catch(() => {});
+      }
+    }
+
+    // 8. Update Project and Workspace Status
+    if (targetProject) {
+      if (targetProject.status === 'assigned' || targetProject.status === 'open') {
+        targetProject.status = 'in_progress';
+      }
+      await targetProject.save();
+    }
+    if (workspaceDoc) {
+      try {
+        if (workspaceDoc.status === 'pending' || workspaceDoc.status === 'assigned') {
+          workspaceDoc.status = 'active';
+          await workspaceDoc.save();
+        }
+      } catch (wsErr) {
+        console.warn('[lockEscrow] Workspace status sync:', wsErr.message);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: `₹${numericAmount.toLocaleString('en-IN')} locked in escrow safely`,
       walletBalance: updatedUser.walletBalance,
       transaction,
+      milestone: targetMilestone,
+      project: targetProject,
     });
   } catch (err) {
     console.error('Error in lockEscrow:', err);
@@ -504,10 +651,22 @@ async function lockEscrow(req, res) {
 
 /**
  * 8. Release Milestone Funds from Escrow to Editor
+ * Transitions milestone to 'completed'.
+ * Synchronizes single-source Milestone document in MongoDB.
  */
 async function releaseEscrow(req, res) {
   try {
-    const { amount, editorId, workspaceId, projectId, milestoneTitle, pin } = req.body;
+    const {
+      amount,
+      editorId,
+      workspaceId,
+      projectId,
+      milestoneTitle,
+      pin,
+      hiringId,
+      milestoneId,
+      milestoneIndex,
+    } = req.body;
     const numericAmount = Number(amount);
 
     if (!numericAmount || numericAmount <= 0) {
@@ -536,38 +695,41 @@ async function releaseEscrow(req, res) {
       }
     }
 
-    // Project, Role, and Milestone Level Budget Validations for Release
-    if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
-      const projectDoc = await projectModel.findById(projectId);
-      if (projectDoc) {
-        const projectTotalBudget = Number(projectDoc.totalBudget || projectDoc.budget?.amount || projectDoc.budget?.max || (typeof projectDoc.budget === 'number' ? projectDoc.budget : 0));
-        
-        // Validation: Cannot exceed total project budget
-        if (projectTotalBudget > 0 && numericAmount > projectTotalBudget) {
-          return res.status(400).json({
-            message: `Payout amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds total project budget (₹${projectTotalBudget.toLocaleString('en-IN')}).`
-          });
-        }
+    // Locate Target Milestone in Milestone Model
+    let targetMilestone = null;
+    if (milestoneId && mongoose.Types.ObjectId.isValid(milestoneId)) {
+      targetMilestone = await milestoneModel.findById(milestoneId);
+    }
+    if (!targetMilestone && hiringId) {
+      targetMilestone = await milestoneModel.findOne({
+        hiringId,
+        $or: [
+          { index: milestoneIndex ? Number(milestoneIndex) : 1 },
+          { title: milestoneTitle },
+        ],
+      });
+    }
+    if (!targetMilestone && workspaceId) {
+      targetMilestone = await milestoneModel.findOne({
+        workspaceId,
+        $or: [
+          { index: milestoneIndex ? Number(milestoneIndex) : 1 },
+          { title: milestoneTitle },
+        ],
+      });
+    }
 
-        // If release specifies an allocated role budget, verify against role budget
-        if (req.body.roleBudget) {
-          const numRoleBudget = Number(req.body.roleBudget);
-          if (numRoleBudget > 0 && numericAmount > numRoleBudget) {
-            return res.status(400).json({
-              message: `Payout amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds this role's budget (₹${numRoleBudget.toLocaleString('en-IN')}).`
-            });
-          }
-        }
-
-        // Validation against milestone amount if provided
-        if (req.body.milestoneAmount) {
-          const numMilestoneAmount = Number(req.body.milestoneAmount);
-          if (numMilestoneAmount > 0 && numericAmount > numMilestoneAmount) {
-            return res.status(400).json({
-              message: `Payout amount (₹${numericAmount.toLocaleString('en-IN')}) exceeds milestone allocation (₹${numMilestoneAmount.toLocaleString('en-IN')}).`
-            });
-          }
-        }
+    // Guard: Prevent double release and ensure funded
+    if (targetMilestone) {
+      if (targetMilestone.status === 'completed') {
+        return res.status(400).json({
+          message: `Milestone ${targetMilestone.index} ("${targetMilestone.title}") payment has already been released.`,
+        });
+      }
+      if (targetMilestone.status !== 'funded') {
+        return res.status(400).json({
+          message: `Milestone ${targetMilestone.index} cannot be released because it is currently "${targetMilestone.status}". It must be funded first.`,
+        });
       }
     }
 
@@ -578,7 +740,7 @@ async function releaseEscrow(req, res) {
       { returnDocument: 'after' }
     );
 
-    const title = milestoneTitle || 'Approved Milestone Cut';
+    const title = targetMilestone?.title || milestoneTitle || 'Approved Milestone Cut';
     const transaction = await transactionModel.create({
       fromUser: req.user._id,
       toUser: editorId,
@@ -586,7 +748,7 @@ async function releaseEscrow(req, res) {
       type: 'ESCROW_RELEASE',
       status: 'SUCCESS',
       gateway: 'SYSTEM_LEDGER',
-      referenceWorkspaceId: workspaceId || null,
+      referenceWorkspaceId: workspaceId || (projectId ? String(projectId) : null),
       milestoneTitle: title,
       description: `Escrow Released: ₹${numericAmount.toLocaleString('en-IN')} for "${title}"`,
     });
@@ -600,6 +762,24 @@ async function releaseEscrow(req, res) {
       description: `Escrow Payout for "${title}"`,
     });
 
+    // Update authoritative milestone in MongoDB
+    if (targetMilestone) {
+      targetMilestone.status = 'completed';
+      targetMilestone.completedAt = new Date();
+      targetMilestone.escrowReleaseTxn = transaction._id;
+      await targetMilestone.save();
+
+      // Check if all milestones for this project are completed
+      const remainingUncompleted = await milestoneModel.countDocuments({
+        projectId: targetMilestone.projectId,
+        status: { $ne: 'completed' },
+      });
+      if (remainingUncompleted === 0) {
+        await projectModel.findByIdAndUpdate(targetMilestone.projectId, { status: 'completed' });
+        if (workspaceId) await workspaceModel.findByIdAndUpdate(workspaceId, { status: 'completed' });
+      }
+    }
+
     // Notify editor
     try {
       await createNotification({
@@ -607,7 +787,7 @@ async function releaseEscrow(req, res) {
         type: 'PAYMENT_RECEIVED',
         title: 'Payment Received!',
         message: `₹${numericAmount.toLocaleString('en-IN')} has been released to your wallet for "${title}".`,
-        project: projectId || null,
+        project: projectId || targetMilestone?.projectId || null,
         relatedUser: req.user._id,
       });
     } catch (e) {
@@ -618,6 +798,7 @@ async function releaseEscrow(req, res) {
       success: true,
       message: `₹${numericAmount.toLocaleString('en-IN')} successfully released to editor`,
       transaction,
+      milestone: targetMilestone,
     });
   } catch (err) {
     console.error('Error in releaseEscrow:', err);
