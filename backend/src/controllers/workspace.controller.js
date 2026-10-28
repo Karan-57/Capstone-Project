@@ -1,4 +1,5 @@
 const workspaceModel = require('../model/workspace.model');
+const milestoneModel = require('../model/milestone.model');
 const progressUpdateModel = require('../model/progressUpdate.model');
 const revisionModel = require('../model/revision.model');
 const deliveryModel = require('../model/delivery.model');
@@ -224,25 +225,63 @@ async function getMyWorkspacesController(req, res) {
         .sort({ updatedAt: -1 });
 
         const wsIds = workspaces.map(w => w._id);
+        const pIds = workspaces.map(w => w.projectId?._id || w.projectId).filter(Boolean);
 
         // Batch fetch file counts and conversations in 2 parallel queries instead of N*2 queries
-        const [fileCounts, existingConvs] = await Promise.all([
+        const [fileCounts, existingConvs, milestonesList] = await Promise.all([
             fileModel.aggregate([
                 { $match: { workspaceId: { $in: wsIds } } },
                 { $group: { _id: "$workspaceId", count: { $sum: 1 } } }
             ]),
-            conversationModel.find({ workspaceId: { $in: wsIds }, type: 'project' }).select('_id workspaceId').lean()
+            conversationModel.find({ workspaceId: { $in: wsIds }, type: 'project' }).select('_id workspaceId').lean(),
+            milestoneModel.find({
+                $or: [
+                    { workspaceId: { $in: wsIds } },
+                    { projectId: { $in: pIds } }
+                ]
+            }).select('workspaceId projectId status amount index').lean()
         ]);
 
         const fileCountMap = new Map(fileCounts.map(f => [f._id.toString(), f.count]));
         const convMap = new Map(existingConvs.map(c => [c.workspaceId.toString(), c._id]));
 
+        // Group milestones by workspaceId and projectId
+        const wsMilestonesMap = new Map();
+        milestonesList.forEach((m) => {
+            const wsKey = m.workspaceId ? m.workspaceId.toString() : null;
+            const pKey = m.projectId ? m.projectId.toString() : null;
+            if (wsKey) {
+                if (!wsMilestonesMap.has(wsKey)) wsMilestonesMap.set(wsKey, []);
+                wsMilestonesMap.get(wsKey).push(m);
+            }
+            if (pKey) {
+                if (!wsMilestonesMap.has(pKey)) wsMilestonesMap.set(pKey, []);
+                wsMilestonesMap.get(pKey).push(m);
+            }
+        });
+
         const enriched = workspaces.map((ws) => {
             const wsIdStr = ws._id.toString();
+            const pIdStr = (ws.projectId?._id || ws.projectId)?.toString();
+            const mList = (wsMilestonesMap.get(wsIdStr) || wsMilestonesMap.get(pIdStr) || []);
+
+            let totalM = mList.length;
+            let approvedM = mList.filter(m => m.status === 'completed' || m.status === 'approved' || m.status === 'released').length;
+            let progressPercent = 0;
+
+            if (ws.status === 'completed' || ws.projectId?.status === 'completed') {
+                progressPercent = 100;
+            } else if (totalM > 0) {
+                progressPercent = Math.round((approvedM / totalM) * 100);
+            }
             return {
                 ...ws.toObject(),
                 fileCount: fileCountMap.get(wsIdStr) || 0,
-                conversationId: convMap.get(wsIdStr) || null
+                conversationId: convMap.get(wsIdStr) || null,
+                progress: progressPercent,
+                totalMilestones: totalM,
+                completedMilestones: approvedM,
+                milestones: mList
             };
         });
 

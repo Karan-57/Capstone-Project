@@ -10,6 +10,11 @@ import {
   Coins,
   Send,
   Loader2,
+  ChevronDown,
+  ChevronUp,
+  RotateCcw,
+  AlertCircle,
+  History,
 } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
 import { useAuth } from '../../context/AuthContext';
@@ -176,6 +181,22 @@ export const MilestoneEscrowPipeline = ({
   const [submissionNotes, setSubmissionNotes] = useState('');
   const [isSubmittingCut, setIsSubmittingCut] = useState(false);
 
+  // Accordion open/collapse states for delivery lists (per milestone ID)
+  const [expandedMilestones, setExpandedMilestones] = useState({});
+
+  const toggleExpandMilestone = (mId) => {
+    setExpandedMilestones((prev) => ({
+      ...prev,
+      [mId]: !prev[mId],
+    }));
+  };
+
+  // Creator revision request modal
+  const [revisionModalMilestone, setRevisionModalMilestone] = useState(null);
+  const [revisionTitle, setRevisionTitle] = useState('Revision Requested');
+  const [revisionDescription, setRevisionDescription] = useState('');
+  const [isSubmittingRevision, setIsSubmittingRevision] = useState(false);
+
   // Open PIN modal for funding
   const handleInitiateFund = (m) => {
     if (isProcessingPin) return;
@@ -322,6 +343,12 @@ export const MilestoneEscrowPipeline = ({
       setSubmissionUrl('');
       setSubmissionNotes('');
 
+      // Auto expand to show the newly submitted iteration
+      setExpandedMilestones((prev) => ({
+        ...prev,
+        [targetId]: true,
+      }));
+
       window.dispatchEvent(
         new CustomEvent('collabo_milestones_sync', {
           detail: { workspaceId, hiringId },
@@ -332,6 +359,44 @@ export const MilestoneEscrowPipeline = ({
       showAlert(err.response?.data?.message || 'Failed to submit deliverable cut', 'error');
     } finally {
       setIsSubmittingCut(false);
+    }
+  };
+
+  // Creator submit revision request
+  const handleRequestRevision = async (e) => {
+    e.preventDefault();
+    if (!revisionModalMilestone || !revisionDescription.trim() || isSubmittingRevision) return;
+
+    setIsSubmittingRevision(true);
+    try {
+      const targetId = revisionModalMilestone._id || revisionModalMilestone.id;
+      const res = await milestoneService.requestMilestoneRevision(targetId, {
+        title: revisionTitle.trim() || 'Revision Requested',
+        description: revisionDescription.trim(),
+      });
+
+      showAlert(res?.message || 'Revision requested successfully! Freelancer notified.', 'success');
+
+      setRevisionModalMilestone(null);
+      setRevisionTitle('Revision Requested');
+      setRevisionDescription('');
+
+      // Auto expand to display revision notes
+      setExpandedMilestones((prev) => ({
+        ...prev,
+        [targetId]: true,
+      }));
+
+      window.dispatchEvent(
+        new CustomEvent('collabo_milestones_sync', {
+          detail: { workspaceId, hiringId },
+        })
+      );
+      await fetchAuthoritativeMilestones();
+    } catch (err) {
+      showAlert(err.response?.data?.message || 'Failed to request revision', 'error');
+    } finally {
+      setIsSubmittingRevision(false);
     }
   };
 
@@ -430,12 +495,33 @@ export const MilestoneEscrowPipeline = ({
           (prevMilestone &&
             (prevMilestone.status === 'completed' || prevMilestone.status === 'approved'));
 
+        const deliveriesList = Array.isArray(m.deliveries) && m.deliveries.length > 0
+          ? m.deliveries
+          : hasSubmission
+          ? [
+              {
+                version: 1,
+                submittedUrl: m.submittedUrl,
+                notes: m.submissionNotes,
+                submittedAt: m.submittedAt,
+                status: 'pending_review',
+              },
+            ]
+          : [];
+
+        const latestDelivery = deliveriesList.length > 0 ? deliveriesList[deliveriesList.length - 1] : null;
+        const isRevisionRequested = latestDelivery?.status === 'revision_requested';
+        const mKey = m._id || m.id;
+        const isExpanded = Boolean(expandedMilestones[mKey]);
+
         return (
           <div
-            key={m._id || m.id}
+            key={mKey}
             className={`p-4 sm:p-4.5 rounded-2xl border-2 transition-all ${
               isCompleted
                 ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-600/40'
+                : isRevisionRequested
+                ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-500/50 shadow-[2px_2px_0_#d97706]'
                 : isFunded && hasSubmission
                 ? 'bg-[#FFEBAA]/40 dark:bg-[#2D1C1B] border-[#382322] dark:border-[#FFEBAA] shadow-[2px_2px_0_#382322]'
                 : isFunded
@@ -450,6 +536,8 @@ export const MilestoneEscrowPipeline = ({
                   className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 font-mono font-black text-xs border-2 border-[#382322] ${
                     isCompleted
                       ? 'bg-emerald-200 text-emerald-900'
+                      : isRevisionRequested
+                      ? 'bg-amber-300 text-amber-950'
                       : isFunded && hasSubmission
                       ? 'bg-[#FFEBAA] text-[#261615]'
                       : isFunded
@@ -472,7 +560,12 @@ export const MilestoneEscrowPipeline = ({
                         <CheckCircle2 className="w-3 h-3" /> Completed
                       </span>
                     )}
-                    {isFunded && hasSubmission && (
+                    {isRevisionRequested && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-600/40">
+                        <RotateCcw className="w-3 h-3" /> Revision Requested
+                      </span>
+                    )}
+                    {isFunded && hasSubmission && !isRevisionRequested && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#FFEBAA] text-[#261615] border border-[#382322]">
                         <Clock className="w-3 h-3" /> In Review
                       </span>
@@ -498,9 +591,9 @@ export const MilestoneEscrowPipeline = ({
                     {m.description}
                   </p>
 
-                  {/* Clean Deliverable Link */}
+                  {/* Clean Deliverable / Iteration Quick Bar */}
                   {hasSubmission && (
-                    <div className="mt-2.5 flex items-center gap-3 flex-wrap">
+                    <div className="mt-2.5 flex items-center gap-2.5 flex-wrap">
                       <a
                         href={m.submittedUrl}
                         target="_blank"
@@ -508,9 +601,25 @@ export const MilestoneEscrowPipeline = ({
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322] transition-colors"
                       >
                         <Play className="w-3 h-3 fill-[#261615]" />
-                        <span>View Deliverable Cut</span>
+                        <span>View Delivery Cut {deliveriesList.length > 1 ? `(v${deliveriesList.length})` : ''}</span>
                         <ExternalLink className="w-3 h-3 opacity-60" />
                       </a>
+
+                      {/* Dropdown toggle arrow to view all deliveries & revisions */}
+                      <button
+                        type="button"
+                        onClick={() => toggleExpandMilestone(mKey)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-white dark:bg-[#1A1110] hover:bg-[#FAF0E6] dark:hover:bg-[#201413] text-[#261615] dark:text-[#FDEBDE] border border-[#382322]/30 shadow-[1px_1px_0_#382322]/20 cursor-pointer transition-all"
+                      >
+                        <History className="w-3.5 h-3.5 text-[#5C3A38] dark:text-[#D4B8A8]" />
+                        <span>{deliveriesList.length} {deliveriesList.length === 1 ? 'Delivery' : 'Deliveries'}</span>
+                        {isExpanded ? (
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+
                       {m.submissionNotes && (
                         <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] italic truncate max-w-sm">
                           "{m.submissionNotes}"
@@ -529,7 +638,7 @@ export const MilestoneEscrowPipeline = ({
                   </span>
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                   {isCreator ? (
                     <>
                       {isPending && canBeFunded && (
@@ -567,24 +676,42 @@ export const MilestoneEscrowPipeline = ({
                         </span>
                       )}
                       {isFunded && hasSubmission && (
-                        <button
-                          type="button"
-                          disabled={isProcessingPin}
-                          onClick={() => handleInitiateRelease(m)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-500 text-white border-2 border-emerald-900 shadow-[2px_2px_0_#064e3b] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-                        >
-                          {isProcessingPin ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Releasing...</span>
-                            </>
-                          ) : (
-                            <>
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                              <span>Release Funds</span>
-                            </>
+                        <div className="flex items-center gap-2">
+                          {/* Ask for Revision button (available when not already in revision requested) */}
+                          {!isRevisionRequested && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRevisionModalMilestone(m);
+                                setRevisionTitle(`Revision for ${m.title}`);
+                                setRevisionDescription('');
+                              }}
+                              className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-[#1A1110] hover:bg-amber-100 dark:hover:bg-amber-950/60 text-amber-900 dark:text-amber-300 border-2 border-amber-600/40 shadow-[2px_2px_0_#d97706] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              <span>Ask for Revision</span>
+                            </button>
                           )}
-                        </button>
+
+                          <button
+                            type="button"
+                            disabled={isProcessingPin}
+                            onClick={() => handleInitiateRelease(m)}
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-emerald-600 hover:bg-emerald-500 text-white border-2 border-emerald-900 shadow-[2px_2px_0_#064e3b] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                          >
+                            {isProcessingPin ? (
+                              <>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <span>Releasing...</span>
+                              </>
+                            ) : (
+                              <>
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                <span>Release Funds</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       )}
                       {isCompleted && (
                         <span className="text-xs font-mono font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-600/30">
@@ -605,7 +732,21 @@ export const MilestoneEscrowPipeline = ({
                           <span>Submit Cut</span>
                         </button>
                       )}
-                      {isFunded && hasSubmission && (
+                      {isFunded && hasSubmission && isRevisionRequested && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveSubmittingMilestone(m);
+                            setSubmissionUrl('');
+                            setSubmissionNotes('');
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-400 hover:bg-amber-300 text-amber-950 border-2 border-[#382322] shadow-[2px_2px_0_#382322] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Submit Revision Cut</span>
+                        </button>
+                      )}
+                      {isFunded && hasSubmission && !isRevisionRequested && (
                         <span className="text-xs font-mono font-bold text-[#261615] bg-[#FFEBAA] flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#382322]">
                           <Clock className="w-3 h-3" />
                           In Review
@@ -627,6 +768,114 @@ export const MilestoneEscrowPipeline = ({
                 </div>
               </div>
             </div>
+
+            {/* Accordion Expandable Deliveries & Revisions Drawer */}
+            {isExpanded && deliveriesList.length > 0 && (
+              <div className="mt-4 pt-3.5 border-t border-[#382322]/15 dark:border-[#FDEBDE]/15 space-y-2.5 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5">
+                    <History className="w-3.5 h-3.5" /> Delivery Iterations ({deliveriesList.length})
+                  </span>
+                  {isRevisionRequested && !isCreator && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveSubmittingMilestone(m);
+                        setSubmissionUrl('');
+                        setSubmissionNotes('');
+                      }}
+                      className="text-xs font-mono font-bold text-amber-700 dark:text-amber-300 hover:underline flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" /> Submit New Cut (v{deliveriesList.length + 1})
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {deliveriesList.map((del, dIdx) => {
+                    const versionNum = del.version || dIdx + 1;
+                    const isLatest = dIdx === deliveriesList.length - 1;
+                    const hasRevision = Boolean(del.revisionRequest?.description);
+
+                    return (
+                      <div
+                        key={del._id || dIdx}
+                        className={`p-3 rounded-xl border text-xs ${
+                          isLatest && isRevisionRequested
+                            ? 'bg-amber-100/40 dark:bg-amber-950/40 border-amber-500/50'
+                            : isLatest
+                            ? 'bg-white dark:bg-[#1A1110] border-[#382322]/30 dark:border-[#FDEBDE]/20 shadow-[1px_1px_0_#382322]/10'
+                            : 'bg-white/60 dark:bg-[#1A1110]/50 border-[#382322]/15 dark:border-[#FDEBDE]/10 opacity-80'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded-md font-mono font-bold text-[10px] bg-[#382322] text-white">
+                              v{versionNum}
+                            </span>
+                            {del.submittedAt && (
+                              <span className="text-[11px] font-mono text-[#5C3A38] dark:text-[#D4B8A8]">
+                                {new Date(del.submittedAt).toLocaleDateString('en-IN', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </span>
+                            )}
+                            {del.status === 'revision_requested' && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200">
+                                Revision Requested
+                              </span>
+                            )}
+                            {del.status === 'approved' && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-200 text-emerald-900">
+                                Approved
+                              </span>
+                            )}
+                          </div>
+
+                          <a
+                            href={del.submittedUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border border-[#382322] transition-colors"
+                          >
+                            <Play className="w-3 h-3 fill-[#261615]" />
+                            <span>Open Drive Link</span>
+                            <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                          </a>
+                        </div>
+
+                        {del.notes && (
+                          <div className="mt-1.5 text-xs text-[#5C3A38] dark:text-[#D4B8A8] pl-2 border-l-2 border-[#382322]/20">
+                            <span className="font-semibold">Notes:</span> {del.notes}
+                          </div>
+                        )}
+
+                        {/* Revision request details card if attached */}
+                        {hasRevision && (
+                          <div className="mt-2.5 p-2.5 rounded-lg bg-amber-100/70 dark:bg-amber-950/70 border border-amber-500/40 text-amber-950 dark:text-amber-200 text-xs">
+                            <div className="flex items-center gap-1.5 font-bold mb-1">
+                              <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                              <span>{del.revisionRequest.title || 'Creator Revision Feedback'}:</span>
+                            </div>
+                            <p className="whitespace-pre-line text-[11px] leading-relaxed">
+                              {del.revisionRequest.description}
+                            </p>
+                            {del.revisionRequest.requestedAt && (
+                              <span className="block mt-1 text-[10px] opacity-70 font-mono">
+                                Requested on {new Date(del.revisionRequest.requestedAt).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         );
       })}
@@ -703,6 +952,80 @@ export const MilestoneEscrowPipeline = ({
                     <>
                       <Send className="w-3.5 h-3.5" />
                       <span>Submit Cut for Review</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Creator Ask for Revision Modal */}
+      {revisionModalMilestone && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-md bg-[#FFF7F1] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] text-[#261615] dark:text-[#FDEBDE]">
+            <div className="flex items-center gap-2 mb-1">
+              <RotateCcw className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <h4 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">
+                Request Revision
+              </h4>
+            </div>
+            <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mb-4">
+              Specify what edits or changes you need for {revisionModalMilestone.title}.
+            </p>
+
+            <form onSubmit={handleRequestRevision} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-[#261615] dark:text-[#FDEBDE] font-mono font-bold mb-1">
+                  Revision Subject / Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Pacing adjustments & audio fixes"
+                  value={revisionTitle}
+                  onChange={(e) => setRevisionTitle(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[#261615] dark:text-[#FDEBDE] font-mono font-bold mb-1">
+                  Detailed Feedback / Instructions <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="e.g. Please trim the intro by 3 seconds, lower the background music at 0:45, and color-match the second B-roll camera..."
+                  value={revisionDescription}
+                  onChange={(e) => setRevisionDescription(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] resize-none"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={isSubmittingRevision}
+                  onClick={() => setRevisionModalMilestone(null)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingRevision}
+                  className="px-4 py-2 rounded-xl font-mono font-bold text-xs text-amber-950 bg-amber-400 hover:bg-amber-300 border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingRevision ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Sending Request...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Send Revision Request</span>
                     </>
                   )}
                 </button>

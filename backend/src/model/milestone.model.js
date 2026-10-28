@@ -79,6 +79,26 @@ const milestoneSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    deliveries: [
+      {
+        version: { type: Number, default: 1 },
+        submittedUrl: { type: String, required: true, trim: true },
+        notes: { type: String, default: '', trim: true },
+        submittedAt: { type: Date, default: Date.now },
+        submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user', default: null },
+        status: {
+          type: String,
+          enum: ['pending_review', 'revision_requested', 'approved'],
+          default: 'pending_review',
+        },
+        revisionRequest: {
+          title: { type: String, default: '' },
+          description: { type: String, default: '' },
+          requestedAt: { type: Date, default: null },
+          requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user', default: null },
+        },
+      },
+    ],
     fundedAt: {
       type: Date,
       default: null,

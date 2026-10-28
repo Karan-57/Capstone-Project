@@ -284,6 +284,21 @@ async function submitMilestoneDeliverableController(req, res) {
     milestone.submittedUrl = submittedUrl.trim();
     milestone.submissionNotes = (submissionNotes || '').trim();
     milestone.submittedAt = new Date();
+
+    if (!Array.isArray(milestone.deliveries)) {
+      milestone.deliveries = [];
+    }
+
+    const nextVersion = milestone.deliveries.length + 1;
+    milestone.deliveries.push({
+      version: nextVersion,
+      submittedUrl: milestone.submittedUrl,
+      notes: milestone.submissionNotes,
+      submittedAt: milestone.submittedAt,
+      submittedBy: currentUserId,
+      status: 'pending_review',
+    });
+
     await milestone.save();
 
     // Also sync to project hiring if present
@@ -333,8 +348,94 @@ async function submitMilestoneDeliverableController(req, res) {
   }
 }
 
+/**
+ * POST /api/milestones/:milestoneId/request-revision
+ * Creator asks for a revision on the milestone's latest delivery cut.
+ */
+async function requestMilestoneRevisionController(req, res) {
+  try {
+    const { milestoneId } = req.params;
+    const { title, description } = req.body;
+    const currentUserId = req.user?._id || req.user?.id;
+
+    if (!description || !description.trim()) {
+      return res.status(400).json({ message: 'Revision feedback/description is required.' });
+    }
+
+    const milestone = await milestoneModel.findById(milestoneId);
+    if (!milestone) {
+      return res.status(404).json({ message: 'Milestone not found.' });
+    }
+
+    // Only project creator can request revision
+    const isCreator =
+      milestone.creatorId && milestone.creatorId.toString() === currentUserId.toString();
+    if (!isCreator && req.user?.role !== 'creator') {
+      return res.status(403).json({ message: 'Only the creator can request a delivery revision.' });
+    }
+
+    if (!milestone.submittedUrl) {
+      return res.status(400).json({ message: 'No delivery cut submitted yet to request revision on.' });
+    }
+
+    if (!Array.isArray(milestone.deliveries)) {
+      milestone.deliveries = [];
+    }
+
+    // If milestone has no delivery entries yet (legacy single-url submission), create v1
+    if (milestone.deliveries.length === 0 && milestone.submittedUrl) {
+      milestone.deliveries.push({
+        version: 1,
+        submittedUrl: milestone.submittedUrl,
+        notes: milestone.submissionNotes || '',
+        submittedAt: milestone.submittedAt || new Date(),
+        status: 'pending_review',
+      });
+    }
+
+    // Update the latest delivery cut to 'revision_requested'
+    const latestDelivery = milestone.deliveries[milestone.deliveries.length - 1];
+    if (latestDelivery) {
+      latestDelivery.status = 'revision_requested';
+      latestDelivery.revisionRequest = {
+        title: (title || 'Revision Requested').trim(),
+        description: description.trim(),
+        requestedAt: new Date(),
+        requestedBy: currentUserId,
+      };
+    }
+
+    await milestone.save();
+
+    // Notify freelancer
+    if (milestone.freelancerId) {
+      createNotification({
+        recipient: milestone.freelancerId,
+        type: 'REVISION_REQUESTED',
+        title: 'Revision Requested on Milestone Cut',
+        message: `${req.user?.name || 'Creator'} requested a revision for "${milestone.title}": "${description.trim().slice(0, 100)}"`,
+        project: milestone.projectId,
+        relatedUser: currentUserId,
+      }).catch((err) => console.error('[Notification] Revision notice:', err.message));
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Revision requested successfully! Freelancer has been notified.',
+      milestone,
+    });
+  } catch (err) {
+    console.error('Error in requestMilestoneRevisionController:', err);
+    return res.status(500).json({
+      message: 'Failed to request revision',
+      error: err.message,
+    });
+  }
+}
+
 module.exports = {
   getOrInitializeMilestones,
   getMilestonesController,
   submitMilestoneDeliverableController,
+  requestMilestoneRevisionController,
 };

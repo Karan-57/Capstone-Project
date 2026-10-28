@@ -1931,6 +1931,14 @@ export const Workspace = () => {
     fetchWorkspaces();
   }, [fetchWorkspaces, isAuthenticated, isAuthLoading]);
 
+  useEffect(() => {
+    const handleSync = () => {
+      fetchWorkspaces();
+    };
+    window.addEventListener('collabo_milestones_sync', handleSync);
+    return () => window.removeEventListener('collabo_milestones_sync', handleSync);
+  }, [fetchWorkspaces, isAuthenticated, isAuthLoading]);
+
   const selectedWorkspace = workspaces.find((w) => w._id === selectedWorkspaceId) || null;
 
   const filtered = workspaces.filter((w) => {
@@ -2001,9 +2009,13 @@ export const Workspace = () => {
               const members = getWorkspaceMembers(ws);
 
               // Calculate workspace level progress % strictly based on real approved milestones
-              let wsProgress = 0;
+              let wsProgress = typeof ws.progress === 'number' ? ws.progress : 0;
               if (ws.projectId?.status === 'completed' || ws.status === 'completed') {
                 wsProgress = 100;
+              } else if (Array.isArray(ws.milestones) && ws.milestones.length > 0) {
+                const totalM = ws.milestones.length;
+                const approvedM = ws.milestones.filter((m) => m.status === 'completed' || m.status === 'approved' || m.status === 'released').length;
+                wsProgress = totalM > 0 ? Math.round((approvedM / totalM) * 100) : 0;
               } else {
                 const hirings = Array.isArray(ws.projectId?.hirings) ? ws.projectId.hirings : [];
                 let totalM = 0;

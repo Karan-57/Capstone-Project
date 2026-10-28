@@ -31,6 +31,17 @@ export const milestoneService = {
     });
     return res.data;
   },
+
+  /**
+   * Creator requests revision on a milestone deliverable cut
+   */
+  requestMilestoneRevision: async (milestoneId, { title, description }) => {
+    const res = await api.post(`/api/milestones/${milestoneId}/request-revision`, {
+      title,
+      description,
+    });
+    return res.data;
+  },
 };
 
 export default milestoneService;

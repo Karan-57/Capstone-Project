@@ -18,4 +18,11 @@ milestoneRouter.get('/', authMiddleware.authUser, milestoneController.getMilesto
  */
 milestoneRouter.post('/:milestoneId/submit', authMiddleware.authUser, milestoneController.submitMilestoneDeliverableController);
 
+/**
+ * @route POST /api/milestones/:milestoneId/request-revision
+ * @description Creator requests a revision on a submitted milestone cut
+ * @access Private (Creator)
+ */
+milestoneRouter.post('/:milestoneId/request-revision', authMiddleware.authUser, milestoneController.requestMilestoneRevisionController);
+
 module.exports = milestoneRouter;

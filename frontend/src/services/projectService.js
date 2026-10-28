@@ -64,6 +64,7 @@ export const mapBackendProject = (p) => {
         }
       : null,
     progress: (() => {
+      if (typeof p?.progress === 'number') return p.progress;
       if (p?.status === 'completed') return 100;
       if (Array.isArray(p?.hirings) && p.hirings.length > 0) {
         let total = 0;
@@ -82,7 +83,7 @@ export const mapBackendProject = (p) => {
           }
           if (Array.isArray(mList) && mList.length > 0) {
             total += mList.length;
-            approved += mList.filter((m) => m.status === 'approved' || m.status === 'released').length;
+            approved += mList.filter((m) => m.status === 'completed' || m.status === 'approved' || m.status === 'released').length;
           }
         });
         if (total > 0) return Math.round((approved / total) * 100);
@@ -239,7 +240,7 @@ export const projectService = {
           }
 
           const totalCount = milestones.length;
-          const approvedCount = milestones.filter((m) => m.status === 'approved' || m.status === 'released').length;
+          const approvedCount = milestones.filter((m) => m.status === 'completed' || m.status === 'approved' || m.status === 'released').length;
           const progressPercent = p.status === 'completed'
             ? 100
             : totalCount > 0
