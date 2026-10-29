@@ -57,6 +57,9 @@ app.use(preventNoSqlAndXss);
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter); 
