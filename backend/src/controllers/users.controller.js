@@ -186,7 +186,7 @@ async function getUserByIdController(req, res) {
     try {
         const userId = req.params.userId || req.params.id;
 
-        const user = await userModel.findById(userId).select("-password");
+        const user = await userModel.findById(userId).select("-password").lean();
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -232,7 +232,8 @@ async function searchUsersController(req, res) {
 
         const users = await userModel.find(filter)
             .select('name username profileImage role bio location category title skills subRoles rating totalReviews')
-            .limit(12);
+            .limit(12)
+            .lean();
 
         return res.status(200).json({ users });
     } catch (err) {

@@ -29,19 +29,30 @@ async function getOrInitializeMilestones({
     .sort({ index: 1 });
 
   if (milestones && milestones.length > 0) {
-    // Self-heal workspaceId or freelancerId if they became available later
-    for (const m of milestones) {
-      let changed = false;
-      if (workspaceId && !m.workspaceId) {
-        m.workspaceId = workspaceId;
-        changed = true;
-      }
-      if (freelancerId && !m.freelancerId) {
-        m.freelancerId = freelancerId;
-        changed = true;
-      }
-      if (changed) {
-        await m.save().catch(() => {});
+    // Fast batch self-heal workspaceId or freelancerId in a single update
+    const updateSet = {};
+    if (workspaceId) updateSet.workspaceId = workspaceId;
+    if (freelancerId) updateSet.freelancerId = freelancerId;
+
+    if (Object.keys(updateSet).length > 0) {
+      const needsUpdate = milestones.some(
+        (m) => (!m.workspaceId && workspaceId) || (!m.freelancerId && freelancerId)
+      );
+      if (needsUpdate) {
+        milestoneModel
+          .updateMany(
+            {
+              projectId,
+              hiringId,
+              $or: [{ workspaceId: null }, { freelancerId: null }],
+            },
+            { $set: updateSet }
+          )
+          .catch(() => {});
+        milestones.forEach((m) => {
+          if (workspaceId && !m.workspaceId) m.workspaceId = workspaceId;
+          if (freelancerId && !m.freelancerId) m.freelancerId = freelancerId;
+        });
       }
     }
     return milestones;
@@ -55,7 +66,7 @@ async function getOrInitializeMilestones({
   let effectiveRoleTitle = roleTitle;
   let effectiveDeadline = deadline;
 
-  const project = await projectModel.findById(projectId);
+  const project = await projectModel.findById(projectId).lean();
   if (project) {
     effectiveCreatorId = effectiveCreatorId || project.creatorId;
     if (Array.isArray(project.hirings)) {
@@ -82,44 +93,40 @@ async function getOrInitializeMilestones({
     effectiveRoleTitle
   );
 
-  const createdDocs = [];
-  for (const g of generated) {
-    try {
-      const doc = await milestoneModel.create({
-        projectId,
-        hiringId,
-        workspaceId: workspaceId || null,
-        creatorId: effectiveCreatorId,
-        freelancerId: effectiveFreelancerId || null,
-        index: g.index,
-        title: g.title,
-        description: g.description,
-        amount: g.amount,
-        percent: g.percent,
-        deadline: g.deadline,
-        status: 'pending',
-      });
-      createdDocs.push(doc);
-    } catch (createErr) {
-      // In case of parallel initialization, fetch whatever was created
-      console.warn('[milestone.controller] Parallel milestone init note:', createErr.message);
-    }
+  const docsToInsert = generated.map((g) => ({
+    projectId,
+    hiringId,
+    workspaceId: workspaceId || null,
+    creatorId: effectiveCreatorId,
+    freelancerId: effectiveFreelancerId || null,
+    index: g.index,
+    title: g.title,
+    description: g.description,
+    amount: g.amount,
+    percent: g.percent,
+    deadline: g.deadline,
+    status: 'pending',
+  }));
+
+  let createdDocs = [];
+  try {
+    createdDocs = await milestoneModel.insertMany(docsToInsert, { ordered: false });
+  } catch (insertErr) {
+    // In case of parallel initialization, fetch whatever was created
+    createdDocs = await milestoneModel.find({ projectId, hiringId }).sort({ index: 1 });
   }
 
   if (createdDocs.length > 0 && project) {
-    try {
-      await projectModel.updateOne(
+    projectModel
+      .updateOne(
         { _id: projectId, 'hirings._id': hiringId },
         { $set: { 'hirings.$.milestones': createdDocs.map((c) => c._id) } }
-      );
-    } catch (err) {
-      console.warn('[milestone.controller] Link milestones in project note:', err.message);
-    }
+      )
+      .catch(() => {});
     return createdDocs;
   }
 
-  // Refetch if parallel creation finished
-  return await milestoneModel.find({ projectId, hiringId }).sort({ index: 1 });
+  return createdDocs;
 }
 
 /**
@@ -176,23 +183,26 @@ async function getMilestonesController(req, res) {
     // ensure all project hirings have milestones initialized and return all project milestones.
     if (!targetHiringId && targetProjectId) {
       if (projectDoc && Array.isArray(projectDoc.hirings) && projectDoc.hirings.length > 0) {
-        for (const h of projectDoc.hirings) {
-          await getOrInitializeMilestones({
-            projectId: targetProjectId,
-            hiringId: h._id,
-            workspaceId: targetWorkspaceId,
-            creatorId: projectDoc.creatorId,
-            freelancerId: h.hiredFreelancerId,
-            roleId: h.roleId || 'video_editor',
-            roleTitle: h.roleTitle || 'Video Editor',
-            budget: h.budget || projectDoc.totalBudget || 10000,
-            deadline: h.firstDeadline,
-          });
-        }
+        await Promise.all(
+          projectDoc.hirings.map((h) =>
+            getOrInitializeMilestones({
+              projectId: targetProjectId,
+              hiringId: h._id,
+              workspaceId: targetWorkspaceId,
+              creatorId: projectDoc.creatorId,
+              freelancerId: h.hiredFreelancerId,
+              roleId: h.roleId || 'video_editor',
+              roleTitle: h.roleTitle || 'Video Editor',
+              budget: h.budget || projectDoc.totalBudget || 10000,
+              deadline: h.firstDeadline,
+            })
+          )
+        );
       }
       const allProjectMilestones = await milestoneModel
         .find({ projectId: targetProjectId })
-        .sort({ index: 1 });
+        .sort({ index: 1 })
+        .lean();
       return res.status(200).json({
         success: true,
         milestones: allProjectMilestones,

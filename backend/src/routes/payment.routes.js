@@ -15,7 +15,6 @@ router.post('/demo-topup', paymentController.demoTopup);
 
 // 3. User Wallet Balance & Ledger Passbook
 router.get('/me', paymentController.getWalletDetails);
-router.get('/details', paymentController.getWalletDetails);
 
 // 4. Transaction Security PIN Management
 router.post('/pin/set', paymentController.setTransactionPin);

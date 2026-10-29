@@ -34,7 +34,6 @@ projectRouter.get('/:projectId', projectController.getProjectByIdController);
 const applicationController = require('../controllers/application.controller');
 const { authMiddleware } = require('../middleware/auth.middleware');
 const usersController = require('../controllers/users.controller');
-
 const creatorController = require('../controllers/creator.controller');
 
 /**
@@ -42,7 +41,7 @@ const creatorController = require('../controllers/creator.controller');
  * @description apply to a project as editor
  * @access Private (Editor)
  */
-projectRouter.post(['/:projectId/apply', '/:projectId/applications'], authMiddleware, applicationController.applyToProjectController);
+projectRouter.post('/:projectId/apply', authMiddleware, applicationController.applyToProjectController);
 
 /**
  * @route PATCH api/projects/:projectId
@@ -52,13 +51,11 @@ projectRouter.post(['/:projectId/apply', '/:projectId/applications'], authMiddle
 projectRouter.patch('/:projectId', authMiddleware, creatorController.updateProjectController);
 
 /**
- * @route POST or PATCH api/projects/:projectId/close
+ * @route PATCH api/projects/:projectId/cancel
  * @description close/cancel a project
  * @access Private (Creator)
  */
-projectRouter.all(['/:projectId/close', '/:projectId/cancel'], authMiddleware, (req, res, next) => {
-    return creatorController.cancelProjectController(req, res, next);
-});
+projectRouter.patch('/:projectId/cancel', authMiddleware, creatorController.cancelProjectController);
 
 /**
  * @route POST api/projects/:projectId/reviews

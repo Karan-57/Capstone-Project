@@ -1,8 +1,12 @@
 const mongoose = require('mongoose');
 const aiService = require('../services/ai.service');
 const projectModel = require('../model/project.model');
-const applicationModel = require('../model/application.model');
 const portfolioModel = require('../model/portfolio.model');
+const {
+  suggestBudgetTimelineInputSchema,
+  suggestEditorBidInputSchema,
+  suggestRoleDeadlineInputSchema,
+} = require('../validators/ai.validator');
 
 /**
  * @name suggestBudgetAndTimelineController
@@ -12,47 +16,51 @@ const portfolioModel = require('../model/portfolio.model');
  */
 async function suggestBudgetAndTimelineController(req, res) {
   try {
+    const parseResult = suggestBudgetTimelineInputSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        message: parseResult.error.issues?.[0]?.message || 'Invalid input provided',
+        errors: parseResult.error.format(),
+      });
+    }
+
     const {
       category,
       editingStyle,
       requiredSkills,
       expectedVideoDuration,
-      currency = 'INR'
-    } = req.body;
-
-    if (!category && !editingStyle && !expectedVideoDuration && (!requiredSkills || requiredSkills.length === 0)) {
-      return res.status(400).json({
-        message: 'Please provide at least a category, editing style, duration, or required skills to estimate budget & timeline'
-      });
-    }
+      currency,
+    } = parseResult.data;
 
     const skillsArray = Array.isArray(requiredSkills)
       ? requiredSkills
-      : (typeof requiredSkills === 'string' && requiredSkills.trim() ? requiredSkills.split(',').map(s => s.trim()) : []);
+      : (typeof requiredSkills === 'string' && requiredSkills.trim()
+          ? requiredSkills.split(',').map((s) => s.trim())
+          : []);
 
     const suggestion = await aiService.suggestBudgetAndTimeline({
-      category: category ? String(category).trim() : 'Video Editing',
-      editingStyle: editingStyle ? String(editingStyle).trim() : 'Standard',
+      category: String(category).trim(),
+      editingStyle: String(editingStyle).trim(),
       requiredSkills: skillsArray,
-      expectedVideoDuration: expectedVideoDuration ? String(expectedVideoDuration).trim() : 'Standard',
-      currency: currency ? String(currency).trim().toUpperCase() : 'INR'
+      expectedVideoDuration: String(expectedVideoDuration).trim(),
+      currency: String(currency).trim().toUpperCase(),
     });
 
     return res.status(200).json({
       message: 'AI budget and timeline suggested successfully',
-      data: suggestion
+      data: suggestion,
     });
   } catch (err) {
     console.error('Error in suggestBudgetAndTimelineController:', err);
     if (err.message && err.message.includes('Rate Limit Exceeded')) {
       return res.status(429).json({
         message: 'AI rate limit exceeded. Please wait a moment and try again.',
-        error: err.message
+        error: err.message,
       });
     }
     return res.status(500).json({
       message: 'Failed to generate AI budget and timeline suggestion',
-      error: err.message
+      error: err.message,
     });
   }
 }
@@ -69,13 +77,13 @@ async function suggestEditorBidController(req, res) {
 
     let projectData = req.body.project || {};
 
-    // If projectId is provided, fetch project specs from DB
+    // If projectId is provided, fetch project specs from DB using .lean()
     if (projectId) {
       if (!mongoose.Types.ObjectId.isValid(projectId)) {
         return res.status(400).json({ message: 'Invalid projectId provided' });
       }
 
-      const project = await projectModel.findById(projectId);
+      const project = await projectModel.findById(projectId).lean();
       if (!project) {
         return res.status(404).json({ message: 'Project not found' });
       }
@@ -85,13 +93,17 @@ async function suggestEditorBidController(req, res) {
       const roleId = req.body.roleId;
       let roleSpecificBudget = req.body.roleBudget || req.body.project?.budget;
 
-      if ((!roleSpecificBudget || roleSpecificBudget === 'Flexible') && Array.isArray(project.hirings) && project.hirings.length > 0) {
+      if (
+        (!roleSpecificBudget || roleSpecificBudget === 'Flexible') &&
+        Array.isArray(project.hirings) &&
+        project.hirings.length > 0
+      ) {
         let matchedHiring = null;
         if (hiringId) {
-          matchedHiring = project.hirings.find(h => String(h._id) === String(hiringId));
+          matchedHiring = project.hirings.find((h) => String(h._id) === String(hiringId));
         }
         if (!matchedHiring && roleId) {
-          matchedHiring = project.hirings.find(h => h.roleId === roleId || h.roleTitle === roleId);
+          matchedHiring = project.hirings.find((h) => h.roleId === roleId || h.roleTitle === roleId);
         }
         if (matchedHiring && matchedHiring.budget) {
           roleSpecificBudget = matchedHiring.budget;
@@ -107,15 +119,15 @@ async function suggestEditorBidController(req, res) {
         expectedVideoDuration: project.videoDuration ? `${project.videoDuration} mins` : 'Standard',
         budget: roleSpecificBudget || project.budget?.amount || project.budget?.max || project.budget || 'Flexible',
         currency: project.budget?.currency || req.body.currency || 'INR',
-        timeline: project.deadline ? new Date(project.deadline).toISOString().split('T')[0] : 'Flexible'
+        timeline: project.deadline ? new Date(project.deadline).toISOString().split('T')[0] : 'Flexible',
       };
     }
 
-    // Load editor profile from logged-in user and portfolio
+    // Load editor profile with .lean()
     const editorId = req.user?._id || req.user?.id;
     let portfolio = null;
     if (editorId) {
-      portfolio = await portfolioModel.findOne({ editor: editorId });
+      portfolio = await portfolioModel.findOne({ editor: editorId }).lean();
     }
 
     const editorData = {
@@ -123,29 +135,31 @@ async function suggestEditorBidController(req, res) {
       tools: req.body.editor?.tools || portfolio?.software || ['Premiere Pro', 'After Effects'],
       rating: req.body.editor?.rating ?? req.user?.rating ?? 5,
       completedProjects: req.body.editor?.completedProjects ?? portfolio?.portfolioItems?.length ?? 0,
-      experienceLevel: req.body.editor?.experienceLevel || (portfolio ? `${portfolio.experience} ${portfolio.experienceUnit}` : 'Professional')
+      experienceLevel:
+        req.body.editor?.experienceLevel ||
+        (portfolio ? `${portfolio.experience} ${portfolio.experienceUnit}` : 'Professional'),
     };
 
     const suggestion = await aiService.suggestEditorBid({
       project: projectData,
-      editor: editorData
+      editor: editorData,
     });
 
     return res.status(200).json({
       message: 'AI bid and pitch suggestions generated successfully',
-      data: suggestion
+      data: suggestion,
     });
   } catch (err) {
     console.error('Error in suggestEditorBidController:', err);
     if (err.message && err.message.includes('Rate Limit Exceeded')) {
       return res.status(429).json({
         message: 'AI rate limit exceeded. Please wait a moment and try again.',
-        error: err.message
+        error: err.message,
       });
     }
     return res.status(500).json({
       message: 'Failed to generate editor bid suggestion',
-      error: err.message
+      error: err.message,
     });
   }
 }
@@ -158,27 +172,33 @@ async function suggestEditorBidController(req, res) {
  */
 async function suggestRoleDeadlineController(req, res) {
   try {
+    const parseResult = suggestRoleDeadlineInputSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        message: parseResult.error.issues?.[0]?.message || 'Please provide at least a roleTitle',
+      });
+    }
+
     const {
       roleTitle,
       roleCategory,
+      projectDescription,
+      videoDuration,
+      complexity,
+    } = parseResult.data;
+
+    const {
       projectTitle,
       projectBudget,
       category,
       editingStyle,
-      videoDuration,
       expectedVideoDuration,
       duration,
       roleBudget,
       skills = [],
       tools = [],
-      currency = 'INR'
+      currency = 'INR',
     } = req.body;
-
-    if (!roleTitle) {
-      return res.status(400).json({
-        message: 'Please provide at least a roleTitle'
-      });
-    }
 
     const suggestion = await aiService.suggestRoleDeadlineAndDetails({
       roleTitle: String(roleTitle).trim(),
@@ -193,24 +213,24 @@ async function suggestRoleDeadlineController(req, res) {
       roleBudget: Number(roleBudget) || 0,
       skills: Array.isArray(skills) ? skills : [],
       tools: Array.isArray(tools) ? tools : [],
-      currency: String(currency || 'INR')
+      currency: String(currency || 'INR'),
     });
 
     return res.status(200).json({
       message: 'AI role budget and deadline suggested successfully',
-      data: suggestion
+      data: suggestion,
     });
   } catch (err) {
     console.error('Error in suggestRoleDeadlineController:', err);
     if (err.message && err.message.includes('Rate Limit Exceeded')) {
       return res.status(429).json({
         message: 'AI rate limit exceeded. Please wait a moment and try again.',
-        error: err.message
+        error: err.message,
       });
     }
     return res.status(500).json({
       message: 'Failed to generate AI role deadline suggestion',
-      error: err.message
+      error: err.message,
     });
   }
 }
@@ -218,5 +238,5 @@ async function suggestRoleDeadlineController(req, res) {
 module.exports = {
   suggestBudgetAndTimelineController,
   suggestEditorBidController,
-  suggestRoleDeadlineController
+  suggestRoleDeadlineController,
 };

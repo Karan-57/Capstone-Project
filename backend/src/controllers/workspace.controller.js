@@ -68,7 +68,7 @@ async function getWorkspaceRecipients(workspace, actorId) {
 
     if (workspace.projectId) {
         try {
-            const project = await projectModel.findById(workspace.projectId);
+            const project = await projectModel.findById(workspace.projectId).select('creatorId selectedEditorId assignedEditors members').lean();
             if (project) {
                 if (project.creatorId) recipients.add((project.creatorId?._id || project.creatorId).toString());
                 if (project.selectedEditorId) recipients.add((project.selectedEditorId?._id || project.selectedEditorId).toString());

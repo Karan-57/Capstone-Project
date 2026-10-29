@@ -96,7 +96,8 @@ async function getUserNotifications(recipientId, { page = 1, limit = 20, unreadO
       .skip(skip)
       .limit(safeLimit)
       .populate('relatedUser', 'name username profileImage role')
-      .populate('project', 'title category status'),
+      .populate('project', 'title category status')
+      .lean(),
     notificationModel.countDocuments(query),
     notificationModel.countDocuments({ recipient: recipientId, isRead: false }),
   ]);

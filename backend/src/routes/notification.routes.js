@@ -23,13 +23,13 @@ notificationRouter.patch('/read-all', authMiddleware, notificationController.mar
  * @description Mark a specific notification as read
  * @access Private
  */
-notificationRouter.patch(['/:notificationId/read', '/:id/read'], authMiddleware, notificationController.markNotificationReadController);
+notificationRouter.patch('/:notificationId/read', authMiddleware, notificationController.markNotificationReadController);
 
 /**
  * @route DELETE /api/notifications/:notificationId
  * @description Delete a specific notification
  * @access Private
  */
-notificationRouter.delete(['/:notificationId', '/:id'], authMiddleware, notificationController.deleteNotificationController);
+notificationRouter.delete('/:notificationId', authMiddleware, notificationController.deleteNotificationController);
 
 module.exports = notificationRouter;

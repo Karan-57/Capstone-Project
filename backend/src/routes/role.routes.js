@@ -5,11 +5,10 @@ const roleRouter = Router();
 
 /**
  * @route GET /api/roles
- * @route GET /api/roles/freelancer
  * @description List all content creator freelancer roles
  * @access Public
  */
-roleRouter.get(['/', '/freelancer'], roleController.getAllRolesController);
+roleRouter.get('/', roleController.getAllRolesController);
 
 /**
  * @route GET /api/roles/:roleId

@@ -54,7 +54,7 @@ app.use(cookieParser());
 app.use(preventNoSqlAndXss);
 
 // Lightweight Health Check endpoint for Render & Uptime monitoring
-app.get(['/health', '/api/health'], (req, res) => {
+app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
 
@@ -62,16 +62,16 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter); 
 app.use("/api/creator", creatorRouter);
 app.use("/api/projects", projectRouter);
-app.use(["/api/application", "/api/applications"], applicationRouter);
+app.use("/api/application", applicationRouter);
 app.use("/api/portfolio", portfolioRouter);
-app.use(["/api/workspace", "/api/workspaces"], workspaceRouter);
+app.use("/api/workspace", workspaceRouter);
 app.use("/api/notifications", notificationRouter);
-app.use(["/api/conversation", "/api/conversations"], conversationRouter);
+app.use("/api/conversations", conversationRouter);
 app.use("/api/storage", storageRouter);
 app.use("/api/ai", aiRouter);
-app.use(["/api/payment", "/api/payments", "/api/wallet"], paymentRouter);
-app.use(["/api/roles", "/api/role"], roleRouter);
-app.use(["/api/milestones", "/api/milestone"], milestoneRouter);
+app.use("/api/wallet", paymentRouter);
+app.use("/api/roles", roleRouter);
+app.use("/api/milestones", milestoneRouter);
 
 // Global error handler (handles Multer errors, file type rejections, etc.)
 app.use((err, req, res, next) => {
