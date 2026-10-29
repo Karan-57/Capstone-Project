@@ -1,13 +1,24 @@
 const nodemailer = require("nodemailer");
+const dns = require("dns");
 const config = require("../config/config");
 
-// Base SMTP configuration forcing IPv4 (family: 4) to prevent ENETUNREACH delays on cloud hosts like Render
+// Ensure Node.js prioritizes IPv4 over IPv6 globally on cloud container environments like Render
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder("ipv4first");
+}
+
+// Custom lookup function strictly resolving IPv4 to prevent ENETUNREACH on Render/Docker
+const ipv4Lookup = (hostname, options, callback) => {
+    return dns.lookup(hostname, { family: 4 }, callback);
+};
+
+// Base SMTP configuration forcing IPv4 to prevent ENETUNREACH delays on cloud hosts like Render
 const smtpOptions = {
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
-    family: 4, // Crucial: Force IPv4 to prevent 120s timeout on Render/Docker IPv6
-    connectionTimeout: 10000, // 10s connection timeout instead of 120s OS hang
+    lookup: ipv4Lookup,
+    connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
     auth: config.GOOGLE_APP_PASSWORD
