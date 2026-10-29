@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShieldCheck, Lock, X, KeyRound, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Lock, X, AlertCircle, Loader2 } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
 import ModalPortal from '../common/ModalPortal';
 
@@ -16,6 +16,7 @@ export const SecurityPinModal = ({
   const [pin, setPin] = useState(['', '', '', '']);
   const [error, setError] = useState('');
   const [isSettingNewPin, setIsSettingNewPin] = useState(!hasTransactionPin);
+  const [isVerifying, setIsVerifying] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export const SecurityPinModal = ({
       setPin(['', '', '', '']);
       setError('');
       setIsSettingNewPin(!hasTransactionPin);
+      setIsVerifying(false);
       setTimeout(() => {
         inputRefs[0].current?.focus();
       }, 100);
@@ -32,7 +34,6 @@ export const SecurityPinModal = ({
   if (!isOpen) return null;
 
   const handleInputChange = (index, value) => {
-    // Only accept numeric single digit
     const cleaned = value.replace(/[^0-9]/g, '');
     if (!cleaned && value !== '') return;
 
@@ -53,8 +54,9 @@ export const SecurityPinModal = ({
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isVerifying) return;
     const fullPin = pin.join('');
 
     if (fullPin.length !== 4) {
@@ -62,22 +64,30 @@ export const SecurityPinModal = ({
       return;
     }
 
-    if (isSettingNewPin) {
-      setSecurityPin(fullPin);
-      setIsSettingNewPin(false);
-      if (onSuccess) onSuccess(fullPin);
-      onClose();
-      return;
-    }
+    setIsVerifying(true);
+    try {
+      if (isSettingNewPin) {
+        if (setSecurityPin) await setSecurityPin(fullPin);
+        setIsSettingNewPin(false);
+        if (onSuccess) await onSuccess(fullPin);
+        onClose();
+        return;
+      }
 
-    if (verifySecurityPin(fullPin)) {
-      setError('');
-      if (onSuccess) onSuccess(fullPin);
-      onClose();
-    } else {
-      setError(`Incorrect PIN. (Demo Hint: Default is ${savedPinHint || '1234'})`);
-      setPin(['', '', '', '']);
-      inputRefs[0].current?.focus();
+      const isValid = await verifySecurityPin(fullPin);
+      if (isValid) {
+        setError('');
+        if (onSuccess) await onSuccess(fullPin);
+        onClose();
+      } else {
+        setError(`Incorrect PIN. (Demo Hint: Default is ${savedPinHint || '1234'})`);
+        setPin(['', '', '', '']);
+        inputRefs[0].current?.focus();
+      }
+    } catch (err) {
+      setError(err?.message || 'Verification failed. Please try again.');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -88,7 +98,8 @@ export const SecurityPinModal = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] border border-[#382322]/20 transition-colors cursor-pointer"
+          disabled={isVerifying}
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] border border-[#382322]/20 transition-colors cursor-pointer disabled:opacity-50"
         >
           <X className="w-4 h-4" />
         </button>
@@ -126,6 +137,7 @@ export const SecurityPinModal = ({
                 type="password"
                 inputMode="numeric"
                 maxLength={1}
+                disabled={isVerifying}
                 value={digit}
                 onChange={(e) => handleInputChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
@@ -135,7 +147,7 @@ export const SecurityPinModal = ({
                     : digit
                     ? 'border-[#382322] text-[#261615] dark:text-[#FDEBDE] shadow-[2px_2px_0_#382322]'
                     : 'border-[#382322]/30 dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE]'
-                } focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all font-mono`}
+                } focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] transition-all font-mono disabled:opacity-50`}
               />
             ))}
           </div>
@@ -158,10 +170,20 @@ export const SecurityPinModal = ({
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-2.5 rounded-xl text-xs font-mono font-bold text-[#261615] bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 border-2 border-[#382322] shadow-[3px_3px_0_#382322] transition-all cursor-pointer flex items-center justify-center gap-2"
+            disabled={isVerifying}
+            className="w-full py-2.5 rounded-xl text-xs font-mono font-bold text-[#261615] bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 border-2 border-[#382322] shadow-[3px_3px_0_#382322] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
           >
-            <ShieldCheck className="w-4 h-4" />
-            {isSettingNewPin ? 'Save & Authorize' : 'Confirm & Authorize'}
+            {isVerifying ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Authorizing...</span>
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-4 h-4" />
+                <span>{isSettingNewPin ? 'Save & Authorize' : 'Confirm & Authorize'}</span>
+              </>
+            )}
           </button>
         </form>
       </div>

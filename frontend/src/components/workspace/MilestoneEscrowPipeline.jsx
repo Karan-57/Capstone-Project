@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -174,6 +174,7 @@ export const MilestoneEscrowPipeline = ({
   }, [workspaceId, fetchAuthoritativeMilestones]);
 
   // PIN modal control
+  const activePinActionRef = useRef(null);
   const [pinModalConfig, setPinModalConfig] = useState({
     isOpen: false,
     action: null, // 'fund' | 'release'
@@ -221,6 +222,7 @@ export const MilestoneEscrowPipeline = ({
       }
     }
 
+    activePinActionRef.current = { action: 'fund', milestone: m };
     setPinModalConfig({
       isOpen: true,
       action: 'fund',
@@ -234,6 +236,7 @@ export const MilestoneEscrowPipeline = ({
   // Open PIN modal for release
   const handleInitiateRelease = (m) => {
     if (isProcessingPin) return;
+    activePinActionRef.current = { action: 'release', milestone: m };
     setPinModalConfig({
       isOpen: true,
       action: 'release',
@@ -251,6 +254,7 @@ export const MilestoneEscrowPipeline = ({
       showAlert('Cannot recall escrow: Freelancer has already made deliverable submissions.', 'warning');
       return;
     }
+    activePinActionRef.current = { action: 'refund', milestone: m };
     setPinModalConfig({
       isOpen: true,
       action: 'refund',
@@ -263,7 +267,8 @@ export const MilestoneEscrowPipeline = ({
 
   // PIN Success handler (Instant UI update backed by MongoDB Milestone model)
   const handlePinSuccess = async (pin) => {
-    const { action, milestone } = pinModalConfig;
+    const action = pinModalConfig.action || activePinActionRef.current?.action;
+    const milestone = pinModalConfig.milestone || activePinActionRef.current?.milestone;
     if (!milestone || isProcessingPin) return;
 
     setIsProcessingPin(true);
@@ -687,7 +692,7 @@ export const MilestoneEscrowPipeline = ({
               </div>
 
               {/* Milestone Right: Clear Amount & Single Action Button */}
-              <div className="flex items-center justify-between md:justify-end gap-3.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[#382322]/10 dark:border-[#FDEBDE]/10">
+              <div className="flex flex-wrap sm:flex-nowrap items-center justify-between md:justify-end gap-2.5 sm:gap-3.5 pt-2 md:pt-0 border-t md:border-t-0 border-[#382322]/10 dark:border-[#FDEBDE]/10">
                 <div className="text-right">
                   <span className="text-base font-black text-[#261615] dark:text-[#FDEBDE] font-mono block">
                     ₹{m.amount.toLocaleString('en-IN')}
@@ -726,16 +731,19 @@ export const MilestoneEscrowPipeline = ({
                         </span>
                       )}
                       {isFunded && !hasSubmission && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20">
+                        <div className="flex flex-wrap items-center gap-2 justify-end">
+                          <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20 whitespace-nowrap">
                             <Clock className="w-3 h-3 text-[#5C3A38] dark:text-[#FFEBAA]" />
                             Awaiting cut
                           </span>
                           <button
                             type="button"
                             disabled={isProcessingPin}
-                            onClick={() => handleInitiateRefund(m)}
-                            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-[#1A1110] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-2 border-rose-600/40 shadow-[2px_2px_0_#be123c] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleInitiateRefund(m);
+                            }}
+                            className="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-[#1A1110] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-2 border-rose-600/40 shadow-[2px_2px_0_#be123c] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50 whitespace-nowrap"
                             title="Recall escrow deposit back to your wallet (0 cuts delivered)"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />

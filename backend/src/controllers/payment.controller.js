@@ -1029,6 +1029,8 @@ async function refundEscrow(req, res) {
       amount,
       pin,
       reason,
+      milestoneIndex,
+      milestoneTitle,
       idempotencyKey: bodyIdemp,
     } = req.body;
 
@@ -1040,44 +1042,60 @@ async function refundEscrow(req, res) {
     if (!targetMilestone && hiringId) {
       targetMilestone = await milestoneModel.findOne({
         hiringId,
-        status: 'funded',
+        $or: [
+          { index: milestoneIndex ? Number(milestoneIndex) : 1 },
+          { title: milestoneTitle },
+          { status: 'funded' },
+        ],
+      });
+    }
+    if (!targetMilestone && projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+      targetMilestone = await milestoneModel.findOne({
+        projectId,
+        $or: [
+          { index: milestoneIndex ? Number(milestoneIndex) : 1 },
+          { title: milestoneTitle },
+          { status: 'funded' },
+        ],
       });
     }
     if (!targetMilestone && workspaceId) {
       targetMilestone = await milestoneModel.findOne({
         workspaceId,
-        status: 'funded',
+        $or: [
+          { index: milestoneIndex ? Number(milestoneIndex) : 1 },
+          { title: milestoneTitle },
+          { status: 'funded' },
+        ],
       });
-    }
-
-    if (!targetMilestone) {
-      return res.status(404).json({ message: 'Funded milestone not found in database' });
     }
 
     // 2. Authorization: only project creator can recall funds to wallet
-    const creatorId = targetMilestone.creatorId?.toString();
-    if (creatorId && creatorId !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Only the project creator can recall escrow funds' });
-    }
+    if (targetMilestone) {
+      const creatorId = targetMilestone.creatorId?.toString();
+      if (creatorId && creatorId !== req.user._id.toString()) {
+        return res.status(403).json({ message: 'Only the project creator can recall escrow funds' });
+      }
 
-    // 3. Status Check: Must be funded
-    if (targetMilestone.status !== 'funded') {
-      return res.status(400).json({
-        message: `Milestone is currently in '${targetMilestone.status}' state. Only funded milestones can be refunded.`,
-        currentStatus: targetMilestone.status,
-      });
-    }
+      // 3. Status Check: Must be funded
+      if (targetMilestone.status !== 'funded') {
+        return res.status(400).json({
+          message: `Milestone is currently in '${targetMilestone.status}' state. Only funded milestones can be refunded.`,
+          currentStatus: targetMilestone.status,
+        });
+      }
 
-    // 4. Strict Zero-Delivery Rule: Freelancer must have made 0 deliveries
-    const deliveriesCount = Array.isArray(targetMilestone.deliveries)
-      ? targetMilestone.deliveries.length
-      : 0;
+      // 4. Strict Zero-Delivery Rule: Freelancer must have made 0 deliveries
+      const deliveriesCount = Array.isArray(targetMilestone.deliveries)
+        ? targetMilestone.deliveries.length
+        : 0;
 
-    if (deliveriesCount > 0 || (targetMilestone.submittedUrl && targetMilestone.submittedUrl.trim())) {
-      return res.status(400).json({
-        message: `Cannot refund escrow: Freelancer has already made ${deliveriesCount || 1} delivery cut(s). Escrow refund is only permitted when no deliveries have been submitted yet.`,
-        deliveriesCount,
-      });
+      if (deliveriesCount > 0 || (targetMilestone.submittedUrl && targetMilestone.submittedUrl.trim())) {
+        return res.status(400).json({
+          message: `Cannot refund escrow: Freelancer has already made ${deliveriesCount || 1} delivery cut(s). Escrow refund is only permitted when no deliveries have been submitted yet.`,
+          deliveriesCount,
+        });
+      }
     }
 
     // 5. Idempotency Key Guard
@@ -1123,7 +1141,7 @@ async function refundEscrow(req, res) {
       { returnDocument: 'after' }
     );
 
-    const title = targetMilestone.title || 'Milestone Escrow Refund';
+    const title = targetMilestone?.title || milestoneTitle || 'Milestone Escrow Refund';
 
     // 8. Create Immutable Transaction Record
     const transaction = await transactionModel.create({
@@ -1133,7 +1151,7 @@ async function refundEscrow(req, res) {
       type: 'ESCROW_REFUND',
       status: 'SUCCESS',
       gateway: 'SYSTEM_LEDGER',
-      referenceWorkspaceId: targetMilestone.workspaceId || workspaceId || null,
+      referenceWorkspaceId: targetMilestone?.workspaceId || workspaceId || null,
       milestoneTitle: title,
       idempotencyKey,
       description: `Escrow Refund: ₹${numericAmount.toLocaleString('en-IN')} for "${title}" returned to wallet (0 deliveries submitted)`,
@@ -1149,11 +1167,13 @@ async function refundEscrow(req, res) {
       description: `Escrow Refund (${title})`,
     });
 
-    // 10. Reset Milestone to 'pending' (unfunded) state
-    targetMilestone.status = 'pending';
-    targetMilestone.fundedAt = null;
-    targetMilestone.escrowLockTxn = null;
-    await targetMilestone.save();
+    // 10. Reset Milestone to 'pending' (unfunded) state if exists in DB
+    if (targetMilestone) {
+      targetMilestone.status = 'pending';
+      targetMilestone.fundedAt = null;
+      targetMilestone.escrowLockTxn = null;
+      await targetMilestone.save();
+    }
 
     // 11. Send Real Notifications to Creator and Freelancer
     try {
@@ -1163,13 +1183,13 @@ async function refundEscrow(req, res) {
         type: 'ESCROW_REFUNDED',
         title: 'Escrow Refunded to Wallet',
         message: `₹${numericAmount.toLocaleString('en-IN')} locked in escrow for "${title}" has been returned to your wallet balance.`,
-        project: targetMilestone.projectId,
+        project: targetMilestone?.projectId || projectId || null,
         relatedUser: req.user._id,
-        link: `/creator/payments?projectId=${targetMilestone.projectId}`,
+        link: `/creator/payments?projectId=${targetMilestone?.projectId || projectId || ''}`,
       });
 
       // 2. Notify Freelancer
-      if (targetMilestone.freelancerId) {
+      if (targetMilestone?.freelancerId) {
         await createNotification({
           recipient: targetMilestone.freelancerId,
           type: 'ESCROW_RECALLED',
