@@ -272,7 +272,8 @@ export const Payments = () => {
 
           {/* Render the full Multi-Stage Escrow Pipeline for this specific freelancer and role */}
           <MilestoneEscrowPipeline
-            workspaceId={`${selectedProject.id}_${effectiveFreelancerId}`}
+            workspaceId={selectedProject.workspaceId && selectedProject.workspaceId.length === 24 ? selectedProject.workspaceId : null}
+            hiringId={selectedRoleHiring?._id || selectedRoleHiring?.id || null}
             totalBudget={effectiveBudget || effectiveTotalProjectBudget}
             projectTotalBudget={effectiveTotalProjectBudget}
             roleBudget={effectiveBudget}

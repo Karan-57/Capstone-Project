@@ -180,7 +180,7 @@ async function lockEscrow(req, res) {
       idempotencyKey: bodyIdemp,
     } = req.body;
 
-    const idempotencyKey = req.headers['idempotency-key'] || bodyIdemp || null;
+    const idempotencyKey = req.idempotencyKey || req.headers['idempotency-key'] || bodyIdemp;
 
     const result = await paymentService.lockEscrowService({
       creatorId: req.user._id,
@@ -232,7 +232,7 @@ async function releaseEscrow(req, res) {
       idempotencyKey: bodyIdemp,
     } = req.body;
 
-    const idempotencyKey = req.headers['idempotency-key'] || bodyIdemp || null;
+    const idempotencyKey = req.idempotencyKey || req.headers['idempotency-key'] || bodyIdemp;
 
     const result = await paymentService.releaseEscrowService({
       creatorId: req.user._id,
@@ -286,7 +286,7 @@ async function withdrawCredits(req, res) {
       idempotencyKey: bodyIdemp,
     } = req.body;
 
-    const idempotencyKey = req.headers['idempotency-key'] || bodyIdemp || null;
+    const idempotencyKey = req.idempotencyKey || req.headers['idempotency-key'] || bodyIdemp;
 
     const result = await paymentService.withdrawCreditsService({
       userId: req.user._id,
@@ -335,7 +335,7 @@ async function refundEscrow(req, res) {
       idempotencyKey: bodyIdemp,
     } = req.body;
 
-    const idempotencyKey = req.headers['idempotency-key'] || bodyIdemp || null;
+    const idempotencyKey = req.idempotencyKey || req.headers['idempotency-key'] || bodyIdemp;
 
     const result = await paymentService.refundEscrowService({
       creatorId: req.user._id,

@@ -27,6 +27,17 @@ export const earningsChartData = {
   }
 };
 
+export const generateIdempotencyKey = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export const paymentService = {
   getEarningsChart: async (timeframe = 'thisMonth') => {
     try {
@@ -152,7 +163,7 @@ export const paymentService = {
     return res.data;
   },
 
-  // 7. Lock Milestone Funds in Escrow
+  // 7. Lock Milestone Funds in Escrow (Protected by Strict Client-Side Idempotency Key)
   lockEscrow: async ({
     amount,
     workspaceId,
@@ -164,23 +175,34 @@ export const paymentService = {
     hiringId,
     milestoneId,
     milestoneIndex,
+    idempotencyKey,
   }) => {
-    const res = await api.post('/api/wallet/escrow/lock', {
-      amount: Number(amount),
-      workspaceId,
-      projectId,
-      milestoneTitle,
-      pin: String(pin || ''),
-      roleBudget: roleBudget ? Number(roleBudget) : undefined,
-      milestoneAmount: milestoneAmount ? Number(milestoneAmount) : undefined,
-      hiringId,
-      milestoneId,
-      milestoneIndex,
-    });
+    const key = idempotencyKey || generateIdempotencyKey();
+    const res = await api.post(
+      '/api/wallet/escrow/lock',
+      {
+        amount: Number(amount),
+        workspaceId,
+        projectId,
+        milestoneTitle,
+        pin: String(pin || ''),
+        roleBudget: roleBudget ? Number(roleBudget) : undefined,
+        milestoneAmount: milestoneAmount ? Number(milestoneAmount) : undefined,
+        hiringId,
+        milestoneId,
+        milestoneIndex,
+        idempotencyKey: key,
+      },
+      {
+        headers: {
+          'Idempotency-Key': key,
+        },
+      }
+    );
     return res.data;
   },
 
-  // 8. Release Milestone Funds from Escrow
+  // 8. Release Milestone Funds from Escrow (Protected by Strict Client-Side Idempotency Key)
   releaseEscrow: async ({
     amount,
     editorId,
@@ -193,20 +215,31 @@ export const paymentService = {
     hiringId,
     milestoneId,
     milestoneIndex,
+    idempotencyKey,
   }) => {
-    const res = await api.post('/api/wallet/escrow/release', {
-      amount: Number(amount),
-      editorId,
-      workspaceId,
-      projectId,
-      milestoneTitle,
-      pin: String(pin || ''),
-      roleBudget: roleBudget ? Number(roleBudget) : undefined,
-      milestoneAmount: milestoneAmount ? Number(milestoneAmount) : undefined,
-      hiringId,
-      milestoneId,
-      milestoneIndex,
-    });
+    const key = idempotencyKey || generateIdempotencyKey();
+    const res = await api.post(
+      '/api/wallet/escrow/release',
+      {
+        amount: Number(amount),
+        editorId,
+        workspaceId,
+        projectId,
+        milestoneTitle,
+        pin: String(pin || ''),
+        roleBudget: roleBudget ? Number(roleBudget) : undefined,
+        milestoneAmount: milestoneAmount ? Number(milestoneAmount) : undefined,
+        hiringId,
+        milestoneId,
+        milestoneIndex,
+        idempotencyKey: key,
+      },
+      {
+        headers: {
+          'Idempotency-Key': key,
+        },
+      }
+    );
     return res.data;
   },
 
@@ -220,7 +253,7 @@ export const paymentService = {
     pin,
     idempotencyKey,
   }) => {
-    const key = idempotencyKey || `refund_${milestoneId}_${Date.now()}`;
+    const key = idempotencyKey || generateIdempotencyKey();
     const res = await api.post(
       '/api/wallet/escrow/refund',
       {
@@ -243,7 +276,7 @@ export const paymentService = {
 
   // 10. Withdrawal / Payout Request (Creator or Editor withdraws credits to UPI/Bank)
   withdrawCredits: async ({ amount, pin, upiId, bankAccountNumber, ifscCode, idempotencyKey }) => {
-    const key = idempotencyKey || `wd_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const key = idempotencyKey || generateIdempotencyKey();
     const res = await api.post(
       '/api/wallet/withdraw',
       {

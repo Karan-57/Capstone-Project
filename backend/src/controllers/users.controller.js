@@ -107,7 +107,7 @@ async function updateMeController(req, res) {
         const updatedUser = await userModel.findByIdAndUpdate(
             userId,
             { $set: updates },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         ).select("-password");
 
         if (!updatedUser) {
@@ -156,7 +156,7 @@ async function uploadProfileImageController(req, res) {
         const updatedUser = await userModel.findByIdAndUpdate(
             userId,
             { $set: { profileImage: uploadResult.url } },
-            { new: true }
+            { returnDocument: 'after' }
         ).select("-password");
 
         if (!updatedUser) {
@@ -1192,7 +1192,7 @@ async function updateSettingsController(req, res) {
         const updatedUser = await userModel.findByIdAndUpdate(
             userId,
             { $set: settingsUpdates },
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         ).select("-password");
 
         if (!updatedUser) {

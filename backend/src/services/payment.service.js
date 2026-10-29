@@ -39,6 +39,52 @@ async function createLedgerEntry({ user, amount, type, transactionId, balanceAft
 }
 
 /**
+ * Safely parse workspaceId/projectId/hiringId parameters.
+ * If workspaceId is composite (e.g. "projectId_freelancerId"), extracts projectId and hiring/freelancer ID.
+ */
+function parseWorkspaceAndProjectIds(workspaceId, projectId, hiringId) {
+  let cleanWorkspaceId = null;
+  let derivedProjectId = projectId;
+  let derivedHiringId = hiringId;
+
+  if (workspaceId) {
+    if (mongoose.Types.ObjectId.isValid(workspaceId)) {
+      cleanWorkspaceId = workspaceId;
+    } else if (typeof workspaceId === 'string' && workspaceId.includes('_')) {
+      const parts = workspaceId.split('_');
+      if (!derivedProjectId && mongoose.Types.ObjectId.isValid(parts[0])) {
+        derivedProjectId = parts[0];
+      }
+      if (!derivedHiringId && mongoose.Types.ObjectId.isValid(parts[1])) {
+        derivedHiringId = parts[1];
+      }
+    }
+  }
+
+  return {
+    cleanWorkspaceId,
+    derivedProjectId: (derivedProjectId && mongoose.Types.ObjectId.isValid(derivedProjectId)) ? derivedProjectId : null,
+    derivedHiringId: (derivedHiringId && mongoose.Types.ObjectId.isValid(derivedHiringId)) ? derivedHiringId : null,
+  };
+}
+
+/**
+ * Resolves a valid Workspace ObjectId to reference in the transaction ledger
+ */
+async function resolveWorkspaceReferenceId(cleanWorkspaceId, derivedProjectId) {
+  if (cleanWorkspaceId && mongoose.Types.ObjectId.isValid(cleanWorkspaceId)) {
+    return cleanWorkspaceId;
+  }
+  if (derivedProjectId && mongoose.Types.ObjectId.isValid(derivedProjectId)) {
+    try {
+      const ws = await workspaceModel.findOne({ projectId: derivedProjectId }).select('_id').lean();
+      if (ws) return ws._id;
+    } catch (_) {}
+  }
+  return null;
+}
+
+/**
  * 1. Create a Razorpay Order for purchasing platform credits
  */
 async function createOrderService({ amount, userId }) {
@@ -140,6 +186,7 @@ async function verifyPaymentService({
     type: 'TOPUP',
     status: 'SUCCESS',
     gateway: 'RAZORPAY_TEST',
+    idempotencyKey: razorpayPaymentId || crypto.randomUUID(),
     razorpayOrderId,
     razorpayPaymentId,
     description: `Wallet Top-up: +${creditsToAdd} Credits via Razorpay`,
@@ -198,6 +245,7 @@ async function demoTopupService({ amount, userId }) {
     type: 'TOPUP',
     status: 'SUCCESS',
     gateway: 'DEMO_FAUCET',
+    idempotencyKey: crypto.randomUUID(),
     description: `Demo Wallet Faucet: +${creditsToAdd} Credits`,
   });
 
@@ -457,32 +505,39 @@ async function lockEscrowService({
     throw error;
   }
 
+  // Safely parse composite or plain workspaceId and projectId parameters
+  const { cleanWorkspaceId, derivedProjectId, derivedHiringId } = parseWorkspaceAndProjectIds(
+    workspaceId,
+    projectId,
+    hiringId
+  );
+
   // Locate Target Milestone in Milestone Model
   let targetMilestone = null;
   if (milestoneId && mongoose.Types.ObjectId.isValid(milestoneId)) {
     targetMilestone = await milestoneModel.findById(milestoneId);
   }
-  if (!targetMilestone && hiringId) {
+  if (!targetMilestone && derivedHiringId && mongoose.Types.ObjectId.isValid(derivedHiringId)) {
     targetMilestone = await milestoneModel.findOne({
-      hiringId,
+      hiringId: derivedHiringId,
       $or: [
         { index: milestoneIndex ? Number(milestoneIndex) : 1 },
         { title: milestoneTitle },
       ],
     });
   }
-  if (!targetMilestone && workspaceId) {
+  if (!targetMilestone && cleanWorkspaceId) {
     targetMilestone = await milestoneModel.findOne({
-      workspaceId,
+      workspaceId: cleanWorkspaceId,
       $or: [
         { index: milestoneIndex ? Number(milestoneIndex) : 1 },
         { title: milestoneTitle },
       ],
     });
   }
-  if (!targetMilestone && projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+  if (!targetMilestone && derivedProjectId && mongoose.Types.ObjectId.isValid(derivedProjectId)) {
     targetMilestone = await milestoneModel.findOne({
-      projectId,
+      projectId: derivedProjectId,
       $or: [
         { index: milestoneIndex ? Number(milestoneIndex) : 1 },
         { title: milestoneTitle },
@@ -508,6 +563,11 @@ async function lockEscrowService({
     { returnDocument: 'after' }
   );
 
+  const referenceWsId = await resolveWorkspaceReferenceId(
+    cleanWorkspaceId,
+    derivedProjectId || targetMilestone?.projectId
+  );
+
   const title = targetMilestone?.title || milestoneTitle || 'Milestone Deliverable';
   const transaction = await transactionModel.create({
     fromUser: creatorId,
@@ -516,8 +576,8 @@ async function lockEscrowService({
     type: 'ESCROW_LOCK',
     status: 'SUCCESS',
     gateway: 'SYSTEM_LEDGER',
-    idempotencyKey: idempotencyKey || null,
-    referenceWorkspaceId: workspaceId || (projectId ? String(projectId) : null),
+    idempotencyKey: idempotencyKey || crypto.randomUUID(),
+    referenceWorkspaceId: referenceWsId,
     milestoneTitle: title,
     description: `Escrow Lock: ₹${numericAmount.toLocaleString('en-IN')} for "${title}"`,
   });
@@ -543,13 +603,14 @@ async function lockEscrowService({
 
   // Update embedded hiring milestone if present
   let targetProject = null;
-  if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+  const projectLookupId = derivedProjectId || targetMilestone?.projectId;
+  if (projectLookupId && mongoose.Types.ObjectId.isValid(projectLookupId)) {
     try {
-      targetProject = await projectModel.findById(projectId);
+      targetProject = await projectModel.findById(projectLookupId);
       if (targetProject && Array.isArray(targetProject.hirings)) {
         let matchedHiring = null;
-        if (hiringId) {
-          matchedHiring = targetProject.hirings.find((h) => h._id.toString() === hiringId.toString());
+        if (derivedHiringId) {
+          matchedHiring = targetProject.hirings.find((h) => h._id.toString() === derivedHiringId.toString());
         }
         if (!matchedHiring) {
           matchedHiring = targetProject.hirings[0];
@@ -573,8 +634,8 @@ async function lockEscrowService({
   // Notifications
   try {
     let freelancerRecipient = targetMilestone?.freelancerId;
-    if (!freelancerRecipient && workspaceId) {
-      const ws = await workspaceModel.findById(workspaceId).select('editorId').lean();
+    if (!freelancerRecipient && cleanWorkspaceId) {
+      const ws = await workspaceModel.findById(cleanWorkspaceId).select('editorId').lean();
       freelancerRecipient = ws?.editorId;
     }
     if (freelancerRecipient) {
@@ -583,9 +644,9 @@ async function lockEscrowService({
         type: 'ESCROW_FUNDED',
         title: 'Milestone Funded in Escrow',
         message: `The creator has locked ₹${numericAmount.toLocaleString('en-IN')} in escrow for "${title}". You can proceed with editing.`,
-        project: projectId || targetMilestone?.projectId || null,
+        project: projectLookupId || null,
         relatedUser: creatorId,
-        link: `/editor/workspace?projectId=${projectId || targetMilestone?.projectId}&milestoneId=${targetMilestone?._id || ''}`,
+        link: `/editor/workspace?projectId=${projectLookupId || ''}&milestoneId=${targetMilestone?._id || ''}`,
       });
     }
   } catch (e) {
@@ -657,23 +718,39 @@ async function releaseEscrowService({
     }
   }
 
+  // Safely parse composite or plain workspaceId and projectId parameters
+  const { cleanWorkspaceId, derivedProjectId, derivedHiringId } = parseWorkspaceAndProjectIds(
+    workspaceId,
+    projectId,
+    hiringId
+  );
+
   // Locate Target Milestone
   let targetMilestone = null;
   if (milestoneId && mongoose.Types.ObjectId.isValid(milestoneId)) {
     targetMilestone = await milestoneModel.findById(milestoneId);
   }
-  if (!targetMilestone && hiringId) {
+  if (!targetMilestone && derivedHiringId && mongoose.Types.ObjectId.isValid(derivedHiringId)) {
     targetMilestone = await milestoneModel.findOne({
-      hiringId,
+      hiringId: derivedHiringId,
       $or: [
         { index: milestoneIndex ? Number(milestoneIndex) : 1 },
         { title: milestoneTitle },
       ],
     });
   }
-  if (!targetMilestone && workspaceId) {
+  if (!targetMilestone && cleanWorkspaceId) {
     targetMilestone = await milestoneModel.findOne({
-      workspaceId,
+      workspaceId: cleanWorkspaceId,
+      $or: [
+        { index: milestoneIndex ? Number(milestoneIndex) : 1 },
+        { title: milestoneTitle },
+      ],
+    });
+  }
+  if (!targetMilestone && derivedProjectId && mongoose.Types.ObjectId.isValid(derivedProjectId)) {
+    targetMilestone = await milestoneModel.findOne({
+      projectId: derivedProjectId,
       $or: [
         { index: milestoneIndex ? Number(milestoneIndex) : 1 },
         { title: milestoneTitle },
@@ -706,6 +783,11 @@ async function releaseEscrowService({
     { returnDocument: 'after' }
   );
 
+  const referenceWsId = await resolveWorkspaceReferenceId(
+    cleanWorkspaceId,
+    derivedProjectId || targetMilestone?.projectId
+  );
+
   const title = targetMilestone?.title || milestoneTitle || 'Approved Milestone Cut';
   const transaction = await transactionModel.create({
     fromUser: creatorId,
@@ -714,8 +796,8 @@ async function releaseEscrowService({
     type: 'ESCROW_RELEASE',
     status: 'SUCCESS',
     gateway: 'SYSTEM_LEDGER',
-    idempotencyKey: idempotencyKey || null,
-    referenceWorkspaceId: workspaceId || (projectId ? String(projectId) : null),
+    idempotencyKey: idempotencyKey || crypto.randomUUID(),
+    referenceWorkspaceId: referenceWsId,
     milestoneTitle: title,
     description: `Escrow Released: ₹${numericAmount.toLocaleString('en-IN')} for "${title}"`,
   });
@@ -793,8 +875,9 @@ async function releaseEscrowInternalService({
     const numericAmount = Number(amount);
     if (!numericAmount || numericAmount <= 0 || !editorId) return null;
 
+    const validWsId = (workspaceId && mongoose.Types.ObjectId.isValid(workspaceId)) ? workspaceId : null;
     const existing = await transactionModel.findOne({
-      referenceWorkspaceId: workspaceId,
+      ...(validWsId ? { referenceWorkspaceId: validWsId } : {}),
       type: 'ESCROW_RELEASE',
       milestoneTitle: milestoneTitle || 'Final Delivery Cut Approval',
     });
@@ -814,7 +897,8 @@ async function releaseEscrowInternalService({
       type: 'ESCROW_RELEASE',
       status: 'SUCCESS',
       gateway: 'SYSTEM_LEDGER',
-      referenceWorkspaceId: workspaceId || null,
+      idempotencyKey: crypto.randomUUID(),
+      referenceWorkspaceId: validWsId,
       milestoneTitle: title,
       description: `Escrow Released: ₹${numericAmount.toLocaleString('en-IN')} for "${title}"`,
     });
@@ -975,14 +1059,21 @@ async function refundEscrowService({
   milestoneTitle,
   idempotencyKey,
 }) {
+  // Safely parse composite or plain workspaceId and projectId parameters
+  const { cleanWorkspaceId, derivedProjectId, derivedHiringId } = parseWorkspaceAndProjectIds(
+    workspaceId,
+    projectId,
+    hiringId
+  );
+
   // 1. Locate Target Milestone
   let targetMilestone = null;
   if (milestoneId && mongoose.Types.ObjectId.isValid(milestoneId)) {
     targetMilestone = await milestoneModel.findById(milestoneId);
   }
-  if (!targetMilestone && hiringId) {
+  if (!targetMilestone && derivedHiringId && mongoose.Types.ObjectId.isValid(derivedHiringId)) {
     targetMilestone = await milestoneModel.findOne({
-      hiringId,
+      hiringId: derivedHiringId,
       $or: [
         { index: milestoneIndex ? Number(milestoneIndex) : 1 },
         { title: milestoneTitle },
@@ -990,9 +1081,9 @@ async function refundEscrowService({
       ],
     });
   }
-  if (!targetMilestone && projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+  if (!targetMilestone && cleanWorkspaceId) {
     targetMilestone = await milestoneModel.findOne({
-      projectId,
+      workspaceId: cleanWorkspaceId,
       $or: [
         { index: milestoneIndex ? Number(milestoneIndex) : 1 },
         { title: milestoneTitle },
@@ -1000,9 +1091,9 @@ async function refundEscrowService({
       ],
     });
   }
-  if (!targetMilestone && workspaceId) {
+  if (!targetMilestone && derivedProjectId && mongoose.Types.ObjectId.isValid(derivedProjectId)) {
     targetMilestone = await milestoneModel.findOne({
-      workspaceId,
+      projectId: derivedProjectId,
       $or: [
         { index: milestoneIndex ? Number(milestoneIndex) : 1 },
         { title: milestoneTitle },
@@ -1080,6 +1171,11 @@ async function refundEscrowService({
     { returnDocument: 'after' }
   );
 
+  const referenceWsId = await resolveWorkspaceReferenceId(
+    cleanWorkspaceId,
+    derivedProjectId || targetMilestone?.projectId
+  );
+
   const title = targetMilestone?.title || milestoneTitle || 'Recalled Milestone Deposit';
   const transaction = await transactionModel.create({
     fromUser: null, // Returned from platform escrow
@@ -1088,8 +1184,8 @@ async function refundEscrowService({
     type: 'ESCROW_REFUND',
     status: 'SUCCESS',
     gateway: 'SYSTEM_LEDGER',
-    idempotencyKey: idempotencyKey || null,
-    referenceWorkspaceId: workspaceId || (projectId ? String(projectId) : null),
+    idempotencyKey: idempotencyKey || crypto.randomUUID(),
+    referenceWorkspaceId: referenceWsId,
     milestoneTitle: title,
     description: `Escrow Refund: ₹${numericAmount.toLocaleString('en-IN')} for "${title}" returned to wallet`,
   });

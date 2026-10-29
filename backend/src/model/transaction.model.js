@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const transactionSchema = new mongoose.Schema(
   {
@@ -55,6 +56,7 @@ const transactionSchema = new mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
+      default: () => crypto.randomUUID(),
     },
     description: {
       type: String,

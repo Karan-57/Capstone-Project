@@ -8,11 +8,16 @@ const NOTIFICATION_TYPES = [
   'EDITOR_SELECTED',
   'NEW_BID',
   'PROJECT_STATUS_UPDATED',
+  'PROJECT_UPDATED',
   'FILES_UPLOADED',
   'FILE_DELETED',
   'FINAL_SUBMISSION',
   'REVISION_REQUESTED',
   'REVISION_SUBMITTED',
+  'REVISION_SENT',
+  'REVISION_DELIVERED',
+  'DELIVERABLE_SUBMITTED',
+  'DELIVERY_CONFIRMATION',
   'PROJECT_APPROVED',
   'PROJECT_CANCELLED',
   'PROJECT_CLOSED',
@@ -24,6 +29,12 @@ const NOTIFICATION_TYPES = [
   'DEADLINE_REMINDER',
   'PAYMENT_RECEIVED',
   'PAYMENT_RELEASED',
+  'ESCROW_FUNDED',
+  'ESCROW_LOCKED',
+  'ESCROW_RELEASED',
+  'ESCROW_REFUNDED',
+  'ESCROW_RECALLED',
+  'WITHDRAWAL_SUCCESS',
 ];
 
 const notificationSchema = new mongoose.Schema(
@@ -67,6 +78,10 @@ const notificationSchema = new mongoose.Schema(
       default: null,
     },
     actionUrl: {
+      type: String,
+      default: null,
+    },
+    link: {
       type: String,
       default: null,
     },

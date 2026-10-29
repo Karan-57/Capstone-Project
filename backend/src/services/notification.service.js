@@ -21,6 +21,9 @@ async function createNotification({
   message,
   project = null,
   relatedUser = null,
+  link = null,
+  actionUrl = null,
+  application = null,
 }) {
   try {
     if (!recipient) {
@@ -41,6 +44,9 @@ async function createNotification({
       message: message.trim(),
       project: project || null,
       relatedUser: relatedUser || null,
+      application: application || null,
+      link: link || actionUrl || null,
+      actionUrl: actionUrl || link || null,
       isRead: false,
     });
 
@@ -126,7 +132,7 @@ async function markNotificationAsRead(notificationId, recipientId) {
   const notification = await notificationModel.findOneAndUpdate(
     { _id: notificationId, recipient: recipientId },
     { isRead: true },
-    { new: true }
+    { returnDocument: 'after' }
   )
     .populate('relatedUser', 'name username profileImage role')
     .populate('project', 'title category status');

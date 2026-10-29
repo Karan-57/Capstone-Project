@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth.middleware');
+const { requireIdempotencyKey } = require('../middleware/idempotency.middleware');
 const paymentController = require('../controllers/payment.controller');
 
 // All payment routes require authenticated user
@@ -20,12 +21,12 @@ router.get('/me', paymentController.getWalletDetails);
 router.post('/pin/set', paymentController.setTransactionPin);
 router.post('/pin/verify', paymentController.verifyTransactionPin);
 
-// 5. Milestone Escrow Lifecycle
-router.post('/escrow/lock', paymentController.lockEscrow);
-router.post('/escrow/release', paymentController.releaseEscrow);
-router.post('/escrow/refund', paymentController.refundEscrow);
+// 5. Milestone Escrow Lifecycle (Protected by Strict Client-Side Idempotency Key)
+router.post('/escrow/lock', requireIdempotencyKey, paymentController.lockEscrow);
+router.post('/escrow/release', requireIdempotencyKey, paymentController.releaseEscrow);
+router.post('/escrow/refund', requireIdempotencyKey, paymentController.refundEscrow);
 
-// 6. Editor Simulated Payout / Withdrawal
-router.post('/withdraw', paymentController.withdrawCredits);
+// 6. Editor Simulated Payout / Withdrawal (Protected by Strict Client-Side Idempotency Key)
+router.post('/withdraw', requireIdempotencyKey, paymentController.withdrawCredits);
 
 module.exports = router;

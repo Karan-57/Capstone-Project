@@ -423,7 +423,7 @@ async function updateProjectController(req, res) {
     const updatedProject = await projectModel.findByIdAndUpdate(
       projectId,
       { $set: updates },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     // Dynamically notify all relevant active project members (multi-member safe)
