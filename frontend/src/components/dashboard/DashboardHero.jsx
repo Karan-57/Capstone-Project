@@ -95,7 +95,7 @@ export function DashboardHero({ role = 'creator' }) {
               className="brutal-btn-yellow px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2 cursor-pointer"
             >
               <Film className="w-3.5 h-3.5" />
-              <span>Open Media Suite</span>
+              <span>Workspace</span>
             </button>
 
             <div className="hidden sm:inline-flex items-center gap-1 font-hand text-base text-[#382322] ml-2">

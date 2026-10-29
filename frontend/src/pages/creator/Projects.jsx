@@ -231,10 +231,10 @@ export const Projects = () => {
                       navigate(`/creator/projects/${proj.id}`);
                     }}
                     className="px-2 py-1.5 rounded-xl bg-white dark:bg-[#281B1A] hover:bg-[#FAF0E6] dark:hover:bg-[#33201F] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] text-[11px] font-bold flex items-center justify-center gap-1.5 active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
-                    title="Open project details to view team & manage hirings"
+                    title="Project details"
                   >
                     <Briefcase className="w-3.5 h-3.5" />
-                    <span>Details & Team</span>
+                    <span>Details</span>
                   </button>
                 </div>
               </div>

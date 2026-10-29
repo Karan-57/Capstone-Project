@@ -82,7 +82,7 @@ export const Earnings = () => {
             onClick={() => setIsWithdrawModalOpen(true)}
             className="mt-4 w-full py-2.5 px-4 rounded-xl bg-[#382322] hover:bg-[#261615] text-[#FFEBAA] dark:bg-[#FFEBAA] dark:hover:bg-[#ffe38a] dark:text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-50"
           >
-            Withdraw to Bank / UPI
+            Withdraw Funds
           </button>
         </div>
 
@@ -90,7 +90,7 @@ export const Earnings = () => {
         <div className="rounded-2xl p-5 border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#B1C8EA] dark:bg-[#1A2332] shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] flex flex-col justify-between">
           <div>
             <span className="text-xs text-[#261615] dark:text-[#B1C8EA] flex items-center gap-1.5 font-mono font-bold uppercase tracking-wider">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#261615] dark:text-[#B1C8EA]" /> In Escrow Protection
+              <ShieldCheck className="w-3.5 h-3.5 text-[#261615] dark:text-[#B1C8EA]" /> In Escrow
             </span>
             <div className="text-2xl font-black text-[#261615] dark:text-[#FDEBDE] mt-1 font-mono">
               ₹{Number(escrowLocked || 0).toLocaleString('en-IN')}

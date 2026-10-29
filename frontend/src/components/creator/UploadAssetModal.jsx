@@ -14,6 +14,7 @@ import {
 import Button from '../common/Button';
 import { useAlert } from '../../context/AlertContext';
 import api from '../../services/api';
+import ModalPortal from '../common/ModalPortal';
 
 export const UploadAssetModal = ({
   isOpen,
@@ -124,8 +125,9 @@ export const UploadAssetModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="relative w-full max-w-lg bg-[#FFFDF9] dark:bg-[#201413] p-6 md:p-7 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[6px_6px_0_#382322] dark:shadow-[6px_6px_0_#000] text-[#261615] dark:text-[#FDEBDE]">
+    <ModalPortal>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+      <div className="relative w-full max-w-lg my-auto max-h-[88vh] overflow-y-auto bg-[#FFFDF9] dark:bg-[#201413] p-6 md:p-7 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[6px_6px_0_#382322] dark:shadow-[6px_6px_0_#000] text-[#261615] dark:text-[#FDEBDE]">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
           <div className="flex items-center gap-3">
@@ -267,6 +269,7 @@ export const UploadAssetModal = ({
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 };
 

@@ -159,7 +159,7 @@ export const ActiveProjects = () => {
               <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
                 <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] font-sans flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  Deliverable tracking, timestamp comments & file review live in workspace
+                  Milestone escrow protected
                 </span>
                 <button
                   type="button"
@@ -167,7 +167,7 @@ export const ActiveProjects = () => {
                   className="px-4 py-2 rounded-xl bg-[#382322] hover:bg-[#4d3332] text-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 self-start sm:self-auto active:translate-x-0.5 active:translate-y-0.5"
                 >
                   <FolderGit2 className="w-4 h-4" />
-                  <span>Open Workspace</span>
+                  <span>Workspace</span>
                 </button>
               </div>
             </div>

@@ -3,6 +3,7 @@ import { CreditCard, Sparkles, X, Check, ArrowRight, Zap, ShieldCheck } from 'lu
 import { useWallet } from '../../context/WalletContext';
 import { useAuth } from '../../context/AuthContext';
 import { paymentService } from '../../services/paymentService';
+import ModalPortal from '../common/ModalPortal';
 
 export const WalletTopUpModal = ({ isOpen, onClose }) => {
   const { walletBalance, topUpWallet } = useWallet();
@@ -83,8 +84,9 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto">
-      <div className="relative w-full max-w-md my-auto max-h-[92vh] overflow-y-auto glass-card brutal-card p-5 sm:p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] shadow-[6px_6px_0_#382322]">
+    <ModalPortal>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+      <div className="relative w-full max-w-md my-auto max-h-[88vh] overflow-y-auto glass-card brutal-card p-5 sm:p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] shadow-[6px_6px_0_#382322]">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -98,11 +100,14 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
           <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] shadow-[2px_2px_0_#382322] flex items-center justify-center text-[#261615]">
             <Sparkles className="w-5 h-5" />
           </div>
+
           <div>
             <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] tracking-tight">Top Up Wallet Credits</h3>
             <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">1 Platform Credit = ₹1.00 INR (Escrow Protected)</p>
           </div>
+
         </div>
+
 
         {/* Current Balance Bar */}
         <div className="p-3.5 rounded-xl bg-[#FAF0E6] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 mb-5 flex items-center justify-between">
@@ -112,13 +117,16 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
               ₹{walletBalance.toLocaleString('en-IN')}
             </span>
           </div>
+
           <div className="text-right">
             <span className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono font-bold block">After Top-Up</span>
             <span className="text-base font-black text-emerald-700 dark:text-emerald-400 font-mono">
               ₹{(walletBalance + (activeAmount || 0)).toLocaleString('en-IN')}
             </span>
           </div>
+
         </div>
+
 
         {/* Packages Grid */}
         <div className="space-y-2 mb-4">
@@ -150,14 +158,18 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
                   <div className="flex items-baseline gap-1 mt-0.5">
                     <span className="text-sm font-black font-mono">₹{pkg.price.toLocaleString('en-IN')}</span>
                   </div>
+
                   <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono font-bold">
                     +{pkg.credits.toLocaleString()} Credits
                   </span>
                 </div>
+
               );
             })}
           </div>
+
         </div>
+
 
         {/* Custom Amount */}
         <div className="mb-5">
@@ -172,6 +184,7 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
             className="w-full px-3.5 py-2 text-xs rounded-xl bg-white dark:bg-[#1A1110] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] font-mono font-bold"
           />
         </div>
+
 
         {/* Action Buttons */}
         <div className="space-y-2.5">
@@ -195,13 +208,18 @@ export const WalletTopUpModal = ({ isOpen, onClose }) => {
           </button>
         </div>
 
+
         {/* Trust Footnote */}
         <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-mono">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           <span>Encrypted with 256-bit TLS • Test Mode Enabled</span>
         </div>
+
       </div>
+
     </div>
+
+    </ModalPortal>
   );
 };
 

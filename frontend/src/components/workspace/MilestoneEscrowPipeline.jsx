@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -15,6 +16,7 @@ import {
   RotateCcw,
   AlertCircle,
   History,
+  X,
 } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
 import { useAuth } from '../../context/AuthContext';
@@ -22,6 +24,7 @@ import { useAlert } from '../../context/AlertContext';
 import SecurityPinModal from '../wallet/SecurityPinModal';
 import { generateMilestonesForRole } from '../../constants/roles.constants';
 import milestoneService from '../../services/milestoneService';
+import ModalPortal from '../common/ModalPortal';
 
 export const MilestoneEscrowPipeline = ({
   mode = 'all', // 'all' | 'summary' | 'milestones'
@@ -38,9 +41,11 @@ export const MilestoneEscrowPipeline = ({
   initialMilestones = null,
   hiringId = null,
 }) => {
-  const { fundMilestone, releaseMilestone, transactions = [] } = useWallet();
+  const { fundMilestone, releaseMilestone, refundMilestoneEscrow, transactions = [] } = useWallet();
   const { currentUser } = useAuth();
   const { showAlert } = useAlert();
+  const [searchParams] = useSearchParams();
+  const urlMilestoneId = searchParams.get('milestoneId');
 
   const [isProcessingPin, setIsProcessingPin] = useState(false);
   const [loadingMilestones, setLoadingMilestones] = useState(false);
@@ -197,6 +202,9 @@ export const MilestoneEscrowPipeline = ({
   const [revisionDescription, setRevisionDescription] = useState('');
   const [isSubmittingRevision, setIsSubmittingRevision] = useState(false);
 
+  // View revision request details modal (for both Freelancer & Creator)
+  const [viewingRevisionModal, setViewingRevisionModal] = useState(null); // { milestone, delivery, versionNum }
+
   // Open PIN modal for funding
   const handleInitiateFund = (m) => {
     if (isProcessingPin) return;
@@ -232,6 +240,23 @@ export const MilestoneEscrowPipeline = ({
       milestone: m,
       title: 'Authorize Milestone Payment Release',
       description: `Enter your 4-digit PIN to release ₹${m.amount.toLocaleString('en-IN')} to ${editorName}.`,
+      amount: m.amount,
+    });
+  };
+
+  // Open PIN modal for refunding escrow to wallet (0 deliveries)
+  const handleInitiateRefund = (m) => {
+    if (isProcessingPin) return;
+    if (m.deliveries && m.deliveries.length > 0) {
+      showAlert('Cannot recall escrow: Freelancer has already made deliverable submissions.', 'warning');
+      return;
+    }
+    setPinModalConfig({
+      isOpen: true,
+      action: 'refund',
+      milestone: m,
+      title: 'Recall Escrow to Wallet',
+      description: `Return ₹${m.amount.toLocaleString('en-IN')} from escrow for "${m.title}" back to your available wallet balance.`,
       amount: m.amount,
     });
   };
@@ -305,6 +330,33 @@ export const MilestoneEscrowPipeline = ({
           );
           await fetchAuthoritativeMilestones();
         }
+      } else if (action === 'refund') {
+        const ok = await refundMilestoneEscrow({
+          milestoneTitle: milestone.title,
+          amount: milestone.amount,
+          pin,
+          workspaceId,
+          projectId,
+          hiringId,
+          milestoneId: milestone._id || milestone.id,
+          milestoneIndex: milestone.index,
+        });
+        if (ok) {
+          // Optimistically reset UI to pending immediately
+          setMilestones((prev) =>
+            prev.map((item) =>
+              item.index === milestone.index || item.id === milestone.id
+                ? { ...item, status: 'pending' }
+                : item
+            )
+          );
+          window.dispatchEvent(
+            new CustomEvent('collabo_milestones_sync', {
+              detail: { workspaceId, hiringId },
+            })
+          );
+          await fetchAuthoritativeMilestones();
+        }
       }
     } finally {
       setIsProcessingPin(false);
@@ -321,10 +373,10 @@ export const MilestoneEscrowPipeline = ({
       const targetId = activeSubmittingMilestone._id || activeSubmittingMilestone.id;
       const res = await milestoneService.submitMilestoneDeliverable(targetId, {
         submittedUrl: submissionUrl.trim(),
-        submissionNotes: submissionNotes.trim() || 'Deliverable cut submitted for creator review.',
+        submissionNotes: submissionNotes.trim() || '',
       });
 
-      showAlert(res?.message || 'Deliverable cut submitted for creator review! ✓', 'success');
+      showAlert(res?.message || 'Deliverable cut submitted successfully! ✓', 'success');
 
       // Optimistic update
       setMilestones((prev) =>
@@ -333,7 +385,7 @@ export const MilestoneEscrowPipeline = ({
             ? {
                 ...item,
                 submittedUrl: submissionUrl.trim(),
-                submissionNotes: submissionNotes.trim() || 'Deliverable cut submitted for creator review.',
+                submissionNotes: submissionNotes.trim() || '',
               }
             : item
         )
@@ -512,7 +564,11 @@ export const MilestoneEscrowPipeline = ({
         const latestDelivery = deliveriesList.length > 0 ? deliveriesList[deliveriesList.length - 1] : null;
         const isRevisionRequested = latestDelivery?.status === 'revision_requested';
         const mKey = m._id || m.id;
-        const isExpanded = Boolean(expandedMilestones[mKey]);
+        const isTargetedMilestone = urlMilestoneId && mKey.toString() === urlMilestoneId.toString();
+        const isExpanded =
+          expandedMilestones[mKey] !== undefined
+            ? Boolean(expandedMilestones[mKey])
+            : Boolean(isRevisionRequested || isTargetedMilestone);
 
         return (
           <div
@@ -601,7 +657,7 @@ export const MilestoneEscrowPipeline = ({
                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322] transition-colors"
                       >
                         <Play className="w-3 h-3 fill-[#261615]" />
-                        <span>View Delivery Cut {deliveriesList.length > 1 ? `(v${deliveriesList.length})` : ''}</span>
+                        <span>Delivery {deliveriesList.length > 1 ? `v${deliveriesList.length}` : ''}</span>
                         <ExternalLink className="w-3 h-3 opacity-60" />
                       </a>
 
@@ -620,7 +676,7 @@ export const MilestoneEscrowPipeline = ({
                         )}
                       </button>
 
-                      {m.submissionNotes && (
+                      {m.submissionNotes && m.submissionNotes !== 'Deliverable cut submitted for creator review.' && (
                         <span className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] italic truncate max-w-sm">
                           "{m.submissionNotes}"
                         </span>
@@ -670,10 +726,22 @@ export const MilestoneEscrowPipeline = ({
                         </span>
                       )}
                       {isFunded && !hasSubmission && (
-                        <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20">
-                          <Clock className="w-3 h-3 text-[#5C3A38] dark:text-[#FFEBAA]" />
-                          Awaiting cut
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-[#5C3A38] dark:text-[#D4B8A8] flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#FAF0E6] dark:bg-[#19100F] border border-[#382322]/20">
+                            <Clock className="w-3 h-3 text-[#5C3A38] dark:text-[#FFEBAA]" />
+                            Awaiting cut
+                          </span>
+                          <button
+                            type="button"
+                            disabled={isProcessingPin}
+                            onClick={() => handleInitiateRefund(m)}
+                            className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-[#1A1110] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-2 border-rose-600/40 shadow-[2px_2px_0_#be123c] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95 disabled:opacity-50"
+                            title="Recall escrow deposit back to your wallet (0 cuts delivered)"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Return to Wallet</span>
+                          </button>
+                        </div>
                       )}
                       {isFunded && hasSubmission && (
                         <div className="flex items-center gap-2">
@@ -689,7 +757,7 @@ export const MilestoneEscrowPipeline = ({
                               className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-[#1A1110] hover:bg-amber-100 dark:hover:bg-amber-950/60 text-amber-900 dark:text-amber-300 border-2 border-amber-600/40 shadow-[2px_2px_0_#d97706] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Ask for Revision</span>
+                              <span>Request Revision</span>
                             </button>
                           )}
 
@@ -743,7 +811,7 @@ export const MilestoneEscrowPipeline = ({
                           className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-amber-400 hover:bg-amber-300 text-amber-950 border-2 border-[#382322] shadow-[2px_2px_0_#382322] cursor-pointer flex items-center gap-1.5 transition-transform active:scale-95"
                         >
                           <RotateCcw className="w-3.5 h-3.5" />
-                          <span>Submit Revision Cut</span>
+                          <span>Submit Revision</span>
                         </button>
                       )}
                       {isFunded && hasSubmission && !isRevisionRequested && (
@@ -786,7 +854,7 @@ export const MilestoneEscrowPipeline = ({
                       }}
                       className="text-xs font-mono font-bold text-amber-700 dark:text-amber-300 hover:underline flex items-center gap-1"
                     >
-                      <RotateCcw className="w-3 h-3" /> Submit New Cut (v{deliveriesList.length + 1})
+                      <RotateCcw className="w-3 h-3" /> Submit Revision (v{deliveriesList.length + 1})
                     </button>
                   )}
                 </div>
@@ -835,19 +903,69 @@ export const MilestoneEscrowPipeline = ({
                             )}
                           </div>
 
-                          <a
-                            href={del.submittedUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border border-[#382322] transition-colors"
-                          >
-                            <Play className="w-3 h-3 fill-[#261615]" />
-                            <span>Open Drive Link</span>
-                            <ExternalLink className="w-2.5 h-2.5 opacity-60" />
-                          </a>
+                          <div className="flex items-center gap-2">
+                            {/* Step 2: Open button with redirect icon */}
+                            <a
+                              href={del.submittedUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-[#FFEBAA] hover:bg-[#FFEBAA]/80 text-[#261615] border border-[#382322] shadow-[1px_1px_0_#382322] transition-colors"
+                            >
+                              <span>Open</span>
+                              <ExternalLink className="w-3 h-3 opacity-70" />
+                            </a>
+
+                            {/* Step 3 & 4: Button to the right of Open */}
+                            {isCreator ? (
+                              hasRevision ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setViewingRevisionModal({ milestone: m, delivery: del, versionNum })}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 text-amber-950 dark:text-amber-200 border border-amber-600/40 shadow-[1px_1px_0_#d97706] cursor-pointer transition-all"
+                                >
+                                  <RotateCcw className="w-3 h-3 text-amber-700 dark:text-amber-300" />
+                                  <span>View Request</span>
+                                </button>
+                              ) : isLatest && !isCompleted ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setRevisionModalMilestone(m);
+                                    setRevisionTitle(`Revision for ${m.title} (v${versionNum})`);
+                                    setRevisionDescription('');
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-white dark:bg-[#1A1110] hover:bg-amber-100 dark:hover:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-600/50 shadow-[1px_1px_0_#d97706] cursor-pointer transition-all"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  <span>Request Revision</span>
+                                </button>
+                              ) : null
+                            ) : (
+                              hasRevision ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setViewingRevisionModal({ milestone: m, delivery: del, versionNum })}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-amber-300 hover:bg-amber-200 text-amber-950 border border-[#382322] shadow-[1px_1px_0_#382322] cursor-pointer transition-all"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  <span>View Request</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono font-semibold bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 border border-gray-300 dark:border-zinc-700 cursor-not-allowed opacity-60"
+                                  title="No revision requested for this version"
+                                >
+                                  <RotateCcw className="w-3 h-3 opacity-40" />
+                                  <span>View Request</span>
+                                </button>
+                              )
+                            )}
+                          </div>
                         </div>
 
-                        {del.notes && (
+                        {del.notes && del.notes !== 'Deliverable cut submitted for creator review.' && (
                           <div className="mt-1.5 text-xs text-[#5C3A38] dark:text-[#D4B8A8] pl-2 border-l-2 border-[#382322]/20">
                             <span className="font-semibold">Notes:</span> {del.notes}
                           </div>
@@ -892,8 +1010,9 @@ export const MilestoneEscrowPipeline = ({
 
       {/* Editor Submit Milestone Cut Modal */}
       {activeSubmittingMilestone && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-md bg-[#FFF7F1] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] text-[#261615] dark:text-[#FDEBDE]">
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+          <div className="relative w-full max-w-md my-auto max-h-[88vh] overflow-y-auto bg-[#FFF7F1] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] text-[#261615] dark:text-[#FDEBDE]">
             <h4 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] mb-1">
               Submit Cut for {activeSubmittingMilestone.title}
             </h4>
@@ -951,7 +1070,7 @@ export const MilestoneEscrowPipeline = ({
                   ) : (
                     <>
                       <Send className="w-3.5 h-3.5" />
-                      <span>Submit Cut for Review</span>
+                      <span>Submit Cut</span>
                     </>
                   )}
                 </button>
@@ -959,11 +1078,13 @@ export const MilestoneEscrowPipeline = ({
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
       {/* Creator Ask for Revision Modal */}
       {revisionModalMilestone && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-md bg-[#FFF7F1] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] text-[#261615] dark:text-[#FDEBDE]">
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+          <div className="relative w-full max-w-md my-auto max-h-[88vh] overflow-y-auto bg-[#FFF7F1] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] text-[#261615] dark:text-[#FDEBDE]">
             <div className="flex items-center gap-2 mb-1">
               <RotateCcw className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               <h4 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">
@@ -971,7 +1092,7 @@ export const MilestoneEscrowPipeline = ({
               </h4>
             </div>
             <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mb-4">
-              Specify what edits or changes you need for {revisionModalMilestone.title}.
+              Describe the changes you want for <span className="font-bold">{revisionModalMilestone.title}</span>.
             </p>
 
             <form onSubmit={handleRequestRevision} className="space-y-3.5 text-xs">
@@ -982,7 +1103,7 @@ export const MilestoneEscrowPipeline = ({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Pacing adjustments & audio fixes"
+                  placeholder="e.g. Make the video shorter & adjust pacing"
                   value={revisionTitle}
                   onChange={(e) => setRevisionTitle(e.target.value)}
                   className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] font-mono"
@@ -991,12 +1112,12 @@ export const MilestoneEscrowPipeline = ({
 
               <div>
                 <label className="block text-[#261615] dark:text-[#FDEBDE] font-mono font-bold mb-1">
-                  Detailed Feedback / Instructions <span className="text-rose-500">*</span>
+                  What changes do you want? <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={4}
                   required
-                  placeholder="e.g. Please trim the intro by 3 seconds, lower the background music at 0:45, and color-match the second B-roll camera..."
+                  placeholder="Describe clearly what changes you want the freelancer to make (e.g. make the video shorter, remove the second scene, fix background music)..."
                   value={revisionDescription}
                   onChange={(e) => setRevisionDescription(e.target.value)}
                   className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#1A1110] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 focus:outline-none focus:ring-2 focus:ring-[#FFEBAA] resize-none"
@@ -1025,7 +1146,7 @@ export const MilestoneEscrowPipeline = ({
                   ) : (
                     <>
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Send Revision Request</span>
+                      <span>Request Revision</span>
                     </>
                   )}
                 </button>
@@ -1033,6 +1154,97 @@ export const MilestoneEscrowPipeline = ({
             </form>
           </div>
         </div>
+        </ModalPortal>
+      )}
+
+      {/* View Revision Request Modal (for Freelancer & Creator) */}
+      {viewingRevisionModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+          <div className="relative w-full max-w-lg my-auto max-h-[88vh] overflow-y-auto bg-[#FFF7F1] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] text-[#261615] dark:text-[#FDEBDE]">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-400 border-2 border-[#382322] flex items-center justify-center text-amber-950 shrink-0 shadow-[2px_2px_0_#382322]">
+                  <RotateCcw className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE] leading-tight">
+                    Revision Request (v{viewingRevisionModal.versionNum})
+                  </h4>
+                  <span className="text-[11px] font-mono text-[#5C3A38] dark:text-[#D4B8A8]">
+                    {viewingRevisionModal.milestone?.title}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingRevisionModal(null)}
+                className="p-1 rounded-lg hover:bg-[#382322]/10 dark:hover:bg-[#FDEBDE]/10 text-[#5C3A38] dark:text-[#D4B8A8] transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Revision Content */}
+            <div className="space-y-3.5 text-xs">
+              {viewingRevisionModal.delivery?.revisionRequest?.title && (
+                <div>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#5C3A38] dark:text-[#D4B8A8] block mb-1">
+                    Subject
+                  </span>
+                  <div className="p-2.5 rounded-xl bg-white dark:bg-[#1A1110] border border-[#382322]/20 font-bold text-sm text-[#261615] dark:text-[#FDEBDE]">
+                    {viewingRevisionModal.delivery.revisionRequest.title}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#5C3A38] dark:text-[#D4B8A8] block mb-1">
+                  Requested Changes & Feedback
+                </span>
+                <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-500/40 text-[#261615] dark:text-[#FDEBDE] whitespace-pre-line text-xs leading-relaxed font-sans shadow-inner">
+                  {viewingRevisionModal.delivery?.revisionRequest?.description || 'No detailed feedback provided.'}
+                </div>
+              </div>
+
+              {viewingRevisionModal.delivery?.revisionRequest?.requestedAt && (
+                <div className="text-[10px] font-mono text-[#5C3A38] dark:text-[#D4B8A8] text-right">
+                  Requested on {new Date(viewingRevisionModal.delivery.revisionRequest.requestedAt).toLocaleString()}
+                </div>
+              )}
+
+              {/* Modal Action Buttons */}
+              <div className="pt-3 border-t border-[#382322]/10 dark:border-[#FDEBDE]/10 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setViewingRevisionModal(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-mono font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] cursor-pointer"
+                >
+                  Close
+                </button>
+
+                {!isCreator && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const targetM = viewingRevisionModal.milestone;
+                      setViewingRevisionModal(null);
+                      setActiveSubmittingMilestone(targetM);
+                      setSubmissionUrl('');
+                      setSubmissionNotes('');
+                    }}
+                    className="px-4 py-2 rounded-xl font-mono font-bold text-xs text-amber-950 bg-amber-400 hover:bg-amber-300 border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  >
+                    <FileVideo className="w-3.5 h-3.5" />
+                    <span>Deliver v{viewingRevisionModal.versionNum + 1}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        </ModalPortal>
       )}
     </div>
   );

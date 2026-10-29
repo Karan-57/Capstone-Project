@@ -434,10 +434,11 @@ function ChatPanel({
               type="button"
               onClick={onOpenMilestones}
               title="Milestones & Escrow"
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] border-2 border-[#382322] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5"
+              aria-label="Milestones & Escrow"
+              className="p-2 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] border-2 border-[#382322] transition-all cursor-pointer shrink-0 shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-[#261615]" />
-              <span className="hidden sm:inline">Milestones</span>
+              <ShieldCheck className="w-4 h-4 text-[#261615]" />
+
             </button>
           )}
 
@@ -1085,10 +1086,11 @@ function FreelancerMilestonesScreen({
             type="button"
             onClick={onBack}
             className="p-2 rounded-xl bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-mono font-bold"
-            title="Back to conversation"
+            title="Back"
+            aria-label="Back"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Chat</span>
+
           </button>
 
           <div className="h-6 w-px bg-[#382322]/20 dark:bg-[#FDEBDE]/20 hidden sm:block" />
@@ -1096,7 +1098,7 @@ function FreelancerMilestonesScreen({
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-sm font-black font-serif text-[#261615] dark:text-[#FDEBDE] truncate">
-                {isCreator ? `${targetMember.name} — Milestones & Escrow` : 'My Milestones & Deliverables'}
+                {isCreator ? `${targetMember.name} — Milestones & Escrow` : 'Milestones & Escrow'}
               </h2>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[1px_1px_0_#382322]">
                 {effectiveRoleTitle}
@@ -1643,7 +1645,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
             <div className="w-full pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
               <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
                 <span className="text-[#261615] dark:text-[#FDEBDE] text-[11px] font-mono font-bold">
-                  Project Progress ({projectMetrics.totalCompletedMilestones}/{projectMetrics.totalMilestonesCount} Milestones)
+                  Project Progress ({projectMetrics.totalCompletedMilestones}/{projectMetrics.totalMilestonesCount})
                 </span>
                 <span className="text-[#261615] dark:text-[#FFEBAA] font-mono font-bold text-xs">{projectMetrics.progressPercent}%</span>
               </div>
@@ -1719,11 +1721,11 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                 {isUploading
                   ? 'Uploading assets to Space...'
                   : isDraggingOverSpace
-                  ? 'Drop to upload into Space'
-                  : 'Click anywhere or drop files to upload'}
+                  ? 'Drop files here'
+                  : 'Drop files here, or browse'}
               </h4>
               <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] leading-relaxed">
-                Directly uploads to ImageKit storage. Supports MP4, MOV, WAV, LUTs, PNGs and more.
+                Supports video, audio, images, and project files
               </p>
               <div className="flex items-center gap-2 mt-3 text-[11px] text-[#261615] dark:text-[#FFEBAA] font-medium flex-wrap justify-center pointer-events-auto">
                 <button
@@ -1735,7 +1737,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                   }}
                   className="px-2.5 py-1 rounded-lg bg-[#FFEBAA] border border-[#382322] text-[#261615] font-mono font-bold hover:bg-[#FFEBAA]/80 transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  Browse Files
+                  Browse
                 </button>
                 <span className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#261817] border border-[#382322]/30 text-[#261615] dark:text-[#FDEBDE] font-mono font-semibold">
                   ⌘V / Ctrl+V
@@ -1772,7 +1774,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                   className="w-full py-2.5 text-xs font-mono font-bold text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] rounded-xl bg-white dark:bg-[#201413] hover:bg-[#FFEBAA] dark:hover:bg-[#261817] transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Grid3X3 className="w-3.5 h-3.5" />
-                  View all {files.length} files in Media & Links Grid
+                  View all files ({files.length})
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -1815,7 +1817,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                 )}
               </div>
               <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] truncate">
-                {groupLastMsg?.text || 'Tap to open project team chat'}
+                {groupLastMsg?.text || 'No messages yet'}
               </p>
               <p className="text-[11px] font-mono font-bold text-[#261615] dark:text-[#FFEBAA] mt-0.5">{members.length} members</p>
             </div>
@@ -1865,7 +1867,7 @@ function ProjectWorkspace({ workspace, onBack, currentUserId: propUserId }) {
                       </p>
                     </div>
                     <p className="text-[11px] font-mono font-bold text-[#5C3A38] dark:text-[#FFEBAA]">{member.role}</p>
-                    <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-0.5">Tap to start a private chat</p>
+
                   </div>
 
                   <ChevronRight className="w-4 h-4 text-[#382322] dark:text-[#FDEBDE] group-hover:translate-x-0.5 shrink-0 transition-transform" />
@@ -2143,7 +2145,7 @@ export const Workspace = () => {
           <div>
             <h3 className="text-base font-black font-serif text-[#261615] dark:text-[#FDEBDE]">Select a Workspace</h3>
             <p className="text-sm text-[#5C3A38] dark:text-[#D4B8A8] mt-1 max-w-sm">
-              Click any active project workspace from the left sidebar to access Space assets, team group chat, and private collaborator DMs.
+              Select a project to access assets, team chat, and milestones.
             </p>
           </div>
         </div>

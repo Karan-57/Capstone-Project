@@ -322,16 +322,39 @@ async function submitMilestoneDeliverableController(req, res) {
       console.warn('[submitMilestoneDeliverable] Project hiring sync notice:', syncErr.message);
     }
 
-    // Notify project creator
+    // 1. Notify project creator about delivery or revision cut
     if (milestone.creatorId) {
+      const isRevision = nextVersion > 1;
       createNotification({
         recipient: milestone.creatorId,
-        type: 'DELIVERABLE_SUBMITTED',
-        title: 'Milestone Deliverable Submitted',
-        message: `${req.user?.name || 'Freelancer'} submitted a video cut for "${milestone.title}". Click to review and release funds.`,
+        type: isRevision ? 'REVISION_DELIVERED' : 'DELIVERABLE_SUBMITTED',
+        title: isRevision
+          ? `Revision Cut Received (v${nextVersion})`
+          : `Milestone Deliverable Submitted (v1)`,
+        message: isRevision
+          ? `${req.user?.name || 'Freelancer'} submitted revision cut v${nextVersion} for "${milestone.title}". Click to review and release funds or request changes.`
+          : `${req.user?.name || 'Freelancer'} submitted a video cut for "${milestone.title}". Click to review and release funds or request revisions.`,
         project: milestone.projectId,
         relatedUser: currentUserId,
-      }).catch((err) => console.error('[Notification] Submit notice:', err.message));
+        link: `/creator/workspace?projectId=${milestone.projectId}&milestoneId=${milestone._id}`,
+        actionUrl: `/creator/workspace?projectId=${milestone.projectId}&milestoneId=${milestone._id}`,
+      }).catch((err) => console.error('[Notification] Creator delivery notice:', err.message));
+    }
+
+    // 2. Notify freelancer of submission confirmation
+    const freelancerRecipient = milestone.freelancerId || currentUserId;
+    if (freelancerRecipient) {
+      const isRevision = nextVersion > 1;
+      createNotification({
+        recipient: freelancerRecipient,
+        type: isRevision ? 'REVISION_SUBMITTED' : 'DELIVERY_CONFIRMATION',
+        title: isRevision ? `Revision Cut v${nextVersion} Submitted` : 'Deliverable Submitted',
+        message: `Your video cut (v${nextVersion}) for "${milestone.title}" was submitted to the creator for review.`,
+        project: milestone.projectId,
+        relatedUser: currentUserId,
+        link: `/editor/workspace?projectId=${milestone.projectId}&milestoneId=${milestone._id}`,
+        actionUrl: `/editor/workspace?projectId=${milestone.projectId}&milestoneId=${milestone._id}`,
+      }).catch((err) => console.error('[Notification] Freelancer submission confirmation:', err.message));
     }
 
     return res.status(200).json({
@@ -378,6 +401,10 @@ async function requestMilestoneRevisionController(req, res) {
       return res.status(400).json({ message: 'No delivery cut submitted yet to request revision on.' });
     }
 
+    if (milestone.status === 'completed' || milestone.status === 'approved') {
+      return res.status(400).json({ message: 'Cannot request revision for an already released milestone.' });
+    }
+
     if (!Array.isArray(milestone.deliveries)) {
       milestone.deliveries = [];
     }
@@ -393,8 +420,12 @@ async function requestMilestoneRevisionController(req, res) {
       });
     }
 
-    // Update the latest delivery cut to 'revision_requested'
+    // Revision request is once per delivery cut: check if latest delivery already has revision requested
     const latestDelivery = milestone.deliveries[milestone.deliveries.length - 1];
+    if (latestDelivery && latestDelivery.status === 'revision_requested') {
+      return res.status(400).json({ message: 'A revision has already been requested for this delivery version.' });
+    }
+
     if (latestDelivery) {
       latestDelivery.status = 'revision_requested';
       latestDelivery.revisionRequest = {
@@ -407,16 +438,33 @@ async function requestMilestoneRevisionController(req, res) {
 
     await milestone.save();
 
-    // Notify freelancer
+    // 1. Notify freelancer with direct workspace & milestone navigation link
     if (milestone.freelancerId) {
       createNotification({
         recipient: milestone.freelancerId,
         type: 'REVISION_REQUESTED',
-        title: 'Revision Requested on Milestone Cut',
+        title: `Revision Requested on Milestone Cut (v${latestDelivery?.version || 1})`,
         message: `${req.user?.name || 'Creator'} requested a revision for "${milestone.title}": "${description.trim().slice(0, 100)}"`,
         project: milestone.projectId,
         relatedUser: currentUserId,
+        link: `/editor/workspace?projectId=${milestone.projectId}&milestoneId=${milestone._id}`,
+        actionUrl: `/editor/workspace?projectId=${milestone.projectId}&milestoneId=${milestone._id}`,
       }).catch((err) => console.error('[Notification] Revision notice:', err.message));
+    }
+
+    // 2. Notify creator of revision request record
+    const creatorRecipient = milestone.creatorId || currentUserId;
+    if (creatorRecipient) {
+      createNotification({
+        recipient: creatorRecipient,
+        type: 'REVISION_SENT',
+        title: `Revision Request Sent (v${latestDelivery?.version || 1})`,
+        message: `You requested changes for "${milestone.title}". Freelancer has been notified to deliver the next cut.`,
+        project: milestone.projectId,
+        relatedUser: currentUserId,
+        link: `/creator/workspace?projectId=${milestone.projectId}&milestoneId=${milestone._id}`,
+        actionUrl: `/creator/workspace?projectId=${milestone.projectId}&milestoneId=${milestone._id}`,
+      }).catch((err) => console.error('[Notification] Creator revision record notice:', err.message));
     }
 
     return res.status(200).json({

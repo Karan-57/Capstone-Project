@@ -12,6 +12,7 @@ import {
   FolderGit2,
   User,
   Calendar,
+  ArrowUpRight,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import SEO from '../../components/common/SEO';
@@ -21,6 +22,7 @@ import { useWallet } from '../../context/WalletContext';
 import { projectService } from '../../services/projectService';
 import WalletTopUpModal from '../../components/wallet/WalletTopUpModal';
 import SecurityPinModal from '../../components/wallet/SecurityPinModal';
+import { WithdrawModal } from '../../components/wallet/WithdrawModal';
 import MilestoneEscrowPipeline from '../../components/workspace/MilestoneEscrowPipeline';
 import { DEFAULT_PFP } from '../../constants/assets';
 import { PaymentsSkeleton } from '../../components/common/Skeleton';
@@ -49,6 +51,7 @@ export const Payments = () => {
 
   // Modals
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
 
   // Real-time ledger calculations for settled payouts:
@@ -241,10 +244,12 @@ export const Payments = () => {
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={handleBackToProjectMembers}
-                className="p-2 rounded-xl bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-mono font-bold shrink-0"
+                title="Back"
+                aria-label="Back"
+                className="p-2.5 rounded-xl bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center justify-center shrink-0"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>Team Members</span>
+
               </button>
 
               <div className="min-w-0">
@@ -289,10 +294,12 @@ export const Payments = () => {
             <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={handleBackToAllProjects}
-                className="p-2 rounded-xl bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-mono font-bold shrink-0"
+                title="Back"
+                aria-label="Back"
+                className="p-2.5 rounded-xl bg-white dark:bg-[#261817] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center justify-center shrink-0"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>All Projects</span>
+
               </button>
 
               <div className="min-w-0">
@@ -520,6 +527,14 @@ export const Payments = () => {
                 <Coins className="w-4 h-4 text-[#261615]" />
                 Top Up Credits
               </button>
+              <button
+                onClick={() => setIsWithdrawModalOpen(true)}
+                className="px-4 py-2 rounded-xl text-xs font-mono font-bold bg-white dark:bg-[#201413] hover:bg-[#FAF0E6] dark:hover:bg-[#2D1C1B] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] dark:shadow-[2px_2px_0_#000] transition-all cursor-pointer flex items-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5"
+                title="Withdraw unspent credits from your wallet"
+              >
+                <ArrowUpRight className="w-4 h-4 text-[#261615] dark:text-[#FFEBAA]" />
+                Withdraw Credits
+              </button>
             </div>
           </div>
 
@@ -710,6 +725,10 @@ export const Payments = () => {
 
       {/* Modals */}
       <WalletTopUpModal isOpen={isTopUpOpen} onClose={() => setIsTopUpOpen(false)} />
+      <WithdrawModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+      />
       <SecurityPinModal
         isOpen={isPinModalOpen}
         onClose={() => setIsPinModalOpen(false)}

@@ -24,6 +24,7 @@ router.post('/pin/verify', paymentController.verifyTransactionPin);
 // 5. Milestone Escrow Lifecycle
 router.post('/escrow/lock', paymentController.lockEscrow);
 router.post('/escrow/release', paymentController.releaseEscrow);
+router.post('/escrow/refund', paymentController.refundEscrow);
 
 // 6. Editor Simulated Payout / Withdrawal
 router.post('/withdraw', paymentController.withdrawCredits);

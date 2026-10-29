@@ -11,12 +11,13 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
+import ModalPortal from '../common/ModalPortal';
 
 export const WithdrawModal = ({ isOpen, onClose }) => {
   const { walletBalance, withdrawFunds, savedPinHint } = useWallet();
   const [method, setMethod] = useState('upi'); // 'upi' | 'bank'
   const [amount, setAmount] = useState('');
-  const [upiId, setUpiId] = useState('editor@okaxis');
+  const [upiId, setUpiId] = useState('user@okaxis');
   const [bankAccount, setBankAccount] = useState('987654321012');
   const [ifsc, setIfsc] = useState('HDFC0001234');
   const [pin, setPin] = useState(['1', '2', '3', '4']);
@@ -98,7 +99,8 @@ export const WithdrawModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <ModalPortal>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
@@ -106,7 +108,7 @@ export const WithdrawModal = ({ isOpen, onClose }) => {
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-md bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] p-6 sm:p-7 overflow-hidden z-10 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
+      <div className="relative w-full max-w-md my-auto max-h-[88vh] overflow-y-auto bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[6px_6px_0_#382322] p-6 sm:p-7 z-10 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
         {/* Close Button */}
         <button
           onClick={handleClose}
@@ -170,7 +172,7 @@ export const WithdrawModal = ({ isOpen, onClose }) => {
                   Withdraw to Bank / UPI
                 </h3>
                 <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
-                  Cash out your cleared platform earnings instantly
+                  Cash out your available platform wallet credits instantly
                 </p>
               </div>
             </div>
@@ -357,6 +359,7 @@ export const WithdrawModal = ({ isOpen, onClose }) => {
         )}
       </div>
     </div>
+    </ModalPortal>
   );
 };
 

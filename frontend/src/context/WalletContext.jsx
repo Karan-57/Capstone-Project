@@ -403,6 +403,82 @@ export const WalletProvider = ({ children }) => {
     [verifySecurityPin, showAlert, userId]
   );
 
+  // Creator Recall / Refund Milestone Funds from Escrow back to Wallet (0 deliveries submitted)
+  const refundMilestoneEscrow = useCallback(
+    async ({
+      milestoneTitle,
+      amount,
+      pin,
+      workspaceId,
+      projectId,
+      hiringId,
+      milestoneId,
+      milestoneIndex,
+    }) => {
+      const numAmount = Number(amount);
+      const isPinValid = await verifySecurityPin(pin);
+
+      if (!isPinValid) {
+        showAlert('Incorrect Security PIN. Escrow refund blocked.', 'error');
+        return false;
+      }
+
+      let serverTxn = null;
+      let newBalance = walletBalance + numAmount;
+      try {
+        const res = await paymentService.refundEscrow({
+          milestoneId,
+          projectId,
+          hiringId,
+          workspaceId,
+          amount: numAmount,
+          pin,
+        });
+        serverTxn = res?.transaction || null;
+        if (res?.walletBalance != null) {
+          newBalance = res.walletBalance;
+        }
+      } catch (err) {
+        console.warn('[WalletContext] Refund escrow backend sync error:', err.message);
+        const errMsg = err.response?.data?.message || err.message;
+        showAlert(errMsg, 'error');
+        return false;
+      }
+
+      setWalletBalance(newBalance);
+      setEscrowLocked((prev) => Math.max(0, prev - numAmount));
+
+      const targetWsId = workspaceId || (projectId ? String(projectId) : null);
+      const newTxn = {
+        _id: serverTxn?._id,
+        id: serverTxn?._id || `REFUND-${Date.now()}`,
+        type: 'ESCROW_REFUND',
+        amount: numAmount,
+        referenceWorkspaceId: targetWsId,
+        milestoneTitle: milestoneTitle,
+        toUser: userId,
+        fromUser: null,
+        description:
+          serverTxn?.description ||
+          `Escrow Refund: ₹${numAmount.toLocaleString('en-IN')} for "${milestoneTitle}" returned to wallet`,
+        date: new Date().toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }),
+        status: 'SUCCESS',
+        createdAt: serverTxn?.createdAt || new Date().toISOString(),
+        gateway: 'SYSTEM_LEDGER',
+      };
+
+      setTransactions((prev) => [newTxn, ...prev]);
+      showAlert(`Escrow refunded! ₹${numAmount.toLocaleString('en-IN')} returned to your wallet.`, 'success');
+      fetchBackendWallet();
+      return true;
+    },
+    [verifySecurityPin, showAlert, userId, walletBalance, fetchBackendWallet]
+  );
+
   // Editor Simulated Payout / Withdrawal
   const withdrawFunds = useCallback(
     async ({ amount, pin, upiId, bankAccountNumber, ifscCode }) => {
@@ -489,6 +565,7 @@ export const WalletProvider = ({ children }) => {
         topUpWallet,
         fundMilestone,
         releaseMilestone,
+        refundMilestoneEscrow,
         withdrawFunds,
         isWalletLoading,
       }}

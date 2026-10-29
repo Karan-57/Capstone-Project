@@ -30,6 +30,7 @@ import Button from '../../components/common/Button';
 import { useAlert } from '../../context/AlertContext';
 import { projectService } from '../../services/projectService';
 import { DEFAULT_PFP } from '../../constants/assets';
+import ModalPortal from '../../components/common/ModalPortal';
 
 export const ProjectDetails = () => {
   const { projectId } = useParams();
@@ -102,7 +103,7 @@ export const ProjectDetails = () => {
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold uppercase tracking-wider cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Projects</span>
+          <span>Back</span>
         </button>
       </div>
     );
@@ -262,10 +263,11 @@ export const ProjectDetails = () => {
           <button
             type="button"
             onClick={() => navigate('/creator/projects')}
-            className="p-2 bg-[#FDEBDE] dark:bg-[#2A1A19] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shrink-0 active:translate-x-0.5 active:translate-y-0.5"
+            title="Back"
+            aria-label="Back"
+            className="p-2.5 bg-[#FDEBDE] dark:bg-[#2A1A19] hover:bg-[#FFEBAA] text-[#261615] dark:text-[#FDEBDE] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center justify-center shrink-0 active:translate-x-0.5 active:translate-y-0.5"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Manage Projects</span>
           </button>
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-tight truncate">
@@ -648,47 +650,49 @@ export const ProjectDetails = () => {
           CONFIRM REMOVE TEAM MEMBER MODAL
       ───────────────────────────────────────────────────────────── */}
       {memberToRemove && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md p-6 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[6px_6px_0_#382322] dark:shadow-[6px_6px_0_#000] space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-rose-100 dark:bg-rose-950/50 border-2 border-[#382322] dark:border-rose-500/40 flex items-center justify-center text-rose-700 dark:text-rose-400 shrink-0">
-                <UserX className="w-5 h-5" />
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-xs animate-fade-in overflow-y-auto">
+            <div className="w-full max-w-md my-auto max-h-[88vh] overflow-y-auto p-6 bg-[#FFFDF9] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[6px_6px_0_#382322] dark:shadow-[6px_6px_0_#000] space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-rose-100 dark:bg-rose-950/50 border-2 border-[#382322] dark:border-rose-500/40 flex items-center justify-center text-rose-700 dark:text-rose-400 shrink-0">
+                  <UserX className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-serif font-bold text-[#261615] dark:text-[#FDEBDE]">Remove Team Member?</h3>
+                  <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
+                    {memberToRemove.freelancerName} ({memberToRemove.roleTitle})
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-base font-serif font-bold text-[#261615] dark:text-[#FDEBDE]">Remove Team Member?</h3>
-                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8]">
-                  {memberToRemove.freelancerName} ({memberToRemove.roleTitle})
-                </p>
+
+              <p className="text-xs text-[#261615] dark:text-[#FDEBDE] leading-relaxed bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 p-3.5">
+                Are you sure you want to remove <strong>{memberToRemove.freelancerName}</strong> from the role{' '}
+                <strong>"{memberToRemove.roleTitle}"</strong>?
+                <br /><br />
+                Since work has not started yet, doing so will <strong>reopen this hiring position</strong> immediately so other freelancers can apply.
+              </p>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setMemberToRemove(null)}
+                  className="px-4 py-2 border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FDEBDE] transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={Boolean(removingHiringId)}
+                  onClick={handleConfirmRemoveMember}
+                  className="px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] bg-[#FFEBAA] hover:bg-[#ffe58f] border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50 active:translate-x-0.5 active:translate-y-0.5"
+                >
+                  <UserX className="w-3.5 h-3.5" />
+                  <span>{removingHiringId ? 'Removing...' : 'Confirm & Reopen Role'}</span>
+                </button>
               </div>
-            </div>
-
-            <p className="text-xs text-[#261615] dark:text-[#FDEBDE] leading-relaxed bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 p-3.5">
-              Are you sure you want to remove <strong>{memberToRemove.freelancerName}</strong> from the role{' '}
-              <strong>"{memberToRemove.roleTitle}"</strong>?
-              <br /><br />
-              Since work has not started yet, doing so will <strong>reopen this hiring position</strong> immediately so other freelancers can apply.
-            </p>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setMemberToRemove(null)}
-                className="px-4 py-2 border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FDEBDE] transition-all cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={Boolean(removingHiringId)}
-                onClick={handleConfirmRemoveMember}
-                className="px-4 py-2 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] bg-[#FFEBAA] hover:bg-[#ffe58f] border-2 border-[#382322] shadow-[2px_2px_0_#382322] transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50 active:translate-x-0.5 active:translate-y-0.5"
-              >
-                <UserX className="w-3.5 h-3.5" />
-                <span>{removingHiringId ? 'Removing...' : 'Confirm & Reopen Role'}</span>
-              </button>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

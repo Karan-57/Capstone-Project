@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Clock, CheckCircle, Send, X, Sparkles } from 'lucide-react';
 import { SkeletonCard } from '../../components/common/Skeleton';
 import SEO from '../../components/common/SEO';
+import ModalPortal from '../../components/common/ModalPortal';
 import { projectService } from '../../services/projectService';
 import api from '../../services/api';
 import { useAlert } from '../../context/AlertContext';
@@ -272,8 +273,9 @@ export const BrowseProjects = () => {
 
       {/* Apply / Proposal Modal */}
       {proposalModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-[#FFFDF9] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] animate-fade-in max-h-[90vh] overflow-y-auto text-[#261615] dark:text-[#FDEBDE]">
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="w-full max-w-lg my-auto max-h-[88vh] overflow-y-auto rounded-2xl bg-[#FFFDF9] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
             <div className="flex items-start justify-between gap-3 mb-4 pb-3 border-b-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
               <div>
                 <h3 className="text-lg font-serif font-bold text-[#261615] dark:text-[#FDEBDE]">
@@ -389,6 +391,7 @@ export const BrowseProjects = () => {
             })()}
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

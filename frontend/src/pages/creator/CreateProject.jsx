@@ -40,6 +40,7 @@ import SEO from '../../components/common/SEO';
 import CustomDatePicker from '../../components/common/CustomDatePicker';
 import { useAlert } from '../../context/AlertContext';
 import api from '../../services/api';
+import ModalPortal from '../../components/common/ModalPortal';
 
 // Helper to extract maximum days allowed from project duration string
 const parseProjectTurnaroundMaxDays = (durationStr) => {
@@ -1018,7 +1019,6 @@ export const CreateProject = () => {
               )}
             </div>
           </div>
-
           {/* Section 3: Total Budget & Turnaround Duration with AI Market Research Suggestion */}
           <div className="brutal-card p-6 md:p-7 space-y-5 rounded-2xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
@@ -1550,399 +1550,403 @@ export const CreateProject = () => {
       {/* HIRING FORM MODAL (TRIGGERED BY "+ Post New Role / Hiring")               */}
       {/* ========================================================================= */}
       {isHiringModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#261615]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
-          <div className="w-full max-w-2xl bg-[#FFF7F1] dark:bg-[#261817] p-6 md:p-8 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#FDEBDE]/20 relative space-y-5 my-8">
-            <button
-              type="button"
-              onClick={() => setIsHiringModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer shadow-[2px_2px_0_#382322]"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] bg-[#261615]/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-fade-in overflow-y-auto">
+            <div className="w-full max-w-2xl my-auto max-h-[88vh] overflow-y-auto bg-[#FFF7F1] dark:bg-[#261817] p-6 md:p-8 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#FDEBDE]/20 relative space-y-5">
+              <button
+                type="button"
+                onClick={() => setIsHiringModalOpen(false)}
+                className="absolute top-5 right-5 p-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer shadow-[2px_2px_0_#382322]"
+              >
+                <X className="w-4 h-4" />
+              </button>
 
-            <div>
-              <span className="text-[11px] font-bold text-[#261615] uppercase tracking-wider bg-[#FFEBAA] px-2.5 py-0.5 rounded border border-[#382322]">
-                New Hiring Opening
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] mt-1.5">
-                Post Role for {title || 'Project'}
-              </h2>
-              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1">
-                Select a content-creator role from the catalog, specify deliverables, skills, budget, and first milestone deadline.
-              </p>
-            </div>
-
-            <form onSubmit={handlePostHiringSubmit} className="space-y-4 pt-1">
-              {/* Select Role from Catalog (clean titles without parentheses) */}
               <div>
-                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
-                  Select Role <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  required
-                  value={selectedRoleId}
-                  onChange={(e) => handleRoleSelectChange(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-semibold text-[#261615] dark:text-[#FDEBDE] shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] transition-all cursor-pointer"
-                >
-                  <option value="">-- Choose Role from Catalog --</option>
-                  {availableRoles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.title || r.name}
-                    </option>
-                  ))}
-                </select>
+                <span className="text-[11px] font-bold text-[#261615] uppercase tracking-wider bg-[#FFEBAA] px-2.5 py-0.5 rounded border border-[#382322]">
+                  New Hiring Opening
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] mt-1.5">
+                  Post Role for {title || 'Project'}
+                </h2>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1">
+                  Select a content-creator role from the catalog, specify deliverables, skills, budget, and first milestone deadline.
+                </p>
               </div>
 
-              {/* Role Deliverables / Description */}
-              <div>
-                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
-                  Role Deliverables & Scope Details
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Detail what this freelancer must deliver (e.g. 1st rough cut with sound FX, color-graded delivery, 2 revisions included)..."
-                  value={hiringDescription}
-                  onChange={(e) => setHiringDescription(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] resize-none leading-relaxed"
-                />
-              </div>
-
-              {/* Required Skills & Software Tags */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block">
-                  Required Skills & Tools <span className="text-rose-500">*</span>
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {hiringSkills.map((sk) => (
-                    <span
-                      key={sk}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFEBAA] text-[#261615] border border-[#382322] text-[11px] font-bold"
-                    >
-                      {sk}
-                      <button type="button" onClick={() => removeHiringSkill(sk)} className="hover:text-rose-600">&times;</button>
-                    </span>
-                  ))}
-                  {hiringTools.map((tl) => (
-                    <span
-                      key={tl}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#B1C8EA] text-[#261615] border border-[#382322] text-[11px] font-bold"
-                    >
-                      {tl}
-                      <button type="button" onClick={() => removeHiringTool(tl)} className="hover:text-rose-600">&times;</button>
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <input
-                    type="text"
-                    placeholder="Add specific skill/tool (e.g. DaVinci Resolve, Blender)..."
-                    value={newHiringSkill}
-                    onChange={(e) => setNewHiringSkill(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-[#201413] text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322]"
-                  />
-                  <Button variant="secondary" size="sm" icon={Plus} onClick={addHiringSkill}>
-                    Add
-                  </Button>
-                </div>
-              </div>
-
-              {/* Budget & First Deadline Inputs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Role Budget */}
+              <form onSubmit={handlePostHiringSubmit} className="space-y-4 pt-1">
+                {/* Select Role from Catalog (clean titles without parentheses) */}
                 <div>
                   <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
-                    Budget for this Role <span className="text-rose-500">*</span>
+                    Select Role <span className="text-rose-500">*</span>
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8]">
-                      {budgetCurrency === 'INR' ? '₹' : '$'}
-                    </span>
-                    <input
-                      type="number"
-                      required
-                      placeholder="e.g. 8000"
-                      value={hiringBudget}
-                      onChange={(e) => setHiringBudget(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold text-[#261615] dark:text-[#FDEBDE] shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                  </div>
-                  {remainingBudget > 0 && (
-                    <span className="text-[10px] font-semibold text-[#5C3A38] dark:text-[#D4B8A8] mt-1 block">
-                      Remaining in project budget: {budgetCurrency === 'INR' ? '₹' : '$'}{remainingBudget.toLocaleString()}
-                    </span>
-                  )}
+                  <select
+                    required
+                    value={selectedRoleId}
+                    onChange={(e) => handleRoleSelectChange(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-semibold text-[#261615] dark:text-[#FDEBDE] shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] transition-all cursor-pointer"
+                  >
+                    <option value="">-- Choose Role from Catalog --</option>
+                    {availableRoles.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.title || r.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* First Cut Deadline with Custom Date Picker */}
+                {/* Role Deliverables / Description */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE]">
-                      First Milestone Deadline
+                  <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
+                    Role Deliverables & Scope Details
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Detail what this freelancer must deliver (e.g. 1st rough cut with sound FX, color-graded delivery, 2 revisions included)..."
+                    value={hiringDescription}
+                    onChange={(e) => setHiringDescription(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] resize-none leading-relaxed"
+                  />
+                </div>
+
+                {/* Required Skills & Software Tags */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block">
+                    Required Skills & Tools <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {hiringSkills.map((sk) => (
+                      <span
+                        key={sk}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFEBAA] text-[#261615] border border-[#382322] text-[11px] font-bold"
+                      >
+                        {sk}
+                        <button type="button" onClick={() => removeHiringSkill(sk)} className="hover:text-rose-600">&times;</button>
+                      </span>
+                    ))}
+                    {hiringTools.map((tl) => (
+                      <span
+                        key={tl}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#B1C8EA] text-[#261615] border border-[#382322] text-[11px] font-bold"
+                      >
+                        {tl}
+                        <button type="button" onClick={() => removeHiringTool(tl)} className="hover:text-rose-600">&times;</button>
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="text"
+                      placeholder="Add specific skill/tool (e.g. DaVinci Resolve, Blender)..."
+                      value={newHiringSkill}
+                      onChange={(e) => setNewHiringSkill(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-[#201413] text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322]"
+                    />
+                    <Button variant="secondary" size="sm" icon={Plus} onClick={addHiringSkill}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Budget & First Deadline Inputs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Role Budget */}
+                  <div>
+                    <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
+                      Budget for this Role <span className="text-rose-500">*</span>
                     </label>
-                    {maxProjectTurnaroundDays && (
-                      <span className="text-[10px] text-[#382322] dark:text-[#FFEBAA] font-bold">
-                        Max: {maxProjectTurnaroundDays} days
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8]">
+                        {budgetCurrency === 'INR' ? '₹' : '$'}
+                      </span>
+                      <input
+                        type="number"
+                        required
+                        placeholder="e.g. 8000"
+                        value={hiringBudget}
+                        onChange={(e) => setHiringBudget(e.target.value)}
+                        className="w-full pl-8 pr-3 py-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold text-[#261615] dark:text-[#FDEBDE] shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                    </div>
+                    {remainingBudget > 0 && (
+                      <span className="text-[10px] font-semibold text-[#5C3A38] dark:text-[#D4B8A8] mt-1 block">
+                        Remaining in project budget: {budgetCurrency === 'INR' ? '₹' : '$'}{remainingBudget.toLocaleString()}
                       </span>
                     )}
                   </div>
-                  <CustomDatePicker
-                    value={hiringFirstDeadline}
-                    onChange={(newDate) => setHiringFirstDeadline(newDate)}
-                    minDate={todayStr}
-                    maxDate={maxDeadlineDateStr}
-                    placeholder="Pick milestone deadline..."
-                  />
-                  {currentDurationStr && (
-                    <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-1 block">
-                      Turnaround limit: within {currentDurationStr}
-                    </span>
-                  )}
+
+                  {/* First Cut Deadline with Custom Date Picker */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE]">
+                        First Milestone Deadline
+                      </label>
+                      {maxProjectTurnaroundDays && (
+                        <span className="text-[10px] text-[#382322] dark:text-[#FFEBAA] font-bold">
+                          Max: {maxProjectTurnaroundDays} days
+                        </span>
+                      )}
+                    </div>
+                    <CustomDatePicker
+                      value={hiringFirstDeadline}
+                      onChange={(newDate) => setHiringFirstDeadline(newDate)}
+                      minDate={todayStr}
+                      maxDate={maxDeadlineDateStr}
+                      placeholder="Pick milestone deadline..."
+                    />
+                    {currentDurationStr && (
+                      <span className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] mt-1 block">
+                        Turnaround limit: within {currentDurationStr}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Specific References or Notes for this Role */}
-              <div>
-                <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
-                  Specific References or Notes for this Role
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Reference video link, sound pack link, must provide source project files..."
-                  value={hiringNotes}
-                  onChange={(e) => setHiringNotes(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] resize-none"
-                />
-              </div>
+                {/* Specific References or Notes for this Role */}
+                <div>
+                  <label className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] block mb-1.5">
+                    Specific References or Notes for this Role
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Reference video link, sound pack link, must provide source project files..."
+                    value={hiringNotes}
+                    onChange={(e) => setHiringNotes(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs text-[#261615] dark:text-[#FDEBDE] placeholder:text-[#382322]/40 dark:placeholder:text-[#FDEBDE]/40 shadow-[2px_2px_0_#382322] focus:outline-none focus:ring-1 focus:ring-[#382322] resize-none"
+                  />
+                </div>
 
-              {/* Milestones Escrow Breakdown for this Role */}
-              {previewMilestones.length > 0 && (
-                <div className="p-4 rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-3">
+                {/* Milestones Escrow Breakdown for this Role */}
+                {previewMilestones.length > 0 && (
+                  <div className="p-4 rounded-2xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-[#FFEBAA] border border-[#382322] flex items-center justify-center">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#261615]" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Role Milestones & Escrow Allocation</h4>
+                          <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
+                            Tailored 3-phase verification roadmap for {hiringRoleTitle}.
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#FFEBAA] text-[#261615] border border-[#382322]">
+                        3 Milestones • 100% Budget
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 pt-1">
+                      {previewMilestones.map((m) => (
+                        <div
+                          key={m.id}
+                          className="p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] border border-[#382322]/20 dark:border-[#FDEBDE]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                        >
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="w-4 h-4 rounded-full bg-[#382322] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                                {m.index}
+                              </span>
+                              <span className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] truncate">
+                                {m.title}
+                              </span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#FFEBAA] text-[#261615] border border-[#382322] shrink-0">
+                                {Math.round(m.percent * 100)}%
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] pl-6 leading-tight">
+                              {m.description}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-6 sm:pl-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-[#382322]/10">
+                            {m.deadline && (
+                              <span className="text-[10px] text-[#261615] dark:text-[#FFEBAA] font-mono font-bold">
+                                Due: {new Date(m.deadline).toLocaleDateString()}
+                              </span>
+                            )}
+                            <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                              {budgetCurrency === 'INR' ? '₹' : '$'}{m.amount.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* AI Budget & Deadline Suggestion Section (Bottom of Form) */}
+                <div className="p-4 rounded-2xl bg-[#B1C8EA]/20 dark:bg-[#B1C8EA]/10 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-lg bg-[#FFEBAA] border border-[#382322] flex items-center justify-center">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#261615]" />
+                        <Sparkles className="w-3.5 h-3.5 text-[#261615]" />
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Role Milestones & Escrow Allocation</h4>
+                        <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">AI Budget & Deadline Suggestion</h4>
                         <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
-                          Tailored 3-phase verification roadmap for {hiringRoleTitle}.
+                          Suggests fair budget & delivery date using role, skills, and project scope.
                         </p>
                       </div>
                     </div>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#FFEBAA] text-[#261615] border border-[#382322]">
-                      3 Milestones • 100% Budget
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#382322] ${
+                      canAiSuggest
+                        ? 'bg-[#FFEBAA] text-[#261615]'
+                        : 'bg-white dark:bg-[#201413] text-[#5C3A38] dark:text-[#D4B8A8]'
+                    }`}>
+                      {canAiSuggest ? 'Ready for AI' : 'Criteria Required'}
                     </span>
                   </div>
 
-                  <div className="space-y-2 pt-1">
-                    {previewMilestones.map((m) => (
-                      <div
-                        key={m.id}
-                        className="p-3 rounded-xl bg-[#FAF0E6] dark:bg-[#261817] border border-[#382322]/20 dark:border-[#FDEBDE]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
-                      >
-                        <div className="space-y-0.5 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded-full bg-[#382322] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                              {m.index}
-                            </span>
-                            <span className="text-xs font-bold text-[#261615] dark:text-[#FDEBDE] truncate">
-                              {m.title}
-                            </span>
-                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[#FFEBAA] text-[#261615] border border-[#382322] shrink-0">
-                              {Math.round(m.percent * 100)}%
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] pl-6 leading-tight">
-                            {m.description}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-6 sm:pl-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-[#382322]/10">
-                          {m.deadline && (
-                            <span className="text-[10px] text-[#261615] dark:text-[#FFEBAA] font-mono font-bold">
-                              Due: {new Date(m.deadline).toLocaleDateString()}
-                            </span>
-                          )}
-                          <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                            {budgetCurrency === 'INR' ? '₹' : '$'}{m.amount.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Inherited Project Scope Metadata */}
+                  <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold text-[#261615] dark:text-[#FDEBDE] pt-0.5">
+                    <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Project Context:</span>
+                    <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
+                      Category: {effectiveCategory || 'From Project'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
+                      Style: {effectiveStyle || 'From Project'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
+                      Length: {effectiveDuration || 'From Project'}
+                    </span>
                   </div>
-                </div>
-              )}
 
-              {/* AI Budget & Deadline Suggestion Section (Bottom of Form) */}
-              <div className="p-4 rounded-2xl bg-[#B1C8EA]/20 dark:bg-[#B1C8EA]/10 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[3px_3px_0_#382322] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-[#FFEBAA] border border-[#382322] flex items-center justify-center">
-                      <Sparkles className="w-3.5 h-3.5 text-[#261615]" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">AI Budget & Deadline Suggestion</h4>
-                      <p className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8]">
-                        Suggests fair budget & delivery date using role, skills, and project scope.
+                  {!canAiSuggest && (
+                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/40 text-[11px] text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+                      <p className="leading-relaxed">
+                        Select a <strong>Role</strong> and add at least one <strong>Skill or Tool</strong> to enable AI suggestions. The project category, editing style, and video length are automatically inherited.
                       </p>
                     </div>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#382322] ${
-                    canAiSuggest
-                      ? 'bg-[#FFEBAA] text-[#261615]'
-                      : 'bg-white dark:bg-[#201413] text-[#5C3A38] dark:text-[#D4B8A8]'
-                  }`}>
-                    {canAiSuggest ? 'Ready for AI' : 'Criteria Required'}
-                  </span>
-                </div>
+                  )}
 
-                {/* Inherited Project Scope Metadata */}
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-semibold text-[#261615] dark:text-[#FDEBDE] pt-0.5">
-                  <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Project Context:</span>
-                  <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
-                    Category: {effectiveCategory || 'From Project'}
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
-                    Style: {effectiveStyle || 'From Project'}
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-white dark:bg-[#201413] border border-[#382322]/30 dark:border-[#FDEBDE]/30">
-                    Length: {effectiveDuration || 'From Project'}
-                  </span>
-                </div>
+                  {/* AI Suggest Button */}
+                  <button
+                    type="button"
+                    onClick={handleAiSuggestHiring}
+                    disabled={isAiSuggestingHiring || !canAiSuggest}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group"
+                  >
+                    <Sparkles className={`w-3.5 h-3.5 text-[#261615] group-hover:rotate-12 transition-transform ${isAiSuggestingHiring ? 'animate-spin' : ''}`} />
+                    <span>{isAiSuggestingHiring ? 'AI Computing Budget & Deadline...' : 'Suggest Budget & First Deadline with AI'}</span>
+                  </button>
 
-                {!canAiSuggest && (
-                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800/40 text-[11px] text-amber-900 dark:text-amber-200 flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
-                    <p className="leading-relaxed">
-                      Select a <strong>Role</strong> and add at least one <strong>Skill or Tool</strong> to enable AI suggestions. The project category, editing style, and video length are automatically inherited.
-                    </p>
-                  </div>
-                )}
-
-                {/* AI Suggest Button */}
-                <button
-                  type="button"
-                  onClick={handleAiSuggestHiring}
-                  disabled={isAiSuggestingHiring || !canAiSuggest}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-white hover:bg-[#FFEBAA] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed group"
-                >
-                  <Sparkles className={`w-3.5 h-3.5 text-[#261615] group-hover:rotate-12 transition-transform ${isAiSuggestingHiring ? 'animate-spin' : ''}`} />
-                  <span>{isAiSuggestingHiring ? 'AI Computing Budget & Deadline...' : 'Suggest Budget & First Deadline with AI'}</span>
-                </button>
-
-                {/* AI Results Display Card */}
-                {aiSuggestionData && (
-                  <div className="p-3.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] space-y-2 text-xs animate-fade-in">
-                    <div className="flex items-center justify-between border-b border-[#382322]/10 dark:border-[#FDEBDE]/10 pb-2">
-                      <span className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 text-xs">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                        AI Recommendations Applied to Inputs Above
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                      <div className="space-y-0.5">
-                        <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Suggested Budget:</div>
-                        <div className="text-sm font-black font-serif text-emerald-700 dark:text-emerald-400">
-                          {budgetCurrency === 'INR' ? '₹' : '$'}{Number(aiSuggestionData.suggestedBudget).toLocaleString()}
-                        </div>
-                        {aiSuggestionData.budgetRationale && (
-                          <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] leading-tight">{aiSuggestionData.budgetRationale}</p>
-                        )}
+                  {/* AI Results Display Card */}
+                  {aiSuggestionData && (
+                    <div className="p-3.5 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] space-y-2 text-xs animate-fade-in">
+                      <div className="flex items-center justify-between border-b border-[#382322]/10 dark:border-[#FDEBDE]/10 pb-2">
+                        <span className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 text-xs">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          AI Recommendations Applied to Inputs Above
+                        </span>
                       </div>
-                      <div className="space-y-0.5">
-                        <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Suggested First Deadline:</div>
-                        <div className="text-sm font-black font-serif text-[#261615] dark:text-[#FFEBAA]">
-                          ~{aiSuggestionData.suggestedDeadlineDays || 4} Days ({new Date(aiSuggestionData.suggestedFirstDeadline).toLocaleDateString()})
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div className="space-y-0.5">
+                          <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Suggested Budget:</div>
+                          <div className="text-sm font-black font-serif text-emerald-700 dark:text-emerald-400">
+                            {budgetCurrency === 'INR' ? '₹' : '$'}{Number(aiSuggestionData.suggestedBudget).toLocaleString()}
+                          </div>
+                          {aiSuggestionData.budgetRationale && (
+                            <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] leading-tight">{aiSuggestionData.budgetRationale}</p>
+                          )}
                         </div>
-                        {aiSuggestionData.timelineRationale && (
-                          <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] leading-tight">{aiSuggestionData.timelineRationale}</p>
-                        )}
+                        <div className="space-y-0.5">
+                          <div className="text-[11px] font-bold text-[#5C3A38] dark:text-[#D4B8A8]">Suggested First Deadline:</div>
+                          <div className="text-sm font-black font-serif text-[#261615] dark:text-[#FFEBAA]">
+                            ~{aiSuggestionData.suggestedDeadlineDays || 4} Days ({new Date(aiSuggestionData.suggestedFirstDeadline).toLocaleDateString()})
+                          </div>
+                          {aiSuggestionData.timelineRationale && (
+                            <p className="text-[10px] text-[#5C3A38] dark:text-[#D4B8A8] leading-tight">{aiSuggestionData.timelineRationale}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
 
-              {/* Modal Actions */}
-              <div className="flex items-center justify-end gap-3 pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
-                <button
-                  type="button"
-                  onClick={() => setIsHiringModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isPostingHiring}
-                  className="px-6 py-2.5 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] font-bold text-xs uppercase tracking-wider border-2 border-[#382322] shadow-[3px_3px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isPostingHiring ? 'Posting Opening...' : 'Post Hiring Position'}
-                </button>
-              </div>
-            </form>
+                {/* Modal Actions */}
+                <div className="flex items-center justify-end gap-3 pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
+                  <button
+                    type="button"
+                    onClick={() => setIsHiringModalOpen(false)}
+                    className="px-4 py-2 text-xs font-bold text-[#5C3A38] dark:text-[#D4B8A8] hover:text-[#261615] dark:hover:text-[#FDEBDE] transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isPostingHiring}
+                    className="px-6 py-2.5 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe38a] text-[#261615] font-bold text-xs uppercase tracking-wider border-2 border-[#382322] shadow-[3px_3px_0_#382322] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {isPostingHiring ? 'Posting Opening...' : 'Post Hiring Position'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {/* ========================================================================= */}
-      {/* FINAL COMPLETION MODAL                                                    */}
+      {/* FINAL COMPLETION MODAL */}
       {/* ========================================================================= */}
       {showFinalModal && (
-        <div className="fixed inset-0 z-50 bg-[#261615]/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-lg bg-[#FFF7F1] dark:bg-[#261817] p-8 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#FDEBDE]/20 relative text-center space-y-5">
-            <div className="w-16 h-16 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] p-0.5 mx-auto shadow-[3px_3px_0_#382322] flex items-center justify-center">
-              <CheckCircle2 className="w-8 h-8 text-[#261615]" />
-            </div>
-
-            <div>
-              <span className="text-[11px] font-bold text-[#261615] uppercase tracking-widest bg-[#FFEBAA] px-3 py-1 rounded-full border border-[#382322]">
-                Project & Team Configured
-              </span>
-              <h2 className="text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] mt-2 tracking-tight">
-                Project & Hirings are Live! 🚀
-              </h2>
-              <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1.5 max-w-md mx-auto leading-relaxed">
-                Your production brief and {hirings.length} hiring position(s) are active on Collabo. Freelancers and editors can now discover and apply to your roles.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-left text-xs space-y-2">
-              <div className="flex justify-between items-center pb-2 border-b border-[#382322]/10 dark:border-[#FDEBDE]/10">
-                <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Project:</span>
-                <span className="font-bold text-[#261615] dark:text-[#FDEBDE] truncate max-w-[220px]">{title}</span>
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] bg-[#261615]/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 animate-fade-in overflow-y-auto">
+            <div className="w-full max-w-lg my-auto max-h-[88vh] overflow-y-auto bg-[#FFF7F1] dark:bg-[#261817] p-8 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#FDEBDE]/20 relative text-center space-y-5">
+              <div className="w-16 h-16 rounded-2xl bg-[#FFEBAA] border-2 border-[#382322] p-0.5 mx-auto shadow-[3px_3px_0_#382322] flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-[#261615]" />
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Total Budget:</span>
-                <span className="font-extrabold font-serif text-emerald-700 dark:text-emerald-400">
-                  {budgetCurrency === 'INR' ? '₹' : '$'}{numericTotalBudget.toLocaleString()}
+
+              <div>
+                <span className="text-[11px] font-bold text-[#261615] uppercase tracking-widest bg-[#FFEBAA] px-3 py-1 rounded-full border border-[#382322]">
+                  Project & Team Configured
                 </span>
+                <h2 className="text-2xl font-black font-serif text-[#261615] dark:text-[#FDEBDE] mt-2 tracking-tight">
+                  Project & Hirings are Live! 🚀
+                </h2>
+                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] mt-1.5 max-w-md mx-auto leading-relaxed">
+                  Your production brief and {hirings.length} hiring position(s) are active on Collabo. Freelancers and editors can now discover and apply to your roles.
+                </p>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Open Role Openings:</span>
-                <span className="font-bold text-[#261615] dark:text-[#FFEBAA]">{hirings.length} Positions</span>
-              </div>
-            </div>
 
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <Button
-                variant="subtle"
-                onClick={() => navigate('/creator/projects')}
-                className="text-xs"
-              >
-                View All Projects
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => navigate('/creator/workspace')}
-                className="text-xs px-6"
-              >
-                Go to Workspace
-              </Button>
+              <div className="p-4 rounded-xl bg-white dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[2px_2px_0_#382322] text-left text-xs space-y-2">
+                <div className="flex justify-between items-center pb-2 border-b border-[#382322]/10 dark:border-[#FDEBDE]/10">
+                  <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Project:</span>
+                  <span className="font-bold text-[#261615] dark:text-[#FDEBDE] truncate max-w-[220px]">{title}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Total Budget:</span>
+                  <span className="font-extrabold font-serif text-emerald-700 dark:text-emerald-400">
+                    {budgetCurrency === 'INR' ? '₹' : '$'}{numericTotalBudget.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Open Role Openings:</span>
+                  <span className="font-bold text-[#261615] dark:text-[#FFEBAA]">{hirings.length} Positions</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <Button
+                  variant="subtle"
+                  onClick={() => navigate('/creator/projects')}
+                  className="text-xs"
+                >
+                  Projects
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => navigate('/creator/workspace')}
+                  className="text-xs px-6"
+                >
+                  Workspace
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ShieldCheck, Lock, X, KeyRound, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useWallet } from '../../context/WalletContext';
+import ModalPortal from '../common/ModalPortal';
 
 export const SecurityPinModal = ({
   isOpen,
@@ -81,8 +82,9 @@ export const SecurityPinModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-sm glass-card brutal-card p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] shadow-[6px_6px_0_#382322]">
+    <ModalPortal>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+      <div className="relative w-full max-w-sm my-auto max-h-[88vh] overflow-y-auto glass-card brutal-card p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl bg-[#FFF7F1] dark:bg-[#201413] shadow-[6px_6px_0_#382322]">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -164,6 +166,7 @@ export const SecurityPinModal = ({
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 };
 

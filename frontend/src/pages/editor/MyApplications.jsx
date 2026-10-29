@@ -16,6 +16,7 @@ import { SkeletonRow } from '../../components/common/Skeleton';
 import SEO from '../../components/common/SEO';
 import { applicationService } from '../../services/applicationService';
 import { useAlert } from '../../context/AlertContext';
+import ModalPortal from '../../components/common/ModalPortal';
 
 export const MyApplications = () => {
   const navigate = useNavigate();
@@ -384,89 +385,91 @@ export const MyApplications = () => {
 
       {/* Freelancer Counter-Offer Modal */}
       {negotiatingBid && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-[#FFFDF9] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] relative space-y-5 text-[#261615] dark:text-[#FDEBDE]">
-            <button
-              type="button"
-              onClick={() => setNegotiatingBid(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-fade-in overflow-y-auto">
+            <div className="w-full max-w-md my-auto max-h-[88vh] overflow-y-auto rounded-2xl bg-[#FFFDF9] dark:bg-[#201413] p-6 border-2 border-[#382322] dark:border-[#FDEBDE]/30 shadow-[8px_8px_0_#382322] dark:shadow-[8px_8px_0_#000] relative space-y-5 text-[#261615] dark:text-[#FDEBDE]">
+              <button
+                type="button"
+                onClick={() => setNegotiatingBid(null)}
+                className="absolute top-4 right-4 p-1.5 rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 bg-[#FFF7F1] dark:bg-[#19100F] text-[#261615] dark:text-[#FDEBDE] hover:bg-[#FFEBAA] transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
 
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center shrink-0 shadow-[2px_2px_0_#382322]">
-                <ArrowRightLeft className="w-5 h-5 text-[#261615]" />
-              </div>
-              <div>
-                <h3 className="text-base font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-tight">
-                  Counter Creator's Offer
-                </h3>
-                <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] truncate max-w-[280px] font-sans">
-                  {negotiatingBid.roleTitle} on {negotiatingBid.projectTitle}
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleCounterSubmit} className="space-y-4">
-              <div className="p-3 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 flex items-center justify-between text-xs font-mono">
-                <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Creator's Proposed Rate:</span>
-                <span className="font-bold text-[#059669] dark:text-[#34D399] text-sm">
-                  ₹{Number(negotiatingBid.currentOffer || negotiatingBid.bidAmount || 0).toLocaleString('en-IN')}
-                </span>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block">
-                  Your Counter Amount (₹) <span className="text-rose-600">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5C3A38] font-bold text-sm font-mono">₹</span>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    required
-                    placeholder="e.g. 1350"
-                    value={counterAmount}
-                    onChange={(e) => setCounterAmount(e.target.value)}
-                    className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] text-sm font-mono font-bold focus:outline-none shadow-[2px_2px_0_#382322]"
-                  />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#FFEBAA] border-2 border-[#382322] flex items-center justify-center shrink-0 shadow-[2px_2px_0_#382322]">
+                  <ArrowRightLeft className="w-5 h-5 text-[#261615]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-serif font-bold text-[#261615] dark:text-[#FDEBDE] tracking-tight">
+                    Counter Creator's Offer
+                  </h3>
+                  <p className="text-xs text-[#5C3A38] dark:text-[#D4B8A8] truncate max-w-[280px] font-sans">
+                    {negotiatingBid.roleTitle} on {negotiatingBid.projectTitle}
+                  </p>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block">
-                  Add a Note to Creator <span className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-normal normal-case">(Optional)</span>
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="e.g. I can meet you in the middle at ₹1,350 and include color grading + 2 revisions."
-                  value={counterNote}
-                  onChange={(e) => setCounterNote(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] text-xs focus:outline-none shadow-[2px_2px_0_#382322] leading-relaxed resize-none font-sans"
-                />
-              </div>
+              <form onSubmit={handleCounterSubmit} className="space-y-4">
+                <div className="p-3 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322]/20 dark:border-[#FDEBDE]/20 flex items-center justify-between text-xs font-mono">
+                  <span className="text-[#5C3A38] dark:text-[#D4B8A8]">Creator's Proposed Rate:</span>
+                  <span className="font-bold text-[#059669] dark:text-[#34D399] text-sm">
+                    ₹{Number(negotiatingBid.currentOffer || negotiatingBid.bidAmount || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
-                <button
-                  type="button"
-                  onClick={() => setNegotiatingBid(null)}
-                  className="px-4 py-2 rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FDEBDE] cursor-pointer transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:translate-x-0.5 active:translate-y-0.5"
-                >
-                  {isSubmitting ? 'Sending...' : 'Send Counter-Offer'}
-                </button>
-              </div>
-            </form>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block">
+                    Your Counter Amount (₹) <span className="text-rose-600">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5C3A38] font-bold text-sm font-mono">₹</span>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      required
+                      placeholder="e.g. 1350"
+                      value={counterAmount}
+                      onChange={(e) => setCounterAmount(e.target.value)}
+                      className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] text-sm font-mono font-bold focus:outline-none shadow-[2px_2px_0_#382322]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] block">
+                    Add a Note to Creator <span className="text-[11px] text-[#5C3A38] dark:text-[#D4B8A8] font-normal normal-case">(Optional)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="e.g. I can meet you in the middle at ₹1,350 and include color grading + 2 revisions."
+                    value={counterNote}
+                    onChange={(e) => setCounterNote(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-[#261615] dark:text-[#FDEBDE] text-xs focus:outline-none shadow-[2px_2px_0_#382322] leading-relaxed resize-none font-sans"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t-2 border-[#382322]/10 dark:border-[#FDEBDE]/10">
+                  <button
+                    type="button"
+                    onClick={() => setNegotiatingBid(null)}
+                    className="px-4 py-2 rounded-xl border-2 border-[#382322] dark:border-[#FDEBDE]/30 text-xs font-bold font-mono uppercase tracking-wider text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] hover:bg-[#FDEBDE] cursor-pointer transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-5 py-2 rounded-xl bg-[#FFEBAA] hover:bg-[#ffe58f] text-[#261615] border-2 border-[#382322] shadow-[2px_2px_0_#382322] text-xs font-bold font-mono uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:translate-x-0.5 active:translate-y-0.5"
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send Counter-Offer'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

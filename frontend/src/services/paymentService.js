@@ -210,15 +210,56 @@ export const paymentService = {
     return res.data;
   },
 
-  // 9. Editor Simulated Payout / Withdrawal
-  withdrawCredits: async ({ amount, pin, upiId, bankAccountNumber, ifscCode }) => {
-    const res = await api.post('/api/wallet/withdraw', {
-      amount: Number(amount),
-      pin: String(pin || ''),
-      upiId,
-      bankAccountNumber,
-      ifscCode,
-    });
+  // 9. Recall / Refund Milestone Funds from Escrow back to Creator Wallet (0 deliveries submitted)
+  refundEscrow: async ({
+    milestoneId,
+    projectId,
+    hiringId,
+    workspaceId,
+    amount,
+    pin,
+    idempotencyKey,
+  }) => {
+    const key = idempotencyKey || `refund_${milestoneId}_${Date.now()}`;
+    const res = await api.post(
+      '/api/wallet/escrow/refund',
+      {
+        milestoneId,
+        projectId,
+        hiringId,
+        workspaceId,
+        amount: Number(amount),
+        pin: String(pin || ''),
+        idempotencyKey: key,
+      },
+      {
+        headers: {
+          'Idempotency-Key': key,
+        },
+      }
+    );
+    return res.data;
+  },
+
+  // 10. Withdrawal / Payout Request (Creator or Editor withdraws credits to UPI/Bank)
+  withdrawCredits: async ({ amount, pin, upiId, bankAccountNumber, ifscCode, idempotencyKey }) => {
+    const key = idempotencyKey || `wd_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const res = await api.post(
+      '/api/wallet/withdraw',
+      {
+        amount: Number(amount),
+        pin: String(pin || ''),
+        upiId,
+        bankAccountNumber,
+        ifscCode,
+        idempotencyKey: key,
+      },
+      {
+        headers: {
+          'Idempotency-Key': key,
+        },
+      }
+    );
     return res.data;
   },
 

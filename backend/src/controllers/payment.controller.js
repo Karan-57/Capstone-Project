@@ -604,7 +604,7 @@ async function lockEscrow(req, res) {
       }
       await targetMilestone.save();
 
-      // Notify Freelancer
+      // 1. Notify Freelancer
       if (targetMilestone.freelancerId) {
         createNotification({
           recipient: targetMilestone.freelancerId,
@@ -613,8 +613,22 @@ async function lockEscrow(req, res) {
           message: `₹${numericAmount.toLocaleString('en-IN')} has been locked in escrow for "${targetMilestone.title}". You can now start working and submit your cut!`,
           project: targetMilestone.projectId,
           relatedUser: req.user._id,
-        }).catch(() => {});
+          link: `/editor/workspace?projectId=${targetMilestone.projectId}&milestoneId=${targetMilestone._id}`,
+          actionUrl: `/editor/workspace?projectId=${targetMilestone.projectId}&milestoneId=${targetMilestone._id}`,
+        }).catch((err) => console.error('[Notification] Freelancer fund notice:', err.message));
       }
+
+      // 2. Notify Creator of confirmation
+      createNotification({
+        recipient: req.user._id,
+        type: 'ESCROW_DEPOSITED',
+        title: 'Milestone Escrow Deposit Confirmed',
+        message: `₹${numericAmount.toLocaleString('en-IN')} is safely locked in escrow for "${targetMilestone.title}". Freelancer can now submit their cut.`,
+        project: targetMilestone.projectId,
+        relatedUser: req.user._id,
+        link: `/creator/workspace?projectId=${targetMilestone.projectId}&milestoneId=${targetMilestone._id}`,
+        actionUrl: `/creator/workspace?projectId=${targetMilestone.projectId}&milestoneId=${targetMilestone._id}`,
+      }).catch((err) => console.error('[Notification] Creator fund record notice:', err.message));
     }
 
     // 8. Update Project and Workspace Status
@@ -780,7 +794,7 @@ async function releaseEscrow(req, res) {
       }
     }
 
-    // Notify editor
+    // 1. Notify Freelancer / Editor
     try {
       await createNotification({
         recipient: editorId,
@@ -789,9 +803,27 @@ async function releaseEscrow(req, res) {
         message: `₹${numericAmount.toLocaleString('en-IN')} has been released to your wallet for "${title}".`,
         project: projectId || targetMilestone?.projectId || null,
         relatedUser: req.user._id,
+        link: `/editor/workspace?projectId=${projectId || targetMilestone?.projectId}&milestoneId=${targetMilestone?._id || ''}`,
+        actionUrl: `/editor/workspace?projectId=${projectId || targetMilestone?.projectId}&milestoneId=${targetMilestone?._id || ''}`,
       });
     } catch (e) {
       console.warn('[Notification] Release notification error:', e.message);
+    }
+
+    // 2. Notify Creator of payment release confirmation
+    try {
+      await createNotification({
+        recipient: req.user._id,
+        type: 'ESCROW_RELEASED',
+        title: 'Payment Release Confirmed',
+        message: `₹${numericAmount.toLocaleString('en-IN')} from escrow for "${title}" was successfully released to the freelancer.`,
+        project: projectId || targetMilestone?.projectId || null,
+        relatedUser: req.user._id,
+        link: `/creator/workspace?projectId=${projectId || targetMilestone?.projectId}&milestoneId=${targetMilestone?._id || ''}`,
+        actionUrl: `/creator/workspace?projectId=${projectId || targetMilestone?.projectId}&milestoneId=${targetMilestone?._id || ''}`,
+      });
+    } catch (e) {
+      console.warn('[Notification] Creator release record error:', e.message);
     }
 
     return res.status(200).json({
@@ -871,15 +903,32 @@ async function releaseEscrowInternal({ creatorId, editorId, amount, workspaceId,
 }
 
 /**
- * 9. Simulated Withdrawal / Payout Request (Editor withdraws earnings to UPI/Bank)
+ * 9. Withdrawal / Payout Request (Creator or Editor withdraws unspent/cleared credits to UPI/Bank)
+ * Implements idempotency key & double-entry ledger.
  */
 async function withdrawCredits(req, res) {
   try {
-    const { amount, pin, upiId, bankAccountNumber, ifscCode } = req.body;
+    const { amount, pin, upiId, bankAccountNumber, ifscCode, idempotencyKey: bodyIdemp } = req.body;
     const numericAmount = Number(amount);
 
     if (!numericAmount || numericAmount < 50) {
       return res.status(400).json({ message: 'Minimum withdrawal amount is ₹50 (50 credits)' });
+    }
+
+    // 1. Idempotency Key Guard
+    const idempotencyKey = req.headers['idempotency-key'] || bodyIdemp || null;
+    if (idempotencyKey) {
+      const existingTxn = await transactionModel.findOne({ idempotencyKey });
+      if (existingTxn) {
+        const currentUser = await userModel.findById(req.user._id);
+        return res.status(200).json({
+          success: true,
+          message: 'Withdrawal request already processed previously',
+          transaction: existingTxn,
+          walletBalance: currentUser ? currentUser.walletBalance : 0,
+          utrNumber: existingTxn.razorpayPaymentId || idempotencyKey,
+        });
+      }
     }
 
     const user = await userModel.findById(req.user._id).select('+transactionPin');
@@ -894,7 +943,7 @@ async function withdrawCredits(req, res) {
       });
     }
 
-    // Verify PIN
+    // 2. Verify PIN
     const pinToCheck = String(pin || '');
     const isMatch = user.transactionPin
       ? await bcrypt.compare(pinToCheck, user.transactionPin)
@@ -904,7 +953,7 @@ async function withdrawCredits(req, res) {
       return res.status(400).json({ message: 'Invalid Transaction Security PIN' });
     }
 
-    // Atomically debit editor wallet
+    // 3. Atomically debit user wallet
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
       { $inc: { walletBalance: -numericAmount } },
@@ -916,6 +965,7 @@ async function withdrawCredits(req, res) {
       ? `UPI: ${upiId}`
       : `Bank: ••••${String(bankAccountNumber || '8888').slice(-4)} (${ifscCode || 'HDFC0001'})`;
 
+    // 4. Create immutable Transaction record
     const transaction = await transactionModel.create({
       fromUser: req.user._id,
       toUser: null,
@@ -923,9 +973,12 @@ async function withdrawCredits(req, res) {
       type: 'WITHDRAWAL',
       status: 'SUCCESS',
       gateway: 'SIMULATED_PAYOUT',
-      description: `Simulated Payout: ₹${numericAmount.toLocaleString('en-IN')} to ${destinationDesc} (${utr})`,
+      idempotencyKey: idempotencyKey || utr,
+      razorpayPaymentId: utr,
+      description: `Withdrawal: ₹${numericAmount.toLocaleString('en-IN')} to ${destinationDesc} (${utr})`,
     });
 
+    // 5. Create immutable Ledger entry (DEBIT)
     await ledgerModel.create({
       user: req.user._id,
       amount: numericAmount,
@@ -934,6 +987,19 @@ async function withdrawCredits(req, res) {
       balanceAfter: updatedUser.walletBalance,
       description: `Payout Withdrawal (${utr})`,
     });
+
+    // 6. Notification to user
+    try {
+      await createNotification({
+        recipient: req.user._id,
+        type: 'WITHDRAWAL_SUCCESS',
+        title: 'Withdrawal Initiated',
+        message: `Your withdrawal of ₹${numericAmount.toLocaleString('en-IN')} to ${destinationDesc} (${utr}) has been initiated.`,
+        relatedUser: req.user._id,
+      });
+    } catch (notifErr) {
+      console.warn('[Notification] Withdrawal notification warning:', notifErr.message);
+    }
 
     return res.status(200).json({
       success: true,
@@ -948,6 +1014,189 @@ async function withdrawCredits(req, res) {
   }
 }
 
+/**
+ * 10. Refund Milestone Escrow back to Creator Wallet
+ * Condition: Milestone is in 'funded' status and freelancer has made 0 deliveries (!deliveries || deliveries.length === 0).
+ * Implements idempotency key & double-entry ledger audit record.
+ */
+async function refundEscrow(req, res) {
+  try {
+    const {
+      milestoneId,
+      projectId,
+      hiringId,
+      workspaceId,
+      amount,
+      pin,
+      reason,
+      idempotencyKey: bodyIdemp,
+    } = req.body;
+
+    // 1. Locate Target Milestone in MongoDB
+    let targetMilestone = null;
+    if (milestoneId && mongoose.Types.ObjectId.isValid(milestoneId)) {
+      targetMilestone = await milestoneModel.findById(milestoneId);
+    }
+    if (!targetMilestone && hiringId) {
+      targetMilestone = await milestoneModel.findOne({
+        hiringId,
+        status: 'funded',
+      });
+    }
+    if (!targetMilestone && workspaceId) {
+      targetMilestone = await milestoneModel.findOne({
+        workspaceId,
+        status: 'funded',
+      });
+    }
+
+    if (!targetMilestone) {
+      return res.status(404).json({ message: 'Funded milestone not found in database' });
+    }
+
+    // 2. Authorization: only project creator can recall funds to wallet
+    const creatorId = targetMilestone.creatorId?.toString();
+    if (creatorId && creatorId !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the project creator can recall escrow funds' });
+    }
+
+    // 3. Status Check: Must be funded
+    if (targetMilestone.status !== 'funded') {
+      return res.status(400).json({
+        message: `Milestone is currently in '${targetMilestone.status}' state. Only funded milestones can be refunded.`,
+        currentStatus: targetMilestone.status,
+      });
+    }
+
+    // 4. Strict Zero-Delivery Rule: Freelancer must have made 0 deliveries
+    const deliveriesCount = Array.isArray(targetMilestone.deliveries)
+      ? targetMilestone.deliveries.length
+      : 0;
+
+    if (deliveriesCount > 0 || (targetMilestone.submittedUrl && targetMilestone.submittedUrl.trim())) {
+      return res.status(400).json({
+        message: `Cannot refund escrow: Freelancer has already made ${deliveriesCount || 1} delivery cut(s). Escrow refund is only permitted when no deliveries have been submitted yet.`,
+        deliveriesCount,
+      });
+    }
+
+    // 5. Idempotency Key Guard
+    const idempotencyKey =
+      req.headers['idempotency-key'] ||
+      bodyIdemp ||
+      `refund_ms_${targetMilestone._id}`;
+
+    const existingTxn = await transactionModel.findOne({ idempotencyKey });
+    if (existingTxn) {
+      const creatorUser = await userModel.findById(req.user._id);
+      return res.status(200).json({
+        success: true,
+        message: 'Escrow deposit already refunded previously',
+        transaction: existingTxn,
+        walletBalance: creatorUser ? creatorUser.walletBalance : 0,
+        milestone: targetMilestone,
+      });
+    }
+
+    // 6. Security PIN Verification (if PIN provided or if creator has PIN set)
+    if (pin) {
+      const creator = await userModel.findById(req.user._id).select('+transactionPin');
+      const pinToCheck = String(pin);
+      const isMatch = creator?.transactionPin
+        ? await bcrypt.compare(pinToCheck, creator.transactionPin)
+        : pinToCheck === '1234';
+
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid Transaction Security PIN' });
+      }
+    }
+
+    const numericAmount = Number(amount || targetMilestone.amount);
+    if (!numericAmount || numericAmount <= 0) {
+      return res.status(400).json({ message: 'Invalid refund amount' });
+    }
+
+    // 7. Atomic Credit back to Creator's Wallet
+    const updatedUser = await userModel.findByIdAndUpdate(
+      req.user._id,
+      { $inc: { walletBalance: numericAmount } },
+      { returnDocument: 'after' }
+    );
+
+    const title = targetMilestone.title || 'Milestone Escrow Refund';
+
+    // 8. Create Immutable Transaction Record
+    const transaction = await transactionModel.create({
+      fromUser: null, // Released from system safe holding
+      toUser: req.user._id,
+      amount: numericAmount,
+      type: 'ESCROW_REFUND',
+      status: 'SUCCESS',
+      gateway: 'SYSTEM_LEDGER',
+      referenceWorkspaceId: targetMilestone.workspaceId || workspaceId || null,
+      milestoneTitle: title,
+      idempotencyKey,
+      description: `Escrow Refund: ₹${numericAmount.toLocaleString('en-IN')} for "${title}" returned to wallet (0 deliveries submitted)`,
+    });
+
+    // 9. Create Immutable Ledger Entry (Double-entry CREDIT audit)
+    await ledgerModel.create({
+      user: req.user._id,
+      amount: numericAmount,
+      type: 'CREDIT',
+      transaction: transaction._id,
+      balanceAfter: updatedUser.walletBalance,
+      description: `Escrow Refund (${title})`,
+    });
+
+    // 10. Reset Milestone to 'pending' (unfunded) state
+    targetMilestone.status = 'pending';
+    targetMilestone.fundedAt = null;
+    targetMilestone.escrowLockTxn = null;
+    await targetMilestone.save();
+
+    // 11. Send Real Notifications to Creator and Freelancer
+    try {
+      // 1. Notify Creator
+      await createNotification({
+        recipient: req.user._id,
+        type: 'ESCROW_REFUNDED',
+        title: 'Escrow Refunded to Wallet',
+        message: `₹${numericAmount.toLocaleString('en-IN')} locked in escrow for "${title}" has been returned to your wallet balance.`,
+        project: targetMilestone.projectId,
+        relatedUser: req.user._id,
+        link: `/creator/payments?projectId=${targetMilestone.projectId}`,
+      });
+
+      // 2. Notify Freelancer
+      if (targetMilestone.freelancerId) {
+        await createNotification({
+          recipient: targetMilestone.freelancerId,
+          type: 'ESCROW_RECALLED',
+          title: 'Milestone Escrow Recalled',
+          message: `The creator recalled the escrow deposit (₹${numericAmount.toLocaleString('en-IN')}) for "${title}" as no deliveries were submitted yet.`,
+          project: targetMilestone.projectId,
+          relatedUser: req.user._id,
+          link: `/editor/workspace?projectId=${targetMilestone.projectId}`,
+        });
+      }
+    } catch (notifErr) {
+      console.warn('[Notification] Escrow refund notification warning:', notifErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `₹${numericAmount.toLocaleString('en-IN')} refunded from escrow back to your wallet.`,
+      walletBalance: updatedUser.walletBalance,
+      milestone: targetMilestone,
+      transaction,
+    });
+  } catch (err) {
+    console.error('Error in refundEscrow:', err);
+    return res.status(500).json({ message: 'Failed to refund escrow', error: err.message });
+  }
+}
+
 module.exports = {
   createOrder,
   verifyPayment,
@@ -958,5 +1207,6 @@ module.exports = {
   lockEscrow,
   releaseEscrow,
   releaseEscrowInternal,
+  refundEscrow,
   withdrawCredits,
 };

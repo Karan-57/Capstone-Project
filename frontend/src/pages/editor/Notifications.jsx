@@ -50,21 +50,23 @@ export const Notifications = () => {
   };
 
   const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'application':
-      case 'application_accepted':
-        return { icon: Sparkles, color: 'text-[#261615] dark:text-[#FFEBAA] bg-[#FFEBAA] dark:bg-[#FFEBAA]/20 border-2 border-[#382322] dark:border-[#FFEBAA]/40' };
-      case 'payment':
-      case 'payment_released':
-        return { icon: DollarSign, color: 'text-[#065F46] dark:text-[#34D399] bg-[#D1FAE5] dark:bg-[#065F46]/30 border-2 border-[#065F46]/30 dark:border-[#34D399]/40' };
-      case 'revision':
-      case 'feedback':
-        return { icon: MessageSquare, color: 'text-[#1E40AF] dark:text-[#93C5FD] bg-[#DBEAFE] dark:bg-[#1E40AF]/30 border-2 border-[#1E40AF]/30 dark:border-[#93C5FD]/40' };
-      case 'completed':
-        return { icon: CheckCircle2, color: 'text-[#065F46] dark:text-[#34D399] bg-[#D1FAE5] dark:bg-[#065F46]/30 border-2 border-[#065F46]/30 dark:border-[#34D399]/40' };
-      default:
-        return { icon: Bell, color: 'text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30' };
+    const t = String(type || '').toLowerCase();
+    if (t.includes('revision')) {
+      return { icon: MessageSquare, color: 'text-[#8A5200] dark:text-[#FFEBAA] bg-[#FFEBAA]/60 dark:bg-[#FFEBAA]/20 border-2 border-[#8A5200]/40 dark:border-[#FFEBAA]/40' };
     }
+    if (t.includes('deliver') || t.includes('submission')) {
+      return { icon: MessageSquare, color: 'text-[#1E40AF] dark:text-[#93C5FD] bg-[#DBEAFE] dark:bg-[#1E40AF]/30 border-2 border-[#1E40AF]/30 dark:border-[#93C5FD]/40' };
+    }
+    if (t.includes('payment') || t.includes('escrow')) {
+      return { icon: DollarSign, color: 'text-[#065F46] dark:text-[#34D399] bg-[#D1FAE5] dark:bg-[#065F46]/30 border-2 border-[#065F46]/30 dark:border-[#34D399]/40' };
+    }
+    if (t.includes('completed')) {
+      return { icon: CheckCircle2, color: 'text-[#065F46] dark:text-[#34D399] bg-[#D1FAE5] dark:bg-[#065F46]/30 border-2 border-[#065F46]/30 dark:border-[#34D399]/40' };
+    }
+    if (t.includes('application')) {
+      return { icon: Sparkles, color: 'text-[#261615] dark:text-[#FFEBAA] bg-[#FFEBAA] dark:bg-[#FFEBAA]/20 border-2 border-[#382322] dark:border-[#FFEBAA]/40' };
+    }
+    return { icon: Bell, color: 'text-[#261615] dark:text-[#FDEBDE] bg-[#FFF7F1] dark:bg-[#19100F] border-2 border-[#382322] dark:border-[#FDEBDE]/30' };
   };
 
   if (loading) {
