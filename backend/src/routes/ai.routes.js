@@ -12,12 +12,19 @@ const aiRouter = Router();
 aiRouter.post('/suggest-budget-timeline', authUser, aiController.suggestBudgetAndTimelineController);
 
 /**
- * @route POST /api/ai/suggest-editor-bid/:projectId?
+ * @route POST /api/ai/suggest-editor-bid/:projectId
+ * @route POST /api/ai/suggest-editor-bid
  * @description Estimate strategic bid amount, delivery days, and cover proposal using AI
  * @access Private
  */
 aiRouter.post(
-  '/suggest-editor-bid/:projectId?',
+  '/suggest-editor-bid/:projectId',
+  authUser,
+  aiController.suggestEditorBidController
+);
+
+aiRouter.post(
+  '/suggest-editor-bid',
   authUser,
   aiController.suggestEditorBidController
 );
