@@ -15,6 +15,6 @@ const server = http.createServer(app);
 initSocket(server);
 
 const PORT = config.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT} host 0.0.0.0 http://localhost:${PORT}`);
 });

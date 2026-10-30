@@ -9,7 +9,8 @@ if (dns.setDefaultResultOrder) {
 
 // Custom lookup function strictly resolving IPv4 to prevent ENETUNREACH on Render/Docker
 const ipv4Lookup = (hostname, options, callback) => {
-    return dns.lookup(hostname, { family: 4 }, callback);
+    const cb = typeof options === "function" ? options : callback;
+    return dns.lookup(hostname, { family: 4, all: false }, cb);
 };
 
 // Base SMTP configuration forcing IPv4 to prevent ENETUNREACH delays on cloud hosts like Render
@@ -17,6 +18,7 @@ const smtpOptions = {
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
+    family: 4,
     lookup: ipv4Lookup,
     connectionTimeout: 10000,
     greetingTimeout: 10000,

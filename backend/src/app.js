@@ -53,7 +53,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(preventNoSqlAndXss);
 
-// Lightweight Health Check endpoint for Render & Uptime monitoring
+// Lightweight Root & Health Check endpoints for Render & Uptime monitoring
+app.get('/', (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'Collabo API is running', uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
 });
