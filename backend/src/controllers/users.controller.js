@@ -9,6 +9,55 @@ const { uploadToImageKit } = require('../services/imagekit.service');
 const { createNotification } = require('../services/notification.service');
 
 /**
+ * Dynamic calculation and self-healing for user rating metrics.
+ * Ensures that totalReviews and avgRating are 100% accurate based on reviewModel.
+ */
+async function recalculateUserRatingMetrics(userId) {
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) return null;
+    const objId = new mongoose.Types.ObjectId(userId);
+
+    const [stats] = await reviewModel.aggregate([
+        { $match: { revieweeId: objId } },
+        {
+            $group: {
+                _id: "$revieweeId",
+                avgRating: { $avg: "$rating" },
+                avgSpeed: { $avg: "$speed" },
+                avgQuality: { $avg: "$quality" },
+                avgBehaviour: { $avg: "$behaviour" },
+                avgResponseTime: { $avg: "$responseTime" },
+                avgBoundaryRespect: { $avg: "$boundaryRespect" },
+                totalReviews: { $sum: 1 }
+            }
+        }
+    ]);
+
+    const totalReviews = stats?.totalReviews || 0;
+    const rating = stats?.avgRating != null ? Math.round(stats.avgRating * 10) / 10 : 0;
+    const speed = stats?.avgSpeed != null ? Math.round(stats.avgSpeed * 10) / 10 : 0;
+    const quality = stats?.avgQuality != null ? Math.round(stats.avgQuality * 10) / 10 : 0;
+    const behaviour = stats?.avgBehaviour != null ? Math.round(stats.avgBehaviour * 10) / 10 : 0;
+    const responseTime = stats?.avgResponseTime != null ? Math.round(stats.avgResponseTime * 10) / 10 : 0;
+    const avgBoundary = stats?.avgBoundaryRespect != null ? Math.round(stats.avgBoundaryRespect * 10) / 10 : 0;
+
+    const metrics = {
+        totalReviews,
+        rating,
+        speed,
+        quality,
+        behaviour,
+        responseTime,
+        boundaryRespect: avgBoundary,
+        boundary: avgBoundary
+    };
+
+    // Self-heal and sync userModel in background
+    userModel.findByIdAndUpdate(userId, { $set: metrics }).catch(() => {});
+
+    return metrics;
+}
+
+/**
  * @name getMeController
  * @description to get current user info
  * @access Private
@@ -16,7 +65,12 @@ const { createNotification } = require('../services/notification.service');
 async function getMeController(req, res) {
     try {
         if (req.user) {
-            return res.status(200).json({ user: req.user });
+            const userId = req.user._id || req.user.id;
+            const metrics = await recalculateUserRatingMetrics(userId).catch(() => null);
+            const userObj = metrics && (req.user.rating !== metrics.rating || req.user.totalReviews !== metrics.totalReviews)
+                ? { ...req.user, ...metrics }
+                : req.user;
+            return res.status(200).json({ user: userObj });
         }
 
         const token = req.cookies?.accessToken || req.cookies?.token || req.headers.authorization?.split(" ")[1];
@@ -32,7 +86,9 @@ async function getMeController(req, res) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        return res.status(200).json({ user, decoded });
+        const metrics = await recalculateUserRatingMetrics(decoded.id).catch(() => null);
+        const userObj = metrics ? { ...user, ...metrics } : user;
+        return res.status(200).json({ user: userObj, decoded });
     } catch (err) {
         return res.status(401).json({ message: "Invalid or expired token" });
     }
@@ -186,10 +242,23 @@ async function getUserByIdController(req, res) {
     try {
         const userId = req.params.userId || req.params.id;
 
-        const user = await userModel.findById(userId).select("-password").lean();
+        const user = await userModel.findById(userId).select(
+            "-password").lean();
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
+        }
+
+        const metrics = await recalculateUserRatingMetrics(userId).catch(() => null);
+        if (metrics) {
+            user.rating = metrics.rating;
+            user.totalReviews = metrics.totalReviews;
+            user.speed = metrics.speed;
+            user.quality = metrics.quality;
+            user.behaviour = metrics.behaviour;
+            user.responseTime = metrics.responseTime;
+            user.boundaryRespect = metrics.boundaryRespect;
+            user.boundary = metrics.boundary;
         }
 
         return res.status(200).json({ user });
@@ -1004,7 +1073,8 @@ async function getUserReviewsController(req, res) {
             return res.status(400).json({ message: "Invalid user ID" });
         }
 
-        const user = await userModel.findById(userId).select('role name username profileImage').lean();
+        const user = await userModel.findById(userId).select(
+            'role name username profileImage').lean();
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -1035,6 +1105,7 @@ async function getUserReviewsController(req, res) {
                 .lean()
         ]);
 
+        recalculateUserRatingMetrics(userId).catch(() => null);
         const totalPages = Math.ceil(totalReviews / limit) || 1;
 
         return res.status(200).json({
@@ -1074,12 +1145,22 @@ async function getUserRatingsController(req, res) {
         }
 
         const user = await userModel.findById(userId).select(
+
             'role name username profileImage rating speed quality behaviour responseTime boundaryRespect boundary totalReviews'
         );
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+
+        const metrics = await recalculateUserRatingMetrics(userId).catch(() => null);
+        const totalReviews = metrics ? metrics.totalReviews : (user.totalReviews || 0);
+        const rating = metrics ? metrics.rating : (user.rating || 0);
+        const speed = metrics ? metrics.speed : (user.speed || 0);
+        const quality = metrics ? metrics.quality : (user.quality || 0);
+        const behaviour = metrics ? metrics.behaviour : (user.behaviour || 0);
+        const responseTime = metrics ? metrics.responseTime : (user.responseTime || 0);
+        const boundaryVal = metrics ? metrics.boundaryRespect : (user.boundaryRespect !== undefined ? user.boundaryRespect : (user.boundary || 0));
 
         let ratingsData = {};
 
@@ -1089,12 +1170,12 @@ async function getUserRatingsController(req, res) {
                 name: user.name,
                 username: user.username,
                 role: user.role,
-                totalReviews: user.totalReviews || 0,
-                rating: user.rating || 0,
-                speed: user.speed || 0,
-                quality: user.quality || 0,
-                behaviour: user.behaviour || 0,
-                responseTime: user.responseTime || 0
+                totalReviews,
+                rating,
+                speed,
+                quality,
+                behaviour,
+                responseTime
             };
         } else {
             // Creator
@@ -1103,12 +1184,12 @@ async function getUserRatingsController(req, res) {
                 name: user.name,
                 username: user.username,
                 role: user.role,
-                totalReviews: user.totalReviews || 0,
-                rating: user.rating || 0,
-                behaviour: user.behaviour || 0,
-                responseTime: user.responseTime || 0,
-                boundaryRespect: user.boundaryRespect !== undefined ? user.boundaryRespect : (user.boundary || 0),
-                boundary: user.boundary !== undefined ? user.boundary : (user.boundaryRespect || 0)
+                totalReviews,
+                rating,
+                behaviour,
+                responseTime,
+                boundaryRespect: boundaryVal,
+                boundary: boundaryVal
             };
         }
 
@@ -1136,7 +1217,8 @@ async function getSettingsController(req, res) {
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized, user ID not found" });
         }
-        const user = await userModel.findById(userId).select("settings phone phoneNumber email name role");
+        const user = await userModel.findById(userId).select(
+            "settings phone phoneNumber email name role");
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }

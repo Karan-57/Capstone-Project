@@ -100,13 +100,21 @@ export const applicationService = {
       throw err;
     }
   },
-  negotiateApplication: async (applicationId, { amount, note }) => {
+  negotiateApplication: async (applicationId, payload) => {
     try {
+      const amount = payload?.amount !== undefined ? payload.amount : payload?.counterAmount;
+      const note = payload?.note !== undefined ? payload.note : payload?.counterNote;
       const res = await api.post(`/api/application/${applicationId}/negotiate`, { amount, note });
       return res.data;
     } catch (err) {
       console.error('[applicationService] Failed to submit counter-offer:', err);
       throw err;
     }
+  },
+  negotiateCounterOffer: async (applicationId, payload) => {
+    return applicationService.negotiateApplication(applicationId, payload);
+  },
+  submitCounterOffer: async (applicationId, payload) => {
+    return applicationService.negotiateApplication(applicationId, payload);
   },
 };

@@ -158,9 +158,9 @@ export const EditorProfile = () => {
 
       {/* Profile Card Header */}
       <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] p-5 sm:p-6 md:p-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-[#FFEBAA] dark:bg-[#2D1C1B] border-b-2 border-[#382322] dark:border-[#FDEBDE]/20" />
+        <div className="absolute top-0 left-0 right-0 h-28 sm:h-32 bg-[#FFEBAA] dark:bg-[#2D1C1B] border-b-2 border-[#382322] dark:border-[#FDEBDE]/20 z-0" />
 
-        <div className="relative pt-10 sm:pt-12 flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 text-center sm:text-left">
+        <div className="relative z-10 pt-10 sm:pt-12 flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 text-center sm:text-left">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
             <img
               src={editorUser?.profileImage || editorUser?.avatar || DEFAULT_PFP}

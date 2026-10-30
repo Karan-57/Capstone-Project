@@ -309,15 +309,7 @@ async function getWalletDetailsService(userId, userRole) {
     },
   ]);
 
-  let calculatedBalance = user.walletBalance || 0;
-  if (ledgerSummary && ledgerSummary.count > 0) {
-    const reconciled = Math.max(0, ledgerSummary.totalCredits - ledgerSummary.totalDebits);
-    calculatedBalance = reconciled;
-    if (user.walletBalance !== reconciled) {
-      // Reconcile and self-heal user document in background
-      userModel.findByIdAndUpdate(userId, { walletBalance: reconciled }).catch(() => {});
-    }
-  }
+  const calculatedBalance = Math.max(0, Number(user.walletBalance) || 0);
 
   // 2. Fetch recent transactions with .lean() (Zero Mongoose Hydration Overhead)
   const transactions = await transactionModel
@@ -334,6 +326,7 @@ async function getWalletDetailsService(userId, userRole) {
   let totalSettledReleases = 0;
   let completedMilestonesCount = 0;
   let totalLockedEver = 0;
+  let totalRefunded = 0;
   let lifetimeEarned = 0;
   let totalWithdrawn = 0;
 
@@ -349,12 +342,14 @@ async function getWalletDetailsService(userId, userRole) {
       }
     } else if (t.type === 'ESCROW_LOCK' && t.fromUser && t.fromUser.toString() === userIdStr) {
       totalLockedEver += amt;
+    } else if (t.type === 'ESCROW_REFUND' && t.toUser && t.toUser.toString() === userIdStr) {
+      totalRefunded += amt;
     } else if (t.type === 'WITHDRAWAL' && t.fromUser && t.fromUser.toString() === userIdStr) {
       totalWithdrawn += amt;
     }
   }
 
-  const creatorCurrentEscrow = Math.max(0, totalLockedEver - totalSettledReleases);
+  const creatorCurrentEscrow = Math.max(0, totalLockedEver - totalSettledReleases - totalRefunded);
 
   // 4. Editor pending escrow calculation using single aggregation query
   let editorPendingEscrow = 0;

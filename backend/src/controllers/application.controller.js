@@ -747,7 +747,8 @@ async function negotiateApplicationController(req, res) {
     try {
         const userId = req.user?._id || req.user?.id;
         const applicationId = req.params.applicationId || req.params.id;
-        const { amount, note } = req.body;
+        const amount = req.body.amount !== undefined ? req.body.amount : req.body.counterAmount;
+        const note = req.body.note !== undefined ? req.body.note : req.body.counterNote;
 
         if (!userId) {
             return res.status(401).json({ message: "Unauthorized, user not authenticated" });

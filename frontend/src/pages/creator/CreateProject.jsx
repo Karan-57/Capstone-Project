@@ -805,7 +805,7 @@ export const CreateProject = () => {
       {step === 1 && (
         <form onSubmit={handleSaveStep1} className="space-y-7">
           {/* Section 1: Overview */}
-          <div className="brutal-card p-6 md:p-7 space-y-5 rounded-2xl">
+          <div className="brutal-card p-6 md:p-7 space-y-5 rounded-2xl relative z-20">
             <div className="flex items-center gap-2 pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
               <Film className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />
               <h3 className="text-base font-bold font-serif text-[#261615] dark:text-[#FDEBDE]">Project Scope & Brief</h3>
@@ -844,7 +844,7 @@ export const CreateProject = () => {
             {/* Category & Editing Style Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Category Dropdown */}
-              <div className="relative" ref={categoryRef}>
+              <div className={`relative ${isCategoryOpen ? 'z-40' : 'z-20'}`} ref={categoryRef}>
                 <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
                   Category <span className="text-rose-600 dark:text-rose-400">*</span>
                 </label>
@@ -874,7 +874,7 @@ export const CreateProject = () => {
                 </button>
 
                 {isCategoryOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-2 z-30 p-2 rounded-2xl bg-[#FFF7F1] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FFEBAA]/40 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-1 max-h-72 overflow-y-auto">
+                  <div className="absolute left-0 right-0 top-full mt-2 z-50 p-2 rounded-2xl bg-[#FFF7F1] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FFEBAA]/40 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-1 max-h-72 overflow-y-auto">
                     {categoryOptions.map((opt) => {
                       const isSelected = category === opt.id;
                       const IconComp = opt.icon;
@@ -907,7 +907,7 @@ export const CreateProject = () => {
               </div>
 
               {/* Editing Style Dropdown */}
-              <div className="relative" ref={styleRef}>
+              <div className={`relative ${isStyleOpen ? 'z-40' : 'z-10'}`} ref={styleRef}>
                 <label className="text-xs font-bold text-[#382322] dark:text-[#FFEBAA] block mb-1.5 font-serif uppercase tracking-wider">
                   Editing Style
                 </label>
@@ -937,7 +937,7 @@ export const CreateProject = () => {
                 </button>
 
                 {isStyleOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-2 z-30 p-2 rounded-2xl bg-[#FFF7F1] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FFEBAA]/40 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-1 max-h-72 overflow-y-auto">
+                  <div className="absolute left-0 right-0 top-full mt-2 z-50 p-2 rounded-2xl bg-[#FFF7F1] dark:bg-[#261817] border-2 border-[#382322] dark:border-[#FFEBAA]/40 shadow-[4px_4px_0_#382322] dark:shadow-[4px_4px_0_#000] space-y-1 max-h-72 overflow-y-auto">
                     {editingStyleOptions.map((opt) => {
                       const isSelected = editingStyle === opt.id;
                       const IconComp = opt.icon;
@@ -972,7 +972,7 @@ export const CreateProject = () => {
           </div>
 
           {/* Section 2: Expected Video Duration */}
-          <div className="brutal-card p-6 md:p-7 space-y-4 rounded-2xl">
+          <div className="brutal-card p-6 md:p-7 space-y-4 rounded-2xl relative z-10">
             <div className="flex items-center justify-between pb-3 border-b-2 border-[#382322]/15 dark:border-[#FDEBDE]/15">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#382322] dark:text-[#FFEBAA]" />

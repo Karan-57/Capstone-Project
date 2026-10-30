@@ -204,8 +204,8 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
   const isCreator = profile.role === 'creator';
   const roleLabel = isCreator ? 'Creator Studio' : 'Freelancer Specialist';
 
-  const ratingScore = profile.rating != null ? Number(profile.rating).toFixed(1) : '0.0';
-  const totalReviewsCount = profile.totalReviews != null ? profile.totalReviews : reviewsData.length;
+  const ratingScore = profile.rating != null && Number(profile.rating) > 0 ? Number(profile.rating).toFixed(1) : (reviewsData.length > 0 ? (reviewsData.reduce((acc, r) => acc + (r.rating || 0), 0) / reviewsData.length).toFixed(1) : '0.0');
+  const totalReviewsCount = profile.totalReviews != null && Number(profile.totalReviews) > 0 ? profile.totalReviews : (reviewsData.length || 0);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full px-2 sm:px-4 pb-12 animate-fade-in text-[#261615] dark:text-[#FDEBDE]">
@@ -231,7 +231,7 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
       {/* Profile Card Banner */}
       <div className="bg-[#FFF7F1] dark:bg-[#201413] border-2 border-[#382322] dark:border-[#FDEBDE]/30 rounded-2xl shadow-[4px_4px_0_#382322] overflow-hidden">
         {/* Banner Cover */}
-        <div className="h-32 sm:h-44 bg-[#FFEBAA] dark:bg-[#2D1C1B] relative p-6 flex items-end justify-between border-b-2 border-[#382322] dark:border-[#FDEBDE]/20">
+        <div className="h-32 sm:h-44 bg-[#FFEBAA] dark:bg-[#2D1C1B] relative z-0 p-6 flex items-end justify-between border-b-2 border-[#382322] dark:border-[#FDEBDE]/20">
           <div className="absolute top-4 right-4">
             <span className="text-[11px] font-mono font-bold px-3 py-1 rounded-md uppercase tracking-wider border-2 border-[#382322] shadow-[2px_2px_0_#382322] bg-[#B1C8EA] text-[#261615]">
               {roleLabel}
@@ -240,9 +240,9 @@ export const PublicProfilePage = ({ role = 'creator' }) => {
         </div>
 
         {/* Profile Content Body */}
-        <div className="p-5 sm:p-7 space-y-6">
+        <div className="p-5 sm:p-7 space-y-6 relative z-10">
           {/* Header Row: Avatar, Names, Message CTA */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-16 sm:-mt-20">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-16 sm:-mt-20 relative z-20">
             <div className="flex items-end gap-4 min-w-0">
               {/* Avatar */}
               <div className="relative w-20 h-20 min-w-[80px] min-h-[80px] max-w-[80px] max-h-[80px] sm:w-24 sm:h-24 sm:min-w-[96px] sm:min-h-[96px] sm:max-w-[96px] sm:max-h-[96px] rounded-full overflow-hidden shrink-0 border-4 border-[#382322] dark:border-[#FFEBAA] shadow-[3px_3px_0_#382322] bg-[#FAF0E6]">
